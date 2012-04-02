@@ -56,6 +56,7 @@ import functions.TypeScore;
  * 
  * @author sammy
  *
+ * un message inutile
  */
 public class GuiTestMain 
 							implements IEventListener // and for events from the game 
