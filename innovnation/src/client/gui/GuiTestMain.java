@@ -1241,7 +1241,6 @@ public class GuiTestMain
 	public static void main(String[] args) {
 
 		//System.setSecurityManager(new RMISecurityManager());
-
 		try {
 			GuiTestMain t = new GuiTestMain();
 
