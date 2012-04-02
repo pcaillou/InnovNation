@@ -144,6 +144,7 @@ public abstract class ClientCore implements IClientCore {
 
 		logger.debug("getting local copy of the game...");
 		this.game = LocalCopyOfGame.getOrCreateLocalCopy(remoteGame);
+		logger.debug("correction of the link bug...");
 
 		logger.debug("registring as listener...");
 		
