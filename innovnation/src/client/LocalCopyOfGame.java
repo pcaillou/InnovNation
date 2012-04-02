@@ -339,6 +339,22 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 				}
 			}
 			
+			// synchro links
+			logger.debug("synchronizing links...");
+			for (IIdea current: distantGame.getAllIdeas()) {
+				
+				logger.debug("idea retrieved from the server : "+current);
+
+//				current.recreateLinks();
+				int idNovel= current.getUniqueId();
+
+				if (!ideaExists(idNovel)) {
+					idNovel = injectIdea(current);
+					logger.debug("idea injected as : "+getIdea(idNovel));
+				} else {
+					logger.debug("idea already present as : "+getIdea(idNovel));
+				}
+			}
 
 			// synchro comments
 			logger.debug("synchronizing comments...");
