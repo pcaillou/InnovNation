@@ -28,7 +28,7 @@ import data.IPlayer;
  *
  */
 public enum TypeScore{
-	creativité("créativité") {
+	creativite("creativite") {
 		@Override
 		// somme(chacune de ses idées,
 		// max(temps,nb mises des autres joueurs))
