@@ -1,0 +1,438 @@
+/**
+ * 
+ */
+package functions;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.rmi.RemoteException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import data.Avatars;
+import data.CommentValence;
+import data.IComment;
+import data.IIdea;
+import data.IItem;
+import data.IStorable;
+import data.Idea;
+import data.Item;
+import data.Player;
+import errors.AlreadyExistsException;
+import errors.TooLateException;
+import events.LinkEvent;
+import functions.logs.CommentLogPack;
+import functions.logs.GameLogPack;
+import functions.logs.IdeaLogPack;
+import functions.logs.ItemLogPack;
+import functions.logs.LogType;
+import functions.logs.PlayerLogPack;
+
+/**
+ * This is an RMI server which dies when it has no more observer; 
+ * @author Pierre Marques
+ */
+public class Game extends AbstractGame implements IServerSideGame {
+	private static final long serialVersionUID = 1L;
+
+	private long startingTime;
+	
+	//utilitaires de log
+	private FileWriter logFileWriter;
+	
+	private GameLogPack gameLP = new GameLogPack(this);
+	private Map<Integer, PlayerLogPack> playerLPs = new HashMap<Integer, PlayerLogPack>();
+	
+	private Map<Integer, ItemLogPack> itemLPs = new HashMap<Integer, ItemLogPack>();
+	private Map<Integer, IdeaLogPack> ideaLPs = new HashMap<Integer, IdeaLogPack>();
+	
+	private Map<Integer, CommentLogPack> commentLPs = new HashMap<Integer, CommentLogPack>();
+
+
+	/**
+	 * @param descr
+	 * @throws RemoteException
+	 * @throws UnknownHostException
+	 * @throws IOException if the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason
+	 */
+	public Game(IGameDescription descr) throws RemoteException, UnknownHostException, IOException {
+		super(descr);
+		
+		int root = createRootIdea(new Idea(IStorable.notAnId, descr.getTheme(), "", ideas,null));
+
+		logFileWriter = new FileWriter(new File(descr.getName()+".csv"));
+		logTitles();
+		
+		ideaLPs.put(root, new IdeaLogPack(this, getIdea(root), 0));
+		startingTime=System.currentTimeMillis();
+	}
+
+
+	/**
+	 * tells what time is it since game started
+	 * @return a positive time in second
+	 */
+	private int getNow() {
+		return (int) ((System.currentTimeMillis()-startingTime) / 1000);
+	}
+	
+	/*
+	 * IGame
+	 */
+	
+	/* (non-Javadoc)
+	 * @see functions.IGame#addItem(int, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public int addItem(int authorId, String itemName, String itemDescription)
+	throws RemoteException {
+		IItem item = new Item(authorId, itemName, itemDescription);
+		int id = injectItem(item);
+		
+		itemLPs.put(id, new ItemLogPack(getNow()));
+		try {
+			log(authorId, LogType.item, id, 
+				new StringBuilder(item.toString())
+					.append(" by ")
+					.append(getPlayer(authorId).toString())
+					.toString()
+			);
+		} catch (IOException e) {
+			//TODO what shall I do?
+		}
+		
+		fireItemCreatedEvent(authorId, id);
+		return id;
+	}
+
+	/* (non-Javadoc)
+	 * @see functions.IGame#addIdea(int, java.lang.String, java.util.Collection, java.util.Collection)
+	 */
+	@Override
+	public int addIdea(int authorId, String ideaName, String desc, Collection<Integer> itemsIds, Collection<Integer> parentIdeasIds)
+	throws AlreadyExistsException, TooLateException, RemoteException {
+		
+		int id = injectIdea(authorId, ideaName, desc, itemsIds, parentIdeasIds);
+
+		ideaLPs.put(id, new IdeaLogPack(this, getIdea(id), getNow()));
+		
+		try {
+			log(authorId, LogType.idea, id, 
+				new StringBuilder(getIdea(id).toString())
+					.append(" by ")
+					.append(getPlayer(authorId).toString())
+					.toString()
+			);
+		} catch (IOException e) {
+			//TODO what shall I do?
+		}
+		
+		fireIdeaCreatedEvent(authorId, id);
+		return id;
+	}
+
+	/* (non-Javadoc)
+	 * @see functions.IGame#makeIdeaParentOf(int, int, java.util.Collection)
+	 */
+	@Override
+	public void makeIdeaParentOf(int authorId, int parentId,
+			Collection<Integer> ideasIds) throws TooLateException,
+			RemoteException {
+		LinkEvent event = new LinkEvent(authorId);
+		
+		for(int childId : ideasIds){
+			try{
+				linkIdeas(parentId, childId);
+				event.add(parentId, childId);
+
+				ideaLPs.get(childId).updateOnLinkToParent(authorId, getIdea(parentId));
+				ideaLPs.get(parentId).updateOnLinkToChild(authorId, getIdea(childId));
+			} catch(NullPointerException e){
+			}
+		}
+			
+		fireIdeaLinkCreatedEvent(event);
+	}
+
+	/* (non-Javadoc)
+	 * @see functions.IGame#makeIdeaChildOf(int, int, java.util.Collection)
+	 */
+	@Override
+	public void makeIdeaChildOf(int authorId, int childId,
+			Collection<Integer> ideasIds) throws TooLateException,
+			RemoteException {
+		LinkEvent event = new LinkEvent(authorId);
+		
+		for(int parentId : ideasIds){
+			try{
+				linkIdeas(parentId, childId);
+				event.add(parentId, childId);
+				ideaLPs.get(childId).updateOnLinkToParent(authorId, getIdea(parentId));
+				ideaLPs.get(parentId).updateOnLinkToChild(authorId, getIdea(childId));
+			} catch(NullPointerException e){
+			}
+		}
+		
+		fireIdeaLinkCreatedEvent(event);
+	}
+
+	
+	/* (non-Javadoc)
+	 * @see functions.IGame#addComment(int, int, java.lang.String)
+	 */
+	@Override
+	public int commentIdea(int authorId, int ideaId, String text, int tokens, CommentValence valence)
+			throws RemoteException {
+		int id = injectIdeaComment(authorId, ideaId, text, tokens, valence);
+
+		commentLPs.put(id, new CommentLogPack(this, getComment(id), getNow()));
+		try {
+			log(authorId, (tokens==0)?LogType.comment:LogType.vote, id, 
+				new StringBuilder(getComment(id).toString())
+					.append(" by ")
+					.append(getPlayer(authorId).toString())
+					.toString()
+			);
+		} catch (IOException e) {
+			//TODO what shall I do?
+		}
+		
+		fireCommentCreatedEvent(authorId, id);
+		return id;
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see functions.IGame#commentItem(int, int, java.lang.String)
+	 */
+	@Override
+	public int commentItem(int authorId, int itemId, String text)
+			throws RemoteException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	/* (non-Javadoc)
+	 * @see functions.IGame#answerComment(int, int, java.lang.String)
+	 */
+	@Override
+	public int answerComment(int authorId, int commentId, String text, int tokens)
+			throws RemoteException {
+		int id = injectCommentAnswer(authorId, commentId, text, tokens);
+
+		commentLPs.put(id, new CommentLogPack(this, getComment(id), getNow()));
+		try {
+			log(authorId, (tokens==0)?LogType.comment:LogType.vote, id, 
+				new StringBuilder(getComment(id).toString())
+					.append(" by ")
+					.append(getPlayer(authorId).toString())
+					.toString()
+			);
+		} catch (IOException e) {
+			//what shall I do?
+		}
+		
+		fireCommentCreatedEvent(authorId, id);
+		return id;
+	}
+
+	/* (non-Javadoc)
+	 * @see functions.IGame#addPlayer(java.lang.String)
+	 */
+	@Override
+	public int addPlayer(String playerName) throws RemoteException {
+		return addPlayer( playerName, Avatars.getOneAvatarRandomly() );
+	}
+	
+
+	@Override
+	public int addPlayer(String playerName, String avatar)
+			throws RemoteException {
+		int id = injectPlayer(new Player(playerName, avatar));
+		
+		gameLP.updateOnPlayer(id);
+		playerLPs.put(id, new PlayerLogPack(this,getPlayer(id), getNow()));
+		
+		firePlayerJoinedEvent(id);
+		return id;
+	}
+
+	/* (non-Javadoc)
+	 * @see functions.IGame#removePlayer(int)
+	 */
+	@Override
+	public void removePlayer(int playerId) throws RemoteException {
+		ejectPlayer(playerId);
+		
+		gameLP.updateOnPlayerLeft(playerId);
+		
+		firePlayerLeftEvent(playerId);
+	}
+
+	/*
+	 * IShutdownable
+	 */
+	
+	/* (non-Javadoc)
+	 * @see util.Shutdownable#shutDown()
+	 */
+	@Override
+	public void shutDown() throws RemoteException {
+		
+		try {
+			logFileWriter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		fireEndOfGame();
+		super.terminate();
+	}
+
+
+	//logs scientifiques:
+	private void updateLogDataOnItem(int playerId, int thingId) throws RemoteException{
+		gameLP.updateOnItem(playerId, getItem(thingId));
+		playerLPs.get(playerId).updateOnItem(playerId, getItem(thingId));
+	}
+	
+	private void updateLogDataOnIdea(int playerId, int thingId) throws RemoteException{
+		IIdea data = getIdea(thingId);
+		gameLP.updateOnIdea(playerId, data);
+		playerLPs.get(playerId).updateOnIdea(playerId, data);
+		
+		for(int i : data.getItemsIds()){
+			playerLPs.get(getItem(i).getPlayerId()).updateItemUsage(1);
+		}
+		
+		for(IIdea i : data.getParents()){
+			//as root has no owner, we can't update him... 
+			ideaLPs.get(i.getUniqueId()).updateOnIdea(playerId, data);
+			if(i != getRootIdea()){
+				playerLPs.get(i.getPlayerId()).updateIdeaUsage(1);
+			}
+		}
+	}
+
+	private void updateLogDataOnComment(int playerId, int thingId) throws RemoteException{
+		//int commentedIdea = findIdeaFromComment(thingId);
+		IComment data = getComment(thingId);
+		
+		gameLP.updateOnComment(playerId, data);
+		
+		playerLPs.get(playerId).updateOnComment(playerId, data);
+		
+		//idea notification (commented one, its parents and maybe its children)
+		//TODO only notify some ideas
+		for (IdeaLogPack i : ideaLPs.values()) {
+			i.updateOnComment(playerId, data);
+		}
+		
+		//players' comment usage
+	}
+	
+	private void logTitles() throws IOException{
+		logFileWriter.append("type;");
+		//now
+		logFileWriter.append("time;");
+		
+		//game data
+		logFileWriter.write(GameLogPack.titles());
+		
+		//player data
+		logFileWriter.write(PlayerLogPack.titles());
+
+		//item data
+		logFileWriter.write(ItemLogPack.titles());
+		
+		//idea data
+		logFileWriter.write(IdeaLogPack.titles());
+		
+		//à vérifier
+		//idea sons data
+		//logFileWriter.write(IdeaSonsLogPack.titles());
+		
+		//comment data
+		logFileWriter.write(CommentLogPack.titles());
+
+		logFileWriter.write("abstract;\n");
+		logFileWriter.flush();
+	}
+	
+	/**
+	 * TODO may need to be synchronized
+	 * @param playerId
+	 * @param type
+	 * @param thingId
+	 * @throws IOException if the log writer emits an IOException
+	 */
+	private void log(int playerId, LogType type, int thingId, String logMessage) throws IOException{
+		int now = getNow();
+		//first, update datas
+		
+		//TODO do I need to update scores
+		getPlayer(playerId).majScores(this);
+		
+		switch (type) {
+		case item:
+			updateLogDataOnItem(playerId, thingId);
+			break;
+		case idea:
+			updateLogDataOnIdea(playerId, thingId);
+			break;
+		default:
+			updateLogDataOnComment(playerId, thingId);
+			break;
+		}
+		
+		//then, print useful components
+		
+		//type
+		logFileWriter.append(type.toString()).append(';');
+		//now
+		logFileWriter.append(Integer.toString(now)).append(';');
+		
+		//game data
+		logFileWriter.write(gameLP.log(now));
+		
+		//player data
+		logFileWriter.write(playerLPs.get(playerId).log(now));
+
+		//item data
+		logFileWriter.write(
+			type==LogType.item? itemLPs.get(thingId).log(now): ItemLogPack.zeros()
+		);
+		
+		//idea data
+		if(type==LogType.item) logFileWriter.write( IdeaLogPack.zeros() );
+		else {
+			logFileWriter.write(
+				(type==LogType.idea)?
+					ideaLPs.get(thingId).log(now):
+					ideaLPs.get( findIdeaFromComment(thingId) ).log(now)
+			);
+		}
+		
+		//à vérifier
+		//idea sons data
+		//(type==LogType.vote||type==LogType.comment)? ideaSonsLPs.get(thingId).log(now): IdeaSonsLogPack.zeros()
+		
+		//comment data
+		logFileWriter.write(
+			(type==LogType.vote||type==LogType.comment)? commentLPs.get(thingId).log(now): CommentLogPack.zeros()
+		);
+		
+		
+		logFileWriter.write(logMessage);
+		logFileWriter.write('\n');
+		logFileWriter.flush();
+		
+		//mettre à jour les données de temps
+		playerLPs.get(playerId).noticeAction(now);
+	}
+	
+	
+}
