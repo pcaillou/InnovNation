@@ -36,7 +36,7 @@ import client.ClientCore;
 import data.CommentValence;
 import data.IComment;
 import data.IIdea;
-import data.IItem;
+// AD import data.IItem;
 import events.GameObjectEvent;
 import events.IEventListener;
 import events.LinkEvent;
@@ -115,8 +115,10 @@ public class GuiCreateComment implements IEventListener {
 	 */
 	private final int LOOK_COMPOSITE_STYLE_SUBSPACES = SWT.NONE; // SWT.BORDER;
 	
-	private final int LOOK_NB_LINES_DESC = 3;
-	private final int LOOK_NB_LINES_ITEMDESC = 2;
+	private final int LOOK_NB_LINES_DESC = 3;	
+	@SuppressWarnings("unused")
+	private final int LOOK_NB_LINES_ITEMDESC = 2;	
+	@SuppressWarnings("unused")
 	private final int LOOK_NB_LINES_ITEMS_AVAILABLE = 10;
 	private final int LOOK_NB_LINES_ITEMS_SELECTED = 8;
 

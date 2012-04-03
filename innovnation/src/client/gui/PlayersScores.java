@@ -1,11 +1,11 @@
 package client.gui;
 
 import java.util.Map;
-import java.util.SortedMap;
+// AD import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import data.IPlayer;
+// AD import data.IPlayer;
 
 public class PlayersScores implements Comparable<PlayersScores> {
 

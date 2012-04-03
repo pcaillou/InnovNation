@@ -3,7 +3,7 @@
  */
 package functions.logs;
 
-import java.rmi.RemoteException;
+// AD import java.rmi.RemoteException;
 
 import data.CommentValence;
 import data.IComment;
@@ -18,6 +18,7 @@ import functions.IGame;
  */
 public class CommentLogPack implements LogPack {
 	private int creationTime, size, rank, valence,tokens, inceptions, outceptions;
+	@SuppressWarnings("unused")
 	private IGame game;
 		
 	

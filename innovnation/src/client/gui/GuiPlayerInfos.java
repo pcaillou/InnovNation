@@ -10,10 +10,12 @@ import org.eclipse.swt.widgets.Display;
 import data.IPlayer;
 
 public class GuiPlayerInfos {
-
+	
+	@SuppressWarnings("unused")
 	private Logger logger = Logger.getLogger("client.gui.playerinfo");
 	
-
+	
+	@SuppressWarnings("unused")
 	private Composite compositeHost = null;
 	
 	/**
@@ -25,7 +27,8 @@ public class GuiPlayerInfos {
 	 * Stores the avatar image (if any)
 	 */
 	private Image sourceImage = null;
-		
+	
+	@SuppressWarnings("unused")
 	private Canvas imageDisplay = null;
 	
 	/**
@@ -68,6 +71,7 @@ public class GuiPlayerInfos {
 		
 	}
 	
+	@SuppressWarnings("unused")
 	private Image loadImage(String filename) { 
 		
 		// free image 

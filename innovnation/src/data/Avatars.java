@@ -34,6 +34,8 @@ public class Avatars {
 	 * Updates the list of available avatars from filesystem (or JAR).
 	 * 
 	 */
+	
+	@SuppressWarnings("unchecked")
 	public static void refreshAvailableAvatars() {
 
 		logger.debug("Refreshing the list of avatars available as a ressource into "+resourcePath);

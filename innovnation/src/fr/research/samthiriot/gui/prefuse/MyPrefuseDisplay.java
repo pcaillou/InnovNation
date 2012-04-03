@@ -17,6 +17,9 @@ import prefuse.data.expression.Predicate;
  */
 public final class MyPrefuseDisplay extends Display {
 
+	// AD /* id auto genere
+	private static final long serialVersionUID = 1L; // */
+
 	public MyPrefuseDisplay() {
 		
 	}

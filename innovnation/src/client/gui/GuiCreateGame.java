@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Text;
  */
 public class GuiCreateGame {
 	
+	@SuppressWarnings("unused")
 	private Logger logger = Logger.getLogger("client.gui.createGame");
 	
 	private Shell shell = null;
@@ -310,6 +311,7 @@ public class GuiCreateGame {
 	}
 	
 	
+	@SuppressWarnings("unused")
 	private void displayError(String title, String msg) {
 		MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
 		mb.setText(title);

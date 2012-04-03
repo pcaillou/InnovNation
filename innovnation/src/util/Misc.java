@@ -44,7 +44,7 @@ public class Misc {
 	   * @throws URISyntaxException 
 	   * @throws IOException 
 	   */
-	  public static String[] getResourceListing(Class clazz, String path) throws java.net.URISyntaxException, java.io.IOException {
+	  public static String[] getResourceListing(@SuppressWarnings("rawtypes") Class clazz, String path) throws java.net.URISyntaxException, java.io.IOException { // */
 	     
 		  ClassLoader cl = clazz.getClassLoader();
 		  if (cl == null)

@@ -25,6 +25,7 @@ import data.IPlayer;
  */
 public class SelectionControl extends ControlAdapter implements ISelectionControl {
 
+	@SuppressWarnings("unused")
 	private Logger logger = Logger.getLogger("client.gui.selection");
 	
     private int m_button1 = LEFT_MOUSE_BUTTON;

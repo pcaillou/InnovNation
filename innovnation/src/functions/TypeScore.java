@@ -9,14 +9,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
+// AD import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
+//AD import java.util.SortedSet;
 
 import org.apache.log4j.Logger;
-import org.eclipse.swt.SWT;
+//AD import org.eclipse.swt.SWT;
 
-import client.gui.PlayersScores;
+//AD import client.gui.PlayersScores;
 
 import data.CommentValence;
 import data.IComment;
@@ -439,6 +439,7 @@ public enum TypeScore{
 	 */
 	public abstract double calculer(IGame g, int playerId) throws RemoteException;
 
+	@SuppressWarnings("unused")
 	public double calculerrk(IGame g, int playerId) throws RemoteException
 	{
 		LinkedList<Integer> playerIds;
@@ -447,10 +448,12 @@ public enum TypeScore{
 		Map<Integer, Double> sctab = this.calculer(g);
 		
 		int i=0;
+		
 		Map<Integer, Double>  sccop;
 				
 				double scval=sctab.get(playerId);
-				ArrayList sol=new ArrayList(sctab.values());
+				// AD ArrayList sol=new ArrayList(sctab.values()); /* code original
+				ArrayList<Double> sol=new ArrayList<Double>(sctab.values()); // */
 				Collections.sort(sol);
 	
 				int rgval=playerIds.size()-sol.indexOf(scval);
