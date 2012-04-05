@@ -5,6 +5,8 @@ package functions.logs;
 
 // AD import java.rmi.RemoteException;
 
+import java.rmi.RemoteException;
+
 import data.CommentValence;
 import data.IComment;
 import data.IIdea;
@@ -54,6 +56,14 @@ public class CommentLogPack implements LogPack {
 			e.printStackTrace();
 		}
 */		tokens = comment.getTokensCount();
+		
+		// voir le joueur cible du commentaire
+		try {
+			game.getPlayer(comment.getPlayerId());
+			// ajouter à player une variable contenant le temps exact de ce contact 
+		} catch (RemoteException e) {e.printStackTrace();}
+
+
 	}
 	
 	static public String titles() {

@@ -53,6 +53,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 
 
 	/**
+	 * Construit une partie InnovNation
 	 * @param descr
 	 * @throws RemoteException
 	 * @throws UnknownHostException
@@ -61,12 +62,17 @@ public class Game extends AbstractGame implements IServerSideGame {
 	public Game(IGameDescription descr) throws RemoteException, UnknownHostException, IOException {
 		super(descr);
 		
+		/* on cree l'idee racine de la partie */
 		int root = createRootIdea(new Idea(IStorable.notAnId, descr.getTheme(), "", ideas,null));
 
+		/* on cree le fichier servant aux logs de la partie */
 		logFileWriter = new FileWriter(new File(descr.getName()+".csv"));
 		logTitles();
 		
+		/* on ajoute l'idee racine aux idees */
 		ideaLPs.put(root, new IdeaLogPack(this, getIdea(root), 0));
+		
+		/* on recupere le temps actuel comme temps du debut de la partie */
 		startingTime=System.currentTimeMillis();
 	}
 
@@ -89,10 +95,15 @@ public class Game extends AbstractGame implements IServerSideGame {
 	@Override
 	public int addItem(int authorId, String itemName, String itemDescription)
 	throws RemoteException {
+		
+		/* on cree l'item et on l'ajoute */
 		IItem item = new Item(authorId, itemName, itemDescription);
 		int id = injectItem(item);
 		
+		/* on ajoute aux logs du jeu l'ajout de l'item */
 		itemLPs.put(id, new ItemLogPack(getNow()));
+		
+		/* on ajoute aux logs statistique l'ajout de l'item */
 		try {
 			log(authorId, LogType.item, id, 
 				new StringBuilder(item.toString())
@@ -104,6 +115,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 			//TODO what shall I do?
 		}
 		
+		/* on lance un evenement pour dire que l'item est cree */
 		fireItemCreatedEvent(authorId, id);
 		return id;
 	}
@@ -115,10 +127,13 @@ public class Game extends AbstractGame implements IServerSideGame {
 	public int addIdea(int authorId, String ideaName, String desc, Collection<Integer> itemsIds, Collection<Integer> parentIdeasIds)
 	throws AlreadyExistsException, TooLateException, RemoteException {
 		
+		/* on cree l'idee */
 		int id = injectIdea(authorId, ideaName, desc, itemsIds, parentIdeasIds);
 
+		/* on joute aux logs du jeu l'ajout de l'idee */
 		ideaLPs.put(id, new IdeaLogPack(this, getIdea(id), getNow()));
 		
+		/* on joute aux logs statistique l'ajout de l'idee */
 		try {
 			log(authorId, LogType.idea, id, 
 				new StringBuilder(getIdea(id).toString())
@@ -130,6 +145,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 			//TODO what shall I do?
 		}
 		
+		/* on lance un evenement indiquant la creation de l'idee */
 		fireIdeaCreatedEvent(authorId, id);
 		return id;
 	}
@@ -141,19 +157,23 @@ public class Game extends AbstractGame implements IServerSideGame {
 	public void makeIdeaParentOf(int authorId, int parentId,
 			Collection<Integer> ideasIds) throws TooLateException,
 			RemoteException {
+		/* on cree un evenement de creation de lien */
 		LinkEvent event = new LinkEvent(authorId);
 		
 		for(int childId : ideasIds){
 			try{
+				/* on lie l'idee a son pere, et on ajoute le lien a l'evenement */
 				linkIdeas(parentId, childId);
 				event.add(parentId, childId);
 
+				/* on ajoute la creation du lien aux logs du jeu et statistique */
 				ideaLPs.get(childId).updateOnLinkToParent(authorId, getIdea(parentId));
 				ideaLPs.get(parentId).updateOnLinkToChild(authorId, getIdea(childId));
 			} catch(NullPointerException e){
 			}
 		}
-			
+		
+		/* on envoie l'evenement de creation de link */
 		fireIdeaLinkCreatedEvent(event);
 	}
 
