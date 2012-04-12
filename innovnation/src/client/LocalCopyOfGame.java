@@ -2,6 +2,7 @@ package client;
 
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -13,6 +14,7 @@ import data.IComment;
 import data.IIdea;
 import data.IItem;
 import data.IPlayer;
+import data.Idea;
 import errors.AlreadyExistsException;
 import errors.TooLateException;
 import events.GameObjectEvent;
@@ -264,6 +266,8 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 	 */
 	public void resync() {
 		// TODO !!!
+		System.out.println("_________ SYNCHRONISATION _________");
+		
 		try {
 			LinkedList<Integer> localIds;
 			
@@ -327,8 +331,14 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 			logger.debug("synchronizing ideas...");
 			for (IIdea current: distantGame.getAllIdeas()) {
 				
+				Idea.watchIndex(current);
+				
 				logger.debug("idea retrieved from the server : "+current);
 
+				//System.out.println("PARENTS : " + current.getParentsIndexs());
+				
+				//ideas.makeDepend(current.getI, parent);
+				
 				int idNovel= current.getUniqueId();
 
 				if (!ideaExists(idNovel)) {
@@ -345,14 +355,24 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 				
 				logger.debug("idea retrieved from the server : "+current);
 
-//				current.recreateLinks();
-				int idNovel= current.getUniqueId();
-
-				if (!ideaExists(idNovel)) {
-					idNovel = injectIdea(current);
-					logger.debug("idea injected as : "+getIdea(idNovel));
-				} else {
-					logger.debug("idea already present as : "+getIdea(idNovel));
+				System.out.println("id des parents stockés : " + current.getParentsIds());
+				
+				for (Integer i : current.getParentsIndexs())
+				{
+					Integer idParent = 1;
+					for (IIdea parent : ideas)
+					{
+						if (i.equals(parent.getIndex()))
+						{
+							idParent = parent.getUniqueId();
+						}
+					}
+					
+					System.out.println("Parent trouve : index :" + i + " id:" + idParent);
+					ArrayList<Integer> childs = new ArrayList<Integer>();
+					childs.add(current.getUniqueId());
+					
+					makeIdeaParentOf(current.getPlayerId(),idParent,childs);
 				}
 			}
 
@@ -381,6 +401,7 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 			e.printStackTrace();
 		}
 
+		System.out.println("_________ FIN SYNCHRONISATION _________");
 
 	}
 

@@ -130,7 +130,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 		/* on cree l'idee */
 		int id = injectIdea(authorId, ideaName, desc, itemsIds, parentIdeasIds);
 
-		/* on joute aux logs du jeu l'ajout de l'idee */
+		/* on ajoute aux logs du jeu l'ajout de l'idee */
 		ideaLPs.put(id, new IdeaLogPack(this, getIdea(id), getNow()));
 		
 		/* on joute aux logs statistique l'ajout de l'idee */

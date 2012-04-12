@@ -1,6 +1,7 @@
 package data;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import functions.IGame;
@@ -59,5 +60,9 @@ extends IGameObject {
 	
 	String getDesc();
 
+	public void addParentIndex(Integer _index);
 	
+	public ArrayList<Integer> getParentsIndexs();
+	
+	public Integer getIndex();
 }

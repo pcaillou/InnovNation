@@ -28,7 +28,6 @@ import errors.TooLateException;
 public class Whiteboard implements IWhiteboard {
 	
 	protected Map<Integer, IItem> items;
-	
 	protected Dag<Integer, IIdea> ideas;
 	private Integer rootIdeaId = 0;
 	
@@ -50,6 +49,8 @@ public class Whiteboard implements IWhiteboard {
 						null
 						)
 				);
+		
+		
 	}
 
 	public Whiteboard(IIdea rootIdea) throws RemoteException{
@@ -80,6 +81,7 @@ public class Whiteboard implements IWhiteboard {
 	 * @see data.IWhiteboard#getAllItemsIds()
 	 */
 	public LinkedList<Integer> getAllItemsIds() throws RemoteException{
+		System.out.println("APPEL A getAllItemsIds");
 		return new LinkedList<Integer>(items.keySet());
 	}
 	
@@ -87,6 +89,7 @@ public class Whiteboard implements IWhiteboard {
 	 * @see data.IWhiteboard#getAllItems()
 	 */
 	public LinkedList<IItem> getAllItems() throws RemoteException{
+		System.out.println("APPEL A getAllItems");
 		return new LinkedList<IItem>(items.values());
 	}
 	
@@ -104,6 +107,7 @@ public class Whiteboard implements IWhiteboard {
 	 */
 	@Override
 	public IIdea getRootIdea() throws RemoteException {
+		System.out.println("APPEL A getRootIdea");
 		return ideas.get(rootIdeaId);
 	}
 
@@ -112,6 +116,7 @@ public class Whiteboard implements IWhiteboard {
 	 */
 	@Override
 	public LinkedList<IIdea> getAllIdeas() throws RemoteException {
+		System.out.println("APPEL A getAllIdeas");
 		LinkedList<IIdea> res = new LinkedList<IIdea>();
 		Iterator<IIdea> i = ideas.iterator();
 		while(i.hasNext()) res.add(i.next());
@@ -123,6 +128,7 @@ public class Whiteboard implements IWhiteboard {
 	 */
 	@Override
 	public LinkedList<IComment> getAllComments() throws RemoteException {
+		System.out.println("APPEL A getAllComments");
 		return new LinkedList<IComment>(ideaComments.values());
 	}
 	
@@ -131,6 +137,7 @@ public class Whiteboard implements IWhiteboard {
 	 */
 	@Override
 	public LinkedList<IComment> getComments(int commented) throws RemoteException {
+		System.out.println("APPEL A getComments");
 		return new LinkedList<IComment>(ideaComments.get(commented));
 	}
 
@@ -162,14 +169,9 @@ public class Whiteboard implements IWhiteboard {
 		return otherItem.getUniqueId();
 	}
 	
-	public void removeItemCopy(Integer itemId) {
-		// TODO
-	}
+	public void removeItemCopy(Integer itemId) { /* TODO */ }
 	
-	public void removeItemCopy(IItem item) {
-		// TODO
-	}
-	
+	public void removeItemCopy(IItem item) { /* TODO */ }
 	
 	public int addIdeaCopy(IIdea copy) {
 		ideas.createNode(copy.getUniqueId(), copy);
@@ -212,8 +214,11 @@ public class Whiteboard implements IWhiteboard {
 		
 		
 		ideas.createNode(id, idea);
+		System.out.println("RECHERCHE PARENTS WHITEBOARD");
 		for(Integer parent : parentIdeasIds){
 			ideas.makeDepend(id, parent);
+			System.out.println("AJOUT INDEX PARENT AU FILS WHITEBOARD");
+			idea.addParentIndex(ideas.get(parent).getIndex());
 		}
 
 		if ( (id != rootIdeaId) && (parentIdeasIds.isEmpty()) ) {

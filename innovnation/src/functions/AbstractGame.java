@@ -203,8 +203,10 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 
 		int id = idea.getUniqueId();
 		ideas.createNode(id, idea);
+
 		for(Integer parent : parentIdeasIds){
 			ideas.makeDepend(id, parent);
+			idea.addParentIndex(ideas.get(parent).getIndex());
 		}
 		if ( (id != rootIdeaId) && (parentIdeasIds.isEmpty()) ) {
 			// if no parent provided, but this idea is not a root idea, then automatically add the root idea as parent

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -31,6 +32,12 @@ import functions.IGame;
 public final class Idea extends GameObject implements IIdea {
 	
 	private static final long serialVersionUID = 1L;
+	
+	private static Integer indexCount = 0;
+	
+	private Integer index;
+	
+	private ArrayList<Integer> parentsIndexs;
 	
 	LinkedList<Integer> items = null;
 
@@ -61,8 +68,13 @@ public final class Idea extends GameObject implements IIdea {
 		else this.items = new LinkedList<Integer>(itemsIds);
 		this.graphIdeas = graphIdeas;
 		this.desc = createIdeaDescWithReturn(desc);
+		
+		/* on cree un nouvel index pour l'idee */
+		parentsIndexs = new ArrayList<Integer>();
+		index = indexCount;
+		Idea.indexCount++;
 	}
-
+	
 	private String createIdeaDescWithReturn(String descInit) {
 	
 		int MAX_CHARS = 50;
@@ -106,6 +118,32 @@ public final class Idea extends GameObject implements IIdea {
 		return sb.toString();
 	}
 	
+	/**
+	 * Fonction permetant a la classe locale de retrouver le meme index que le classe distante en regardant l'index de chaque IIdea
+	 * @param i : copie de l'idee en local
+	 */
+	public static void watchIndex(IIdea i)
+	{
+		if (indexCount <= i.getIndex())
+		{
+			indexCount = i.getIndex()+1;
+		}
+	}
+	
+	public void addParentIndex(Integer _index)
+	{
+		parentsIndexs.add(_index);
+	}	
+	
+	public ArrayList<Integer> getParentsIndexs()
+	{
+		return parentsIndexs;
+	}
+	
+	public Integer getIndex()
+	{
+		return index;
+	}
 	/* (non-Javadoc)
 	 * @see data.IIdea#getItemsIds()
 	 * 
@@ -195,8 +233,16 @@ public final class Idea extends GameObject implements IIdea {
 	private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
 
 		aInputStream.defaultReadObject();
+		if (LocalCopyOfGame.getLocalCopy().ideas != null)
+		{
+			graphIdeas = LocalCopyOfGame.getLocalCopy().ideas;
+		}
+		else
+		{
+			System.out.println("POINTEUR NULL");
+			graphIdeas = new Dag<Integer, IIdea>();
+		}
 		
-		graphIdeas = LocalCopyOfGame.getLocalCopy().ideas;
  
 	}
 	
