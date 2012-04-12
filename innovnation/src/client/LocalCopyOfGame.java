@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+
 import org.apache.log4j.Logger;
 
 import util.Pair;
@@ -354,8 +356,6 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 			for (IIdea current: distantGame.getAllIdeas()) {
 				
 				logger.debug("idea retrieved from the server : "+current);
-
-				System.out.println("id des parents stock�s : " + current.getParentsIds());
 				
 				for (Integer i : current.getParentsIndexs())
 				{
@@ -368,7 +368,6 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 						}
 					}
 					
-					System.out.println("Parent trouve : index :" + i + " id:" + idParent);
 					ArrayList<Integer> childs = new ArrayList<Integer>();
 					childs.add(current.getUniqueId());
 					
@@ -382,17 +381,36 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 				
 				logger.debug("comment retrieved from the server : "+current);
 
+				System.out.println("index parent comment : " + current.getIndexSource());
+				
+				
+				
 				int idNovel= current.getUniqueId();
 
 				if (!commentExists(idNovel)) {
-					idNovel = injectIdeaComment(current);
-					for(int i : distantGame.getIdeaParentIds(idNovel)){
-						linkIdeas(i, idNovel);
-					}
+					//find what is commented
+					
+					//IComment retrievedComment = distantGame.getComment(commentId);
+
+					//logger.debug("novel comment created on the server ("+retrievedComment+"), updating local info...");
+
+					int idNovelComment = injectIdeaComment(current);
+					IComment novelComment = getComment(idNovelComment);
+
+					//logger.debug("local copy of this comment created  ("+novelComment+")");
+
+					//transmission de l'événement aux enfants
+					//logger.debug("sending event...");
+					//fireCommentCreatedEvent(new GameObjectEvent(novelComment.getPlayerId(), novelComment.getUniqueId()));
+					
 					logger.debug("comment injected as : "+getComment(idNovel));
 				} else {
 					logger.debug("comment already present as : "+getComment(idNovel));
 				}
+				
+				/* creation du lien du commentaire */
+				//System.out.println("ajout commentaire ... " + current.getPlayerId() + ", " + ideaId + ", " + current.getText() + ", " + current.getTokensCount() + ", " + current.getValence());
+				//commentIdea(current.getPlayerId(), ideaId, current.getText(), current.getTokensCount(), current.getValence());
 			}
 			
 			//finished... ouf!

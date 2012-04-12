@@ -15,6 +15,7 @@ public class Comment extends GameObject implements IComment {
 	private final int commented;
 	private final CommentValence valence;
 	private String text;
+	private Integer indexIdea;
 	
 	/**
 	 * @param authorId
@@ -29,7 +30,6 @@ public class Comment extends GameObject implements IComment {
 		this.valence=valence;
 		this.text=text;
 		this.tokens = 0;
-		
 	}
 
 	/**
@@ -49,6 +49,16 @@ public class Comment extends GameObject implements IComment {
 		
 	}
 
+	public void setIndexSource(Integer indexSource)
+	{
+		indexIdea = indexSource;
+	}
+	
+	public Integer getIndexSource()
+	{
+		return indexIdea;
+	}
+	
 	/* (non-Javadoc)
 	 * @see data.IComment#get()
 	 */

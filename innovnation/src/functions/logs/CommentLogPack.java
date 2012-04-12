@@ -19,7 +19,7 @@ import functions.IGame;
  *
  */
 public class CommentLogPack implements LogPack {
-	private int creationTime, size, rank, valence,tokens, inceptions, outceptions;
+	private int creationTime, size, rank, valence,tokens, inceptions, outceptions, ownerId, ideaId;
 	@SuppressWarnings("unused")
 	private IGame game;
 		
@@ -34,6 +34,19 @@ public class CommentLogPack implements LogPack {
 		rank=0;
 		inceptions = 0;
 		outceptions = 0;
+		ownerId = comment.getPlayerId();
+		
+		try {
+			for (IIdea idea : game.getAllIdeas())
+			{
+				if (idea.getComments().contains(comment))
+				{
+					ideaId = idea.getUniqueId();
+				}
+			}
+		} catch (RemoteException e1) {
+			e1.printStackTrace(); // TODO continuer ici
+		}
 /*		IIdea i;
 		try {
 			i = game.getIdea(comment.get());

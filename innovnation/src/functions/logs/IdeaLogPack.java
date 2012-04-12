@@ -34,6 +34,7 @@ public class IdeaLogPack implements LogPack {
 	private int depthMax;//distance à la racine par le plus long chemin possible
 
 	//parents' data
+	private String parentsId;
 	private int parents,
 	parentItems, parentItemsMin, parentItemsMax,
 	parentComments, parentCommentsMin, parentCommentsMax,
@@ -222,6 +223,21 @@ public class IdeaLogPack implements LogPack {
 		
 		Collection<IIdea> myParents = idea.getParents();
 		this.parents = myParents.size();
+		this.parentsId = "[";
+		
+		for (IIdea parent : idea.getParents())
+		{
+			if (this.parentsId.equals("["))
+			{
+				this.parentsId += parent.getUniqueId();
+			}
+			else
+			{
+				this.parentsId += "," + parent.getUniqueId();
+			}
+		}
+		this.parentsId +="]";
+		
 		this.childrens=0;
 		this.sameOwnerParent = false;
 		this.sameOwnerParents = 0;
@@ -247,11 +263,28 @@ public class IdeaLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		return "ideaOwnerId;ideaCreationTime;ideaDepthMin;ideaDepthMax;ideaItems;ideaComments;PositiveComments;NegativeComments;PositiveProportion;NegativeProportion;NulProportion;ideaVotes;ideaTokens;ideaTokensMax;ideaShortLength;ideaLongLength;ideaParents;ideaParentItems;ideaParentItemsMin;ideaParentItemsMax;ideaParentComments;ideaParentCommentsMin;ideaParentCommentsMax;ideaParentVotes;ideaParentVotesMin;ideaParentVotesMax;ideaParentCreationTimeMin;ideaParentCreationTimeMax;ideaParentItemMean;ideaParentCommentsMean;ideaParentVotesMean;ideaParentCreationTimeMean;ideaHasSameOwnerParent;ideaSameOwnerParents;childrens;";
+		return "thisId;ideaOwnerId;ideaCreationTime;ideaDepthMin;ideaDepthMax;"+
+	           "ideaItems;ideaComments;PositiveComments;NegativeComments;PositiveProportion;NegativeProportion;NulProportion;ideaVotes;ideaTokens;ideaTokensMax;"+
+			   "ideaShortLength;ideaLongLength;"+
+	           "idParents;ideaParents;ideaParentItems;ideaParentItemsMin;ideaParentItemsMax;"+
+			   "ideaParentComments;ideaParentCommentsMin;ideaParentCommentsMax;"+
+	           "ideaParentVotes;ideaParentVotesMin;ideaParentVotesMax;"+
+			   "ideaParentCreationTimeMin;ideaParentCreationTimeMax;"+
+	           "ideaParentItemMean;ideaParentCommentsMean;ideaParentVotesMean;ideaParentCreationTimeMean;"+
+			   "ideaHasSameOwnerParent;ideaSameOwnerParents;"+
+	           "childrens;";
 	}
 
 	static public String zeros() {
-		return "0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0.0;0.0;0.0;0.0;false;0;0;0;0;0;0;0;";
+		return "0;0;0;0;0;"+
+			   "0;0;0;0;0;0;0;0;0;0;"+
+			   "0;0;"+
+			   "[];0;0;0;0;"+
+			   "0;0.0;0.0;"+
+			   "0.0;0.0;0.0"+
+			   "0;0;0;0;"+
+			   "0;0;"+
+			   "0;";
 	}
 	
 	/* (non-Javadoc)
@@ -260,6 +293,7 @@ public class IdeaLogPack implements LogPack {
 	@Override
 	public String log(int time) {
 		StringBuilder sb = new StringBuilder();
+		sb.append(myId).append(';');
 		sb.append(ownerId).append(';');
 		sb.append(creationTime).append(';');
 		sb.append(depthMin).append(';');
@@ -279,6 +313,7 @@ public class IdeaLogPack implements LogPack {
 		sb.append(shortLength).append(';');
 		sb.append(longLength).append(';');
 
+		sb.append(parentsId).append(';');
 		sb.append(parents).append(';');
 		sb.append(parentItems).append(';');
 		sb.append(parentItemsMin).append(';');

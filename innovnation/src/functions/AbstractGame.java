@@ -198,7 +198,7 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 	protected final int injectIdea(int playerId, String ideaName, String desc, Collection<Integer> itemsIds, Collection<Integer> parentIdeasIds)
 	throws AlreadyExistsException{
 		validateAsIdea(playerId, ideaName, itemsIds, parentIdeasIds);
-
+		
 		IIdea idea = new Idea(playerId, ideaName, desc, ideas, itemsIds); 
 
 		int id = idea.getUniqueId();
@@ -228,6 +228,7 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		if(idea==null) throw new NullPointerException();
 		if(ideas.exists(idea.getUniqueId())) throw new AlreadyExistsException();
 
+		
 		Collection<Integer> parentIdeasIds = idea.getParentsIds();
 
 		int id = idea.getUniqueId();
@@ -282,18 +283,28 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 	 */
 	protected final int injectIdeaComment(int playerId, int ideaId, String text, int tokens, CommentValence valence)
 	throws AlreadyExistsException{
+		
+		/* test choix id idea par index */
+		
 		validateAsIdeaComment(playerId, ideaId, text);
+		
 		String shortText = new StringBuilder("on ")
 				.append(ideas.get(ideaId).getShortName())
 				.append(" (by ")
 				.append(players.get(playerId).getShortName())
 				.append(')')
 				.toString();
+		
+		
+
+		System.out.println("AJOUT COMMENT injectIdea1");
 /*		CommentValence valence =
 			(tokens==0)?CommentValence.NEUTRAL : 
 				(tokens>0)? CommentValence.POSITIVE : CommentValence.NEGATIVE;*/
 		IComment comment = new Comment(playerId, ideaId, shortText, text, valence, tokens); 
 
+		comment.setIndexSource(ideas.get((Integer)ideaId).getIndex());
+		
 		int id = comment.getUniqueId();
 		
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(comment);
@@ -340,19 +351,36 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		if(comment==null) throw new NullPointerException();
 		if(fastCommentLookup.containsKey(comment.getUniqueId())) throw new AlreadyExistsException();
 
+		// utile pour synchro et ajout local
+		System.out.println("AJOUT COMMENT injectIdea2 - " + comment.getUniqueId());
+		
 		int id = comment.getUniqueId();
-		int commentedId = comment.get();
+		int commentedId = 0;
 
+		for (IIdea idea : ideas)
+		{
+			if (idea.getIndex().equals(comment.getIndexSource()))
+			{
+				commentedId = idea.getUniqueId();
+				break;
+			}
+		}
+		
+		
+		System.out.println("source : " + commentedId);
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(comment);
 		
 		if(fastCommentLookup.containsKey(commentedId)){
+			System.out.println("CONTAINS KEY");
 			//this is an answer to another comment
 			fastCommentLookup.get(commentedId).add(node);
 			fastCommentLookup.put(id, node);
 		} else {
+			System.out.println("DO NOT CONTAINS KEY");
 			//the commented id doesn't refer to a comment
 			ideaComments.get(commentedId).add(node);
 			fastCommentLookup.put(id, node);
+			//fireCommentCreatedEvent(new GameObjectEvent(comment.getPlayerId(), comment.getUniqueId()));
 		}
 		
 		manageTokensForCreatedComment(comment);
