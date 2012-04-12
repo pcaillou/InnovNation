@@ -12,6 +12,9 @@ import java.rmi.server.UnicastRemoteObject;
  */
 public class RemoteListener extends UnicastRemoteObject implements IEventListener {
 
+	// AD /* ID auto genere
+	private static final long serialVersionUID = 1L; // */
+	
 	private final IEventListener listener;
 	
 	public RemoteListener (IEventListener listener) throws RemoteException {

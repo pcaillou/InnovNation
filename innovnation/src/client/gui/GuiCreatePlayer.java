@@ -39,6 +39,7 @@ import data.Avatars;
  */
 public class GuiCreatePlayer {
 	
+	@SuppressWarnings("unused")
 	private Logger logger = Logger.getLogger("client.gui.createPlayer");
 	
 	private Shell shell = null;
@@ -356,6 +357,7 @@ public class GuiCreatePlayer {
 	}
 	
 	
+	@SuppressWarnings("unused")
 	private void displayError(String title, String msg) {
 		MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
 		mb.setText(title);
@@ -412,6 +414,7 @@ public class GuiCreatePlayer {
 		fieldAvailableAvatars.removeAll();
 		
 		
+		@SuppressWarnings("unused")
 		String serverURL = fieldPlayerName.getText().trim();
 		
 		try {

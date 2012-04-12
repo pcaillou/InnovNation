@@ -6,7 +6,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+// AD import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +56,7 @@ import functions.TypeScore;
  * 
  * @author sammy
  *
+ * un message inutile
  */
 public class GuiTestMain 
 							implements IEventListener // and for events from the game 
@@ -75,7 +76,8 @@ public class GuiTestMain
 	
 	/**
 	 * Only relevant if mode != DISCONNECTED.
-	 */
+	 */	
+	@SuppressWarnings("unused")
 	private String gameBindName = null;
 	
 	
@@ -103,13 +105,16 @@ public class GuiTestMain
 	private Integer playerId = null;
 	
 	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer;
-
+	
+	@SuppressWarnings("unused")
 	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
 	
+	@SuppressWarnings("unused")
 	private Text commentText;
 
 	private Label[] scores,scoreslab,rg,rglab,scoreevo,rgevo;
 	
+	@SuppressWarnings("unused")
 	private Color LOOK_COLOR_BACKGROUND_MAINSPACE = null;
 	private Color LOOK_COLOR_BACKGROUND_SUBSPACES = null;
 
@@ -541,7 +546,8 @@ public class GuiTestMain
 				int i=0;
 				scvalprec = new HashMap<Integer, Double>(TypeScore.values().length, 1.0f);
 				scrgprec = new HashMap<Integer, Double>(TypeScore.values().length, 1.0f);
-				TXT_TOOLTIP_HIGH_SCORE=new ArrayList(TypeScore.values().length);
+				// AD TXT_TOOLTIP_HIGH_SCORE=new ArrayList(TypeScore.values().length); /*
+				TXT_TOOLTIP_HIGH_SCORE=new ArrayList<String>(TypeScore.values().length);// */
 				
 	
 				for (TypeScore sc: TypeScore.values())
@@ -1153,6 +1159,7 @@ public class GuiTestMain
 		if (clientCore.getGame().getPlayer(getPlayerId())!=null)
 	{
 		int i=0;
+		@SuppressWarnings("unused")
 		Map<Integer, Double>  sctab,sccop;
 		for (TypeScore sc: TypeScore.values())
 		{
@@ -1166,6 +1173,7 @@ public class GuiTestMain
 	
 				int rgval=PlayersScores.computeRank(sortedScores, getPlayerId());
 				StringBuilder sb = new StringBuilder(sc.nom+'\n');
+				@SuppressWarnings("unused")
 				int idj;
 				int rankCurrent = 1;
 				for (PlayersScores currentScore : sortedScores) {
@@ -1240,7 +1248,6 @@ public class GuiTestMain
 	public static void main(String[] args) {
 
 		//System.setSecurityManager(new RMISecurityManager());
-
 		try {
 			GuiTestMain t = new GuiTestMain();
 

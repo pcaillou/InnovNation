@@ -1,7 +1,7 @@
 package client.gui.prefuse;
 
 
-import java.awt.Color;
+//AD import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -849,6 +849,7 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
        // compute future rendering of image
        if ( img != null ) {            
            double w = size * img.getWidth(null);
+           @SuppressWarnings("unused")
            double h = size * img.getHeight(null);
            double ix=x, iy=y;
            
@@ -988,6 +989,7 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
        // compute future rendering of image
        if ( img != null ) {            
            double w = size * img.getWidth(null);
+           @SuppressWarnings("unused")
            double h = size * img.getHeight(null);
            double ix=x, iy=y;
            

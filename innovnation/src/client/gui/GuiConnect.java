@@ -3,7 +3,7 @@ package client.gui;
 import java.net.UnknownHostException;
 import java.util.Collection;
 
-import org.apache.log4j.Logger;
+import org.apache.log4j.Logger; // => unused
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -41,7 +41,8 @@ import functions.IGameDescription;
  */
 public class GuiConnect {
 	
-	private Logger logger = Logger.getLogger("client.gui.connect");
+	@SuppressWarnings("unused")
+	private Logger logger = Logger.getLogger("client.gui.connect"); // => unused
 	
 	private Shell shell = null;
 	private Composite compositeHost = null;

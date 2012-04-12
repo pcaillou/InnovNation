@@ -20,13 +20,13 @@ import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 
-import prefuse.Constants;
+// AD import prefuse.Constants;
 import prefuse.Visualization;
 import prefuse.action.ActionList;
 import prefuse.action.ItemAction;
 import prefuse.action.RepaintAction;
 import prefuse.action.assignment.ColorAction;
-import prefuse.action.assignment.DataColorAction;
+//AD import prefuse.action.assignment.DataColorAction;
 import prefuse.action.assignment.StrokeAction;
 import prefuse.action.layout.Layout;
 import prefuse.activity.Activity;
@@ -36,7 +36,7 @@ import prefuse.controls.WheelZoomControl;
 import prefuse.data.Edge;
 import prefuse.data.Graph;
 import prefuse.data.Node;
-import prefuse.data.Table;
+//AD import prefuse.data.Table;
 import prefuse.data.expression.Predicate;
 import prefuse.data.expression.parser.ExpressionParser;
 import prefuse.render.DefaultRendererFactory;
@@ -1301,6 +1301,7 @@ public final class ClientWhiteboardSWT
 	public void centerDisplayImmediat() {
 	
 		// TODO not item bounds !!!
+		@SuppressWarnings("unused")
 		Rectangle2D r = prefuseDisplay.getItemBounds();
 		
 		Point p = new Point(

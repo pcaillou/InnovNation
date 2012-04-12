@@ -31,6 +31,7 @@ import functions.IGame;
  */
 public class GuiCreateItem {
 	
+	@SuppressWarnings("unused")
 	private Logger logger = Logger.getLogger("client.gui.createGame");
 	
 	private Shell shell = null;
@@ -310,6 +311,7 @@ public class GuiCreateItem {
 	}
 	
 	
+	@SuppressWarnings("unused")
 	private void displayError(String title, String msg) {
 		MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
 		mb.setText(title);

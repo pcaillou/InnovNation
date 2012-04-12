@@ -13,7 +13,7 @@ import data.CommentValence;
 import data.IComment;
 import data.IIdea;
 import data.IItem;
-import data.IPlayer;
+// AD import data.IPlayer;
 import functions.IGame;
 
 /**

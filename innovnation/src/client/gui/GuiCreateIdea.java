@@ -75,6 +75,7 @@ public class GuiCreateIdea implements IEventListener {
 	private Table fieldAllAvailableItems = null;
 	private Table fieldSelectedItems = null;
 	
+	@SuppressWarnings("unused")
 	private Text fieldNewItem = null;
 
 	private Button buttonAdd = null;
@@ -87,24 +88,26 @@ public class GuiCreateIdea implements IEventListener {
 	
 
 	private final static String TXT_IDEA_NAME = "Nom : ";
-	private final static String TXT_TOOLTIP_IDEA_NAME = "Un nom clair qui distinguera votre idée";
+	private final static String TXT_TOOLTIP_IDEA_NAME = "Un nom clair qui distinguera votre idee";
 	private final static String TXT_IDEA_DESC = "Description :";
-	private final static String TXT_TOOLTIP_IDEA_DESC = "Une description concise de votre idée";
+	private final static String TXT_TOOLTIP_IDEA_DESC = "Une description concise de votre idee";
 	
-	private final static String TXT_PARENT_IDEAS = "Idées parentes:";
+	private final static String TXT_PARENT_IDEAS = "Idees parentes:";
 	
-	private final static String TXT_ITEMS_AVAILABLE = "Items réutilisables:";
-	private final static String TXT_ITEMS_SELECTED = "Items de votre idée:";
-	private final static String TXT_TOOLTIP_AVAILABLE = "Vous pouvez réutiliser tous les items déjà proposés";
-	private final static String TXT_TOOLTIP_SELECTED = "Ces items seront intégrés à votre idée";
+	private final static String TXT_ITEMS_AVAILABLE = "Items reutilisables:";
+	private final static String TXT_ITEMS_SELECTED = "Items de votre idee:";
+	private final static String TXT_TOOLTIP_AVAILABLE = "Vous pouvez reutiliser tous les items deja� proposes";
+	private final static String TXT_TOOLTIP_SELECTED = "Ces items seront integres a� votre idee";
 
-	private final static String TXT_BUTTON_VALIDATE = "Créer l'idée";
+	private final static String TXT_BUTTON_VALIDATE = "Creer l'idee";
 	private final static String TXT_BUTTON_CANCEL = "Annuler";
 
-	private final static String TXT_TOOLTIP_NEWITEM_NAME = "Un nom clair qui distinguera votre idée";
+	@SuppressWarnings("unused")
+	private final static String TXT_TOOLTIP_NEWITEM_NAME = "Un nom clair qui distinguera votre idee";
+	@SuppressWarnings("unused")
 	private final static String TXT_TOOLTIP_NEWITEM_DESC = "Description de l'Item";
 
-	private final static String TXT_BUTTON_CREATENEWITEM = "Créer un item";
+	private final static String TXT_BUTTON_CREATENEWITEM = "Creer un item";
 
 	
 	private Color LOOK_COLOR_BACKGROUND_MAINSPACE = null;
@@ -116,6 +119,7 @@ public class GuiCreateIdea implements IEventListener {
 	private final int LOOK_COMPOSITE_STYLE_SUBSPACES = SWT.NONE; // SWT.BORDER;
 	
 	private final int LOOK_NB_LINES_DESC = 3;
+	@SuppressWarnings("unused")
 	private final int LOOK_NB_LINES_ITEMDESC = 2;
 	private final int LOOK_NB_LINES_ITEMS_AVAILABLE = 10;
 	private final int LOOK_NB_LINES_ITEMS_SELECTED = 8;

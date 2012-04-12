@@ -604,11 +604,13 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		
 		LinkedList<IComment> comments = new LinkedList<IComment>();
 		
-		Enumeration enumComments = ideaComments.get(ideaId).children();
+		// AD Enumeration enumComments = ideaComments.get(ideaId).children(); /* code original
+		Enumeration<?> enumComments = ideaComments.get(ideaId).children(); // */
 		
 		while (enumComments.hasMoreElements()) {
 			
-			Enumeration enumComments2 = ((DefaultMutableTreeNode)enumComments.nextElement()).depthFirstEnumeration();
+			// AD Enumeration enumComments2 = ((DefaultMutableTreeNode)enumComments.nextElement()).depthFirstEnumeration();
+			Enumeration<?> enumComments2 = ((DefaultMutableTreeNode)enumComments.nextElement()).depthFirstEnumeration(); // */
 			while (enumComments2.hasMoreElements()) {
 				IComment currentComment = (IComment)((DefaultMutableTreeNode)enumComments2.nextElement()).getUserObject();
 				comments.add(currentComment);
