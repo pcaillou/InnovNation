@@ -36,12 +36,14 @@ public class CommentLogPack implements LogPack {
 		outceptions = 0;
 		ownerId = comment.getPlayerId();
 		
+		
 		try {
 			for (IIdea idea : game.getAllIdeas())
 			{
-				if (idea.getComments().contains(comment))
+				if (comment.getIndexSource().equals(idea.getIndex()))
 				{
 					ideaId = idea.getUniqueId();
+					break;
 				}
 			}
 		} catch (RemoteException e1) {
@@ -80,11 +82,11 @@ public class CommentLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		return "commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;";
+		return "commentIdeaId;commentOwner;commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;";
 	}
 
 	static public String zeros() {
-		return "0;0;0;0;0;0;0;";
+		return "0;0;0;0;0;0;0;0;0;";
 	}
 	
 	/* (non-Javadoc)
@@ -93,6 +95,8 @@ public class CommentLogPack implements LogPack {
 	@Override
 	public String log(int time) {
 		StringBuilder sb = new StringBuilder();
+		sb.append(ideaId).append(';');
+		sb.append(ownerId).append(';');
 		sb.append(creationTime).append(';');
 		sb.append(size).append(';');
 		sb.append(rank).append(';');

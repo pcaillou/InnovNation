@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
 import org.apache.log4j.Logger;
 
 import util.Pair;
@@ -394,8 +392,8 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 
 					//logger.debug("novel comment created on the server ("+retrievedComment+"), updating local info...");
 
-					int idNovelComment = injectIdeaComment(current);
-					IComment novelComment = getComment(idNovelComment);
+					//int idNovelComment = injectIdeaComment(current);
+					//IComment novelComment = getComment(idNovelComment);
 
 					//logger.debug("local copy of this comment created  ("+novelComment+")");
 
