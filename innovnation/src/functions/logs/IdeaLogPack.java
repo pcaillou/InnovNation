@@ -263,10 +263,10 @@ public class IdeaLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		return "thisId;ideaOwnerId;ideaCreationTime;ideaDepthMin;ideaDepthMax;"+
+		return "ideaId;ideaOwnerId;ideaCreationTime;ideaDepthMin;ideaDepthMax;"+
 	           "ideaItems;ideaComments;PositiveComments;NegativeComments;PositiveProportion;NegativeProportion;NulProportion;ideaVotes;ideaTokens;ideaTokensMax;"+
 			   "ideaShortLength;ideaLongLength;"+
-	           "idParents;ideaParents;ideaParentItems;ideaParentItemsMin;ideaParentItemsMax;"+
+	           "ideaParentsId;ideaParents;ideaParentItems;ideaParentItemsMin;ideaParentItemsMax;"+
 			   "ideaParentComments;ideaParentCommentsMin;ideaParentCommentsMax;"+
 	           "ideaParentVotes;ideaParentVotesMin;ideaParentVotesMax;"+
 			   "ideaParentCreationTimeMin;ideaParentCreationTimeMax;"+

@@ -295,10 +295,7 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 				.append(')')
 				.toString();
 		
-		
-
-		System.out.println("AJOUT COMMENT injectIdea1");
-/*		CommentValence valence =
+		/*		CommentValence valence =
 			(tokens==0)?CommentValence.NEUTRAL : 
 				(tokens>0)? CommentValence.POSITIVE : CommentValence.NEGATIVE;*/
 		IComment comment = new Comment(playerId, ideaId, shortText, text, valence, tokens); 
@@ -352,7 +349,6 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		if(fastCommentLookup.containsKey(comment.getUniqueId())) throw new AlreadyExistsException();
 
 		// utile pour synchro et ajout local
-		System.out.println("AJOUT COMMENT injectIdea2 - " + comment.getUniqueId());
 		
 		int id = comment.getUniqueId();
 		int commentedId = 0;
@@ -367,16 +363,13 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		}
 		
 		
-		System.out.println("source : " + commentedId);
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(comment);
 		
 		if(fastCommentLookup.containsKey(commentedId)){
-			System.out.println("CONTAINS KEY");
 			//this is an answer to another comment
 			fastCommentLookup.get(commentedId).add(node);
 			fastCommentLookup.put(id, node);
 		} else {
-			System.out.println("DO NOT CONTAINS KEY");
 			//the commented id doesn't refer to a comment
 			ideaComments.get(commentedId).add(node);
 			fastCommentLookup.put(id, node);
