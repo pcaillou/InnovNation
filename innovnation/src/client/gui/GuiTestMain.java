@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.graphstream.ui.swingViewer.Viewer;
 
 import client.DelegatingClientCore;
 import client.IClientCore.TreeExplorator;
@@ -51,6 +52,7 @@ import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters;
 import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters.GUIParametersMode;
 import functions.GameServer;
 import functions.TypeScore;
+import functions.logs.GraphLogPack;
 /**
  * TODO déconnecter si connecté !
  * 
@@ -751,6 +753,16 @@ public class GuiTestMain
 		// TODO disconnect and so on if relevant
 		
 		// TODO confirmation
+
+		
+		// TODO Destannes : modifications faites ici
+		
+		shell.setVisible(false);
+		
+		Viewer v = GraphLogPack.getInnovGraphViewer();
+		
+		while(v.getDefaultView().isVisible());
+		
 		shell.dispose();
 		
 	}

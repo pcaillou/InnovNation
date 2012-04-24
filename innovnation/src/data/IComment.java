@@ -34,4 +34,9 @@ public interface IComment extends IGameObject {
 	public Integer getIndexSource();
 	
 	public Integer getIndex();
+	
+	public void setIdea(IIdea idea);
+	
+	public IIdea getIdea();
+	
 }

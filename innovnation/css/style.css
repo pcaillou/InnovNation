@@ -1,0 +1,44 @@
+graph
+{
+}
+node.player 
+{
+	size: 12px, 12px;
+	fill-mode: plain;
+	fill-color: red;
+	text-size:15px;
+	text-style:bold;
+}
+node.idea 
+{
+	size: 12px, 12px;
+	fill-mode: plain;
+	fill-color: green;
+}
+node.root_idea 
+{
+	size: 20px, 20px;
+	fill-mode: plain;
+	fill-color: black;
+}
+edge.vote 
+{
+	size: 3px, 3px;
+	fill-mode: plain;
+	fill-color: #00FFFF;
+	arrow-size:8px;
+}
+edge.has_idea
+{
+	size: 3px, 3px;
+	fill-mode: plain;
+	fill-color: orange;
+	arrow-size:8px;
+}
+edge.fromidea
+{
+	size: 3px, 3px;
+	fill-mode: plain;
+	fill-color: green;
+	arrow-size:8px;
+}

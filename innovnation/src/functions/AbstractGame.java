@@ -301,6 +301,7 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		IComment comment = new Comment(playerId, ideaId, shortText, text, valence, tokens); 
 
 		comment.setIndexSource(ideas.get((Integer)ideaId).getIndex());
+		comment.setIdea(ideas.get((Integer)ideaId));
 		
 		int id = comment.getUniqueId();
 		

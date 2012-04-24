@@ -13,6 +13,8 @@ public class Comment extends GameObject implements IComment {
 
 	private static Integer indexCount = 0;
 	
+	private IIdea idea;
+	
 	private Integer index;
 	
 	private int tokens;
@@ -61,7 +63,17 @@ public class Comment extends GameObject implements IComment {
 		index = indexCount;
 		Comment.indexCount++;		
 	}
-
+	
+	public void setIdea(IIdea _idea)
+	{
+		idea = _idea;
+	}
+	
+	public IIdea getIdea()
+	{
+		return idea;
+	}
+	
 	public void setIndexSource(Integer indexSource)
 	{
 		indexIdea = indexSource;

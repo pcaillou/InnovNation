@@ -26,6 +26,7 @@ import errors.TooLateException;
 import events.LinkEvent;
 import functions.logs.CommentLogPack;
 import functions.logs.GameLogPack;
+import functions.logs.GraphLogPack;
 import functions.logs.IdeaLogPack;
 import functions.logs.ItemLogPack;
 import functions.logs.LogType;
@@ -44,6 +45,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 	private FileWriter logFileWriter;
 	
 	private GameLogPack gameLP = new GameLogPack(this);
+	private GraphLogPack graphLP = new GraphLogPack(this);
 	private Map<Integer, PlayerLogPack> playerLPs = new HashMap<Integer, PlayerLogPack>();
 	
 	private Map<Integer, ItemLogPack> itemLPs = new HashMap<Integer, ItemLogPack>();
@@ -83,6 +85,12 @@ public class Game extends AbstractGame implements IServerSideGame {
 	 */
 	private int getNow() {
 		return (int) ((System.currentTimeMillis()-startingTime) / 1000);
+	}
+	
+	
+	public int getTime()
+	{
+		return getNow();
 	}
 	
 	/*
@@ -274,6 +282,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 		int id = injectPlayer(new Player(playerName, avatar));
 		
 		gameLP.updateOnPlayer(id);
+		graphLP.updateOnPlayer(id);
 		playerLPs.put(id, new PlayerLogPack(this,getPlayer(id), getNow()));
 		
 		firePlayerJoinedEvent(id);
@@ -322,6 +331,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 	private void updateLogDataOnIdea(int playerId, int thingId) throws RemoteException{
 		IIdea data = getIdea(thingId);
 		gameLP.updateOnIdea(playerId, data);
+		graphLP.updateOnIdea(playerId, data);
 		playerLPs.get(playerId).updateOnIdea(playerId, data);
 		
 		for(int i : data.getItemsIds()){
@@ -342,6 +352,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 		IComment data = getComment(thingId);
 		
 		gameLP.updateOnComment(playerId, data);
+		graphLP.updateOnComment(playerId, data);
 		
 		playerLPs.get(playerId).updateOnComment(playerId, data);
 		
@@ -361,6 +372,9 @@ public class Game extends AbstractGame implements IServerSideGame {
 		
 		//game data
 		logFileWriter.write(GameLogPack.titles());
+
+		//graph data
+		logFileWriter.write(GraphLogPack.titles());
 		
 		//player data
 		logFileWriter.write(PlayerLogPack.titles());
@@ -417,6 +431,9 @@ public class Game extends AbstractGame implements IServerSideGame {
 		
 		//game data
 		logFileWriter.write(gameLP.log(now));
+
+		//graph data
+		logFileWriter.write(graphLP.log(now));
 		
 		//player data
 		logFileWriter.write(playerLPs.get(playerId).log(now));
@@ -444,7 +461,6 @@ public class Game extends AbstractGame implements IServerSideGame {
 		logFileWriter.write(
 			(type==LogType.vote||type==LogType.comment)? commentLPs.get(thingId).log(now): CommentLogPack.zeros()
 		);
-		
 		
 		logFileWriter.write(logMessage);
 		logFileWriter.write('\n');

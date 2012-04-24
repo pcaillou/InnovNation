@@ -282,6 +282,7 @@ public class IdeaLogPack implements LogPack {
 			   "[];0;0;0;0;"+
 			   "0;0.0;0.0;"+
 			   "0.0;0.0;0.0"+
+			   "0;0;"+
 			   "0;0;0;0;"+
 			   "0;0;"+
 			   "0;";

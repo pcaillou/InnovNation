@@ -59,7 +59,7 @@ public class PlayerLogPack implements LogPack {
 	}
 
 	static public String zeros() {
-		StringBuilder sb = new StringBuilder("0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0");
+		StringBuilder sb = new StringBuilder("0;0;0;0;0;0;0;0;0;0;0;0;");
 		for(@SuppressWarnings("unused") TypeScore s : TypeScore.values()) sb.append("0.0;");
 		return sb.toString(); 
 		
