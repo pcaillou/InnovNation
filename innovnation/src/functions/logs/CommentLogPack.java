@@ -19,7 +19,7 @@ import functions.IGame;
  *
  */
 public class CommentLogPack implements LogPack {
-	private int creationTime, size, rank, valence,tokens, inceptions, outceptions;
+	private int creationTime, size, rank, valence,tokens, inceptions, outceptions, ownerId, ideaId, commentId;
 	@SuppressWarnings("unused")
 	private IGame game;
 		
@@ -34,6 +34,22 @@ public class CommentLogPack implements LogPack {
 		rank=0;
 		inceptions = 0;
 		outceptions = 0;
+		ownerId = comment.getPlayerId();
+		commentId = comment.getUniqueId();
+		
+		
+		try {
+			for (IIdea idea : game.getAllIdeas())
+			{
+				if (comment.getIndexSource().equals(idea.getIndex()))
+				{
+					ideaId = idea.getUniqueId();
+					break;
+				}
+			}
+		} catch (RemoteException e1) {
+			e1.printStackTrace(); // TODO continuer ici
+		}
 /*		IIdea i;
 		try {
 			i = game.getIdea(comment.get());
@@ -67,11 +83,11 @@ public class CommentLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		return "commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;";
+		return "commentId;commentIdeaId;commentOwnerId;commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;";
 	}
 
 	static public String zeros() {
-		return "0;0;0;0;0;0;0;";
+		return "0;0;0;0;0;0;0;0;0;0;";
 	}
 	
 	/* (non-Javadoc)
@@ -80,6 +96,9 @@ public class CommentLogPack implements LogPack {
 	@Override
 	public String log(int time) {
 		StringBuilder sb = new StringBuilder();
+		sb.append(commentId).append(';');
+		sb.append(ideaId).append(';');
+		sb.append(ownerId).append(';');
 		sb.append(creationTime).append(';');
 		sb.append(size).append(';');
 		sb.append(rank).append(';');

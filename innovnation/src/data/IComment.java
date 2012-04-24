@@ -29,5 +29,9 @@ public interface IComment extends IGameObject {
 	 */
 	public int getTokensCount();
 	
-
+	public void setIndexSource(Integer indexSource);
+	
+	public Integer getIndexSource();
+	
+	public Integer getIndex();
 }

@@ -28,7 +28,6 @@ import errors.TooLateException;
 public class Whiteboard implements IWhiteboard {
 	
 	protected Map<Integer, IItem> items;
-	
 	protected Dag<Integer, IIdea> ideas;
 	private Integer rootIdeaId = 0;
 	
@@ -50,6 +49,8 @@ public class Whiteboard implements IWhiteboard {
 						null
 						)
 				);
+		
+		
 	}
 
 	public Whiteboard(IIdea rootIdea) throws RemoteException{
@@ -162,14 +163,9 @@ public class Whiteboard implements IWhiteboard {
 		return otherItem.getUniqueId();
 	}
 	
-	public void removeItemCopy(Integer itemId) {
-		// TODO
-	}
+	public void removeItemCopy(Integer itemId) { /* TODO */ }
 	
-	public void removeItemCopy(IItem item) {
-		// TODO
-	}
-	
+	public void removeItemCopy(IItem item) { /* TODO */ }
 	
 	public int addIdeaCopy(IIdea copy) {
 		ideas.createNode(copy.getUniqueId(), copy);
@@ -214,6 +210,7 @@ public class Whiteboard implements IWhiteboard {
 		ideas.createNode(id, idea);
 		for(Integer parent : parentIdeasIds){
 			ideas.makeDepend(id, parent);
+			idea.addParentIndex(ideas.get(parent).getIndex());
 		}
 
 		if ( (id != rootIdeaId) && (parentIdeasIds.isEmpty()) ) {

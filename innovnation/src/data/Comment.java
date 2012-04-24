@@ -10,11 +10,16 @@ package data;
 public class Comment extends GameObject implements IComment {
 	
 	private static final long serialVersionUID = 1L;
+
+	private static Integer indexCount = 0;
+	
+	private Integer index;
 	
 	private int tokens;
 	private final int commented;
 	private final CommentValence valence;
 	private String text;
+	private Integer indexIdea;
 	
 	/**
 	 * @param authorId
@@ -27,9 +32,13 @@ public class Comment extends GameObject implements IComment {
 		super(authorId, shortName);
 		this.commented=commented;
 		this.valence=valence;
+		System.out.println("MA VALENCE : " + valence);
 		this.text=text;
 		this.tokens = 0;
 		
+		/* on cree un nouvel index pour l'idee */
+		index = indexCount;
+		Comment.indexCount++;
 	}
 
 	/**
@@ -44,11 +53,30 @@ public class Comment extends GameObject implements IComment {
 		super(authorId, shortName);
 		this.commented=commented;
 		this.valence=valence;
+		System.out.println("MA VALENCE : " + valence);
 		this.text=text;
 		this.tokens = tokens;
 		
+		/* on cree un nouvel index pour l'idee */
+		index = indexCount;
+		Comment.indexCount++;		
 	}
 
+	public void setIndexSource(Integer indexSource)
+	{
+		indexIdea = indexSource;
+	}
+	
+	public Integer getIndexSource()
+	{
+		return indexIdea;
+	}
+	
+	public Integer getIndex()
+	{
+		return index;
+	}
+	
 	/* (non-Javadoc)
 	 * @see data.IComment#get()
 	 */

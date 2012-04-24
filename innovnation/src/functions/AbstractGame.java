@@ -198,13 +198,15 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 	protected final int injectIdea(int playerId, String ideaName, String desc, Collection<Integer> itemsIds, Collection<Integer> parentIdeasIds)
 	throws AlreadyExistsException{
 		validateAsIdea(playerId, ideaName, itemsIds, parentIdeasIds);
-
+		
 		IIdea idea = new Idea(playerId, ideaName, desc, ideas, itemsIds); 
 
 		int id = idea.getUniqueId();
 		ideas.createNode(id, idea);
+
 		for(Integer parent : parentIdeasIds){
 			ideas.makeDepend(id, parent);
+			idea.addParentIndex(ideas.get(parent).getIndex());
 		}
 		if ( (id != rootIdeaId) && (parentIdeasIds.isEmpty()) ) {
 			// if no parent provided, but this idea is not a root idea, then automatically add the root idea as parent
@@ -226,6 +228,7 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		if(idea==null) throw new NullPointerException();
 		if(ideas.exists(idea.getUniqueId())) throw new AlreadyExistsException();
 
+		
 		Collection<Integer> parentIdeasIds = idea.getParentsIds();
 
 		int id = idea.getUniqueId();
@@ -280,18 +283,25 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 	 */
 	protected final int injectIdeaComment(int playerId, int ideaId, String text, int tokens, CommentValence valence)
 	throws AlreadyExistsException{
+		
+		/* test choix id idea par index */
+		
 		validateAsIdeaComment(playerId, ideaId, text);
+		
 		String shortText = new StringBuilder("on ")
 				.append(ideas.get(ideaId).getShortName())
 				.append(" (by ")
 				.append(players.get(playerId).getShortName())
 				.append(')')
 				.toString();
-/*		CommentValence valence =
+		
+		/*		CommentValence valence =
 			(tokens==0)?CommentValence.NEUTRAL : 
 				(tokens>0)? CommentValence.POSITIVE : CommentValence.NEGATIVE;*/
 		IComment comment = new Comment(playerId, ideaId, shortText, text, valence, tokens); 
 
+		comment.setIndexSource(ideas.get((Integer)ideaId).getIndex());
+		
 		int id = comment.getUniqueId();
 		
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(comment);
@@ -338,9 +348,21 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		if(comment==null) throw new NullPointerException();
 		if(fastCommentLookup.containsKey(comment.getUniqueId())) throw new AlreadyExistsException();
 
+		// utile pour synchro et ajout local
+		
 		int id = comment.getUniqueId();
-		int commentedId = comment.get();
+		int commentedId = 0;
 
+		for (IIdea idea : ideas)
+		{
+			if (idea.getIndex().equals(comment.getIndexSource()))
+			{
+				commentedId = idea.getUniqueId();
+				break;
+			}
+		}
+		
+		
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(comment);
 		
 		if(fastCommentLookup.containsKey(commentedId)){
@@ -351,6 +373,7 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 			//the commented id doesn't refer to a comment
 			ideaComments.get(commentedId).add(node);
 			fastCommentLookup.put(id, node);
+			//fireCommentCreatedEvent(new GameObjectEvent(comment.getPlayerId(), comment.getUniqueId()));
 		}
 		
 		manageTokensForCreatedComment(comment);
