@@ -464,6 +464,82 @@ public class Game extends AbstractGame implements IServerSideGame {
 		
 		logFileWriter.write(logMessage);
 		logFileWriter.write('\n');
+		
+		for(IIdea i : this.getAllIdeas()){
+			//as root has no owner, we can't update him... 
+			//type
+			logFileWriter.append("logi").append(';');
+			//now
+			logFileWriter.append(Integer.toString(now)).append(';');
+			
+			//game data
+			logFileWriter.write(gameLP.log(now));
+			
+			//player data
+			logFileWriter.write(
+					PlayerLogPack.zeros()
+				);
+
+			//item data
+			logFileWriter.write(
+				ItemLogPack.zeros()
+			);
+			
+			//idea data
+				logFileWriter.write(
+						ideaLPs.get(i.getUniqueId()).log(now));
+			
+			//à vérifier
+			//idea sons data
+			//(type==LogType.vote||type==LogType.comment)? ideaSonsLPs.get(thingId).log(now): IdeaSonsLogPack.zeros()
+			
+			//comment data
+			logFileWriter.write(
+				CommentLogPack.zeros()
+			);
+			
+			
+			logFileWriter.write(logMessage);
+			logFileWriter.write('\n');
+		}
+		for(int p : this.getAllPlayersIds()){
+			//type
+			logFileWriter.append("logp").append(';');
+			//now
+			logFileWriter.append(Integer.toString(now)).append(';');
+			
+			//game data
+			logFileWriter.write(gameLP.log(now));
+			
+			//player data
+			logFileWriter.write(playerLPs.get(p).log(now));
+
+			//item data
+			logFileWriter.write(
+				ItemLogPack.zeros()
+			);
+			
+			//idea data
+			logFileWriter.write(
+					IdeaLogPack.zeros()
+				);
+			
+			//à vérifier
+			//idea sons data
+			//(type==LogType.vote||type==LogType.comment)? ideaSonsLPs.get(thingId).log(now): IdeaSonsLogPack.zeros()
+			
+			//comment data
+			logFileWriter.write(
+				CommentLogPack.zeros()
+			);
+			
+			
+			logFileWriter.write(logMessage);
+			logFileWriter.write('\n');
+			//as root has no owner, we can't update him... 
+		}
+		
+		
 		logFileWriter.flush();
 		
 		//mettre à jour les données de temps
