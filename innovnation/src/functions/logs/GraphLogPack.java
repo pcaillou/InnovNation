@@ -38,6 +38,15 @@ public class GraphLogPack implements LogPack {
 		return null;
 	}
 	
+	public static Viewer getVoteWeightGraphViewer()
+	{
+		return graph.getWeightVoteGraph().displayGraph(Long.MAX_VALUE);
+	}
+	
+	public static Viewer getVoteGraphViewer()
+	{
+		return graph.getNbVoteGraph().displayGraph(Long.MAX_VALUE);
+	}
 	
 	public GraphLogPack(Game _game)
 	{
@@ -72,11 +81,11 @@ public class GraphLogPack implements LogPack {
 		/* listes contenant la difference entre les nouvelles logs et les anciennes */
 		Collection<String> diffNbVotesList = new ArrayList<String>();
 		Collection<String> diffWeightVotesList = new ArrayList<String>();
-		
-		diffNbVotesList.addAll(nbVotesList);
-		diffNbVotesList.removeAll(newNbVotesList);
-		diffWeightVotesList.addAll(weightVotesList);
-		diffWeightVotesList.removeAll(newWeightVotesList);
+
+		diffNbVotesList.addAll(newNbVotesList);
+		diffNbVotesList.removeAll(nbVotesList);
+		diffWeightVotesList.addAll(newWeightVotesList);
+		diffWeightVotesList.removeAll(weightVotesList);
 		
 		nbVotesList = newNbVotesList;
 		weightVotesList = newWeightVotesList;
