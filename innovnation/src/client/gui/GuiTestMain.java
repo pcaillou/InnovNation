@@ -759,11 +759,9 @@ public class GuiTestMain
 		
 		shell.setVisible(false);
 		
-		Viewer v1 = GraphLogPack.getInnovGraphViewer();
-		Viewer v2 = GraphLogPack.getVoteWeightGraphViewer();
-		Viewer v3 = GraphLogPack.getVoteGraphViewer();
+		Viewer v = GraphLogPack.getInnovGraphViewer();
 		
-		while(v1.getDefaultView().isVisible() || v2.getDefaultView().isVisible() || v3.getDefaultView().isVisible() );
+		while(v.getDefaultView().isVisible());
 		
 		shell.dispose();
 		

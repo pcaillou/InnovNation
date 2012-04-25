@@ -41,7 +41,7 @@ public class DynamicGraph{
 	public HashMap<Long, int[][]> shortestPathsMatrixs;
 	
 	protected MultiGraph graph;
-	
+
 	/**
 	 * Indique si la valeur se trouve dans l'intervalle donne
 	 * @param value
@@ -55,32 +55,11 @@ public class DynamicGraph{
 	}
 	
 	/**
-	 * Retourne le tableau sous forme de chaine en utilisant le separateur et les encadrant definit dans LEFT_BRACE, RIGHT_BRACE, SEPARATOR
-	 * @param tab : la chaine sous forme de tableau {cell1,cell2,cell3,...}
-	 * @return la chaine au format "[cell1,cell2,cell3,...]"
-	 */
-	public static String tabToString(Collection<String> tab)
-	{
-		String result = LEFT_BRACE + "";
-		for(String s : tab)
-		{
-			if (result.length() > 1)
-			{
-				result += SEPARATOR;
-			}
-			result += s;
-		}
-		result += RIGHT_BRACE;
-		
-		return result;
-	}
-	
-	/**
 	 * Retourne la chaine sous forme de tableau en utilisant le separateur et les encadrant definit dans LEFT_BRACE, RIGHT_BRACE, SEPARATOR
 	 * @param tab : la chaine au format "[cell1,cell2,cell3,...]"
 	 * @return la chaine sous forme de tableau {cell1,cell2,cell3,...}
 	 */
-	public static ArrayList<String> stringToTab(String tab)
+	private static ArrayList<String> stringToTab(String tab)
 	{
 		Integer level = 0;
 		String buffer = "";
@@ -482,21 +461,17 @@ public class DynamicGraph{
 	{
 		String result = LEFT_BRACE + e.getNode0().getId() + SEPARATOR + e.getNode1().getId();
 		
-		if (getTimeDelete(e) != Long.MAX_VALUE)
+		if (getTimeCreation(e) != 0 && getTimeDelete(e) != Long.MAX_VALUE)
 		{
-			result += SEPARATOR + String.valueOf(getWeight(e)) + SEPARATOR + String.valueOf(getTimeCreation(e)) + SEPARATOR + String.valueOf(getTimeDelete(e));
-		}
-		else if (getTimeCreation(e) != 0)
-		{
-			result += SEPARATOR + String.valueOf(getWeight(e)) + SEPARATOR + String.valueOf(getTimeCreation(e));
+			result += SEPARATOR + getWeight(e) + SEPARATOR + getTimeCreation(e) + SEPARATOR + getTimeDelete(e);
 		}
 		else if (getWeight(e) != 0)
 		{
-			result += SEPARATOR + String.valueOf(getWeight(e));
+			result += SEPARATOR + getWeight(e);
 		}
 		
 		result += RIGHT_BRACE;
-				
+		
 		return result;
 	}
 	
@@ -699,19 +674,17 @@ public class DynamicGraph{
 	 * @param weightDefault : poids par defaut si non specifie
 	 * @param timeStartDefault : temps de creation par defaut si non specifie
 	 * @param timeEndDefault : temps de suppression par defaut si non specifie
-	 * @param insert : vrai si les donnes doivent etre inserees, faux si elles doivent etre ajoutees (voir fonction addEdge et insertEdge)
 	 */
-	public void loadFromString(String source, int weightDefault, long timeStartDefault, long timeEndDefault, boolean insert)
+	public void loadFromString(String source, int weightDefault, long timeStartDefault, long timeEndDefault)
 	{
 		ArrayList<String> chaines = stringToTab(source);
-		
 		for(String s : chaines)
 		{
 			if (s.length() == 0)
 			{
 				continue;
 			}
-
+			
 			ArrayList<String> graphContent = stringToTab(s);
 			switch(graphContent.size())
 			{
@@ -719,44 +692,16 @@ public class DynamicGraph{
 					addNode(graphContent.get(0));
 					break;
 				case 2 :
-					if (insert)
-					{
-						addEdge(graphContent.get(0),graphContent.get(1),weightDefault,timeStartDefault,timeEndDefault);
-					}
-					else
-					{
-						insertEdge(graphContent.get(0),graphContent.get(1),weightDefault,timeStartDefault,timeEndDefault);
-					}
+					addEdge(graphContent.get(0),graphContent.get(1),weightDefault,timeStartDefault,timeEndDefault);
 					break;
 				case 3 :
-					if (insert)
-					{
-						addEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),timeStartDefault,timeEndDefault);
-					}
-					else
-					{
-						insertEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),timeStartDefault,timeEndDefault);
-					}
+					addEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),timeStartDefault,timeEndDefault);
 					break;
 				case 4 :
-					if (insert)
-					{
-						addEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),Long.valueOf(graphContent.get(3)),timeEndDefault);
-					}
-					else
-					{
-						insertEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),Long.valueOf(graphContent.get(3)),timeEndDefault);
-					}
+					addEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),Long.valueOf(graphContent.get(3)),timeEndDefault);
 					break;
 				case 5 :
-					if (insert)
-					{
-						addEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),Long.valueOf(graphContent.get(3)),Long.valueOf(graphContent.get(4)));
-					}
-					else
-					{
-						insertEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),Long.valueOf(graphContent.get(3)),Long.valueOf(graphContent.get(4)));
-					}
+					addEdge(graphContent.get(0),graphContent.get(1),Integer.valueOf(graphContent.get(2)),Long.valueOf(graphContent.get(3)),Long.valueOf(graphContent.get(4)));
 					break;
 				default :
 					break;
