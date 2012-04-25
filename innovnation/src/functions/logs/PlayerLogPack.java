@@ -9,7 +9,7 @@ import data.IComment;
 import data.IIdea;
 import data.IItem;
 import data.IPlayer;
-import functions.Game;
+//import functions.Game;
 import functions.IGame;
 import functions.TypeScore;
 
