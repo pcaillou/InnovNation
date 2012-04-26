@@ -39,6 +39,9 @@ import functions.logs.PlayerLogPack;
 public class Game extends AbstractGame implements IServerSideGame {
 	private static final long serialVersionUID = 1L;
 
+	public static final String LOG_TIME_NAME = "time";
+	public static final String LOG_TYPE_NAME = "time";
+	
 	private long startingTime;
 	
 	//utilitaires de log
@@ -366,9 +369,9 @@ public class Game extends AbstractGame implements IServerSideGame {
 	}
 	
 	private void logTitles() throws IOException{
-		logFileWriter.append("type;");
+		logFileWriter.append(LOG_TYPE_NAME +";");
 		//now
-		logFileWriter.append("time;");
+		logFileWriter.append(LOG_TIME_NAME + ";");
 		
 		//game data
 		logFileWriter.write(GameLogPack.titles());
@@ -475,6 +478,9 @@ public class Game extends AbstractGame implements IServerSideGame {
 			//game data
 			logFileWriter.write(gameLP.log(now));
 			
+			//graph data
+			logFileWriter.write(GraphLogPack.zeros());
+			
 			//player data
 			logFileWriter.write(
 					PlayerLogPack.zeros()
@@ -502,6 +508,9 @@ public class Game extends AbstractGame implements IServerSideGame {
 			logFileWriter.write(logMessage);
 			logFileWriter.write('\n');
 		}
+		
+		HashMap<Integer, String> graphLogs = graphLP.getLogpLogs(now);
+		
 		for(int p : this.getAllPlayersIds()){
 			//type
 			logFileWriter.append("logp").append(';');
@@ -510,10 +519,14 @@ public class Game extends AbstractGame implements IServerSideGame {
 			
 			//game data
 			logFileWriter.write(gameLP.log(now));
+
+			//graph data
+			logFileWriter.write(graphLogs.get(p));
 			
 			//player data
 			logFileWriter.write(playerLPs.get(p).log(now));
-
+			
+			
 			//item data
 			logFileWriter.write(
 				ItemLogPack.zeros()

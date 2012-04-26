@@ -362,7 +362,6 @@ public class GraphInnovNation extends MultiGraph{
 					}
 				}
 				hist.add(pos,new long[]{timeAdd,vote,valence});
-				e.setAttribute(VOTE_NOTE, ((Integer)e.getAttribute(VOTE_NOTE)) + vote);
 			}
 			else
 			{
@@ -667,8 +666,8 @@ public class GraphInnovNation extends MultiGraph{
     				long timeAdd = (Long)e.getAttribute(TIME_ADD);
     				Node nSource = g.getNode((String)player.getAttribute("ID")),
     					 nTarget;
-    				int weight = 1;
-
+    				int weight = 0;
+    				
         			if (target == null)
         			{
         				nTarget = g.getNode("root");
@@ -678,14 +677,15 @@ public class GraphInnovNation extends MultiGraph{
         				nTarget = g.getNode((String)target.getAttribute("ID"));
         			}
         			
-    				if (g.edgesExists(nSource,nTarget,timeAdd,timeAdd))
-    				{     				
-    					weight += g.getWeight(g.getEdge(nSource.getId(), nTarget.getId(), timeAdd));
-    				}
-    				
-    				
-    				g.insertEdge(nSource.getId(),nTarget.getId(), weight, timeAdd, Long.MAX_VALUE);
-    			
+        			/* on ajoute l'arc de base puis ceux de l'historique */        			
+        			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST); 
+        			
+        			for (long[] h : hist)
+        			{
+        				weight ++;
+        				timeAdd = h[0];
+        	    		g.insertEdge(nSource.getId(),nTarget.getId(), weight, timeAdd, Long.MAX_VALUE);
+        			}
     			}
     		}
     		
@@ -748,7 +748,7 @@ public class GraphInnovNation extends MultiGraph{
     				long timeAdd = (Long)e.getAttribute(TIME_ADD);
     				Node nSource = g.getNode((String)player.getAttribute("ID")),
     					 nTarget;
-    				int weight = e.getAttribute(VOTE_NOTE);
+    				int weight = 0;
     				
         			if (target == null)
         			{
@@ -758,17 +758,19 @@ public class GraphInnovNation extends MultiGraph{
         			{
         				nTarget = g.getNode((String)target.getAttribute("ID"));
         			}
-    				
-    				if (g.edgesExists(nSource,nTarget,timeAdd,timeAdd))
-    				{    				
-    					weight += g.getWeight(g.getEdge(nSource.getId(), nTarget.getId(), timeAdd));
-    				}
-    				
-    				g.insertEdge(nSource.getId(),nTarget.getId(), weight, timeAdd, Long.MAX_VALUE);
+        			
+        			/* on ajoute l'arc de base puis ceux de l'historique */
+        			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST); 
+        			
+        			for (long[] h : hist)
+        			{
+        				weight += h[1];
+        				timeAdd = h[0];
+        	    		g.insertEdge(nSource.getId(),nTarget.getId(), weight, timeAdd, Long.MAX_VALUE);
+        			}
     			
     			}
     		}
-    		
     	}
     	
     	return g;

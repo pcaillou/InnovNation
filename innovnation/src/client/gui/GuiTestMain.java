@@ -1,5 +1,14 @@
 package client.gui;
 
+import org.ujmp.core.Matrix;
+import org.ujmp.core.MatrixFactory;
+import org.ujmp.core.calculation.Calculation.Ret;
+import org.ujmp.core.enums.FileFormat;
+import org.ujmp.core.enums.ValueType;
+import org.ujmp.core.exceptions.MatrixException;
+
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
@@ -13,6 +22,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.Stack;
 
+import javax.swing.JFrame;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.eclipse.swt.SWT;
@@ -36,6 +46,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.graphstream.ui.swingViewer.Viewer;
+//import org.graphstream.ui.swingViewer.Viewer;
 
 import client.DelegatingClientCore;
 import client.IClientCore.TreeExplorator;
@@ -50,8 +61,10 @@ import events.LinkEvent;
 import events.PlayerEvent;
 import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters;
 import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters.GUIParametersMode;
+import functions.Game;
 import functions.GameServer;
 import functions.TypeScore;
+import functions.logs.DynamicGraph;
 import functions.logs.GraphLogPack;
 /**
  * TODO déconnecter si connecté !
@@ -229,8 +242,6 @@ public class GuiTestMain
 		
 	}
 
-
-	
 	private void initMenus() {
 		
 		Menu menuBar = new Menu (shell, SWT.BAR);
@@ -485,7 +496,6 @@ public class GuiTestMain
 		
 		
 	}
-	
 	
 	public void init() {
 
@@ -759,9 +769,9 @@ public class GuiTestMain
 		
 		shell.setVisible(false);
 		
-		Viewer v = GraphLogPack.getInnovGraphViewer();
+		//Viewer v = GraphLogPack.getInnovGraphViewer();
 		
-		while(v.getDefaultView().isVisible());
+		//while(v.getDefaultView().isVisible());
 		
 		shell.dispose();
 		
@@ -782,7 +792,6 @@ public class GuiTestMain
 		
 	}
 	
-
 	private void clickCreateServer() {
 		
 
@@ -1256,6 +1265,147 @@ public class GuiTestMain
 		}
 	}
 	
+	public static void generateSimAnalyzerLog()
+	{
+		/* on recharge le fichier pour le transformer en log pour SimAnalyzer */
+        File fileSource = new File(GuiCreateGame.GAME_NAME + ".csv");
+        
+        Matrix matrix;
+        
+        try {
+        	matrix=MatrixFactory.importFromFile(FileFormat.CSV, fileSource,";");
+		} catch (MatrixException e) {
+			System.out.println("Erreur sur la matrice : \n");
+			e.printStackTrace();
+			return;
+		} catch (IOException e) {
+			System.out.println("Erreur sur le chargement du fichier : \n");
+			e.printStackTrace();
+			return;
+		}
+        
+        System.out.println("Chargement termine (" + matrix.getSize()[0] + " lignes * " + matrix.getSize()[1] + " colonnes )\n");
+
+		for(long column = 0; column < matrix.getColumnCount(); column++ ){
+			matrix.setColumnLabel(column, matrix.getAsString(0,column));
+		}
+
+		matrix.showGUI();
+		
+		/* on recupere les logP par groupe de pas de temps pour regenerer les logs */
+		long cursor = 1;
+		int tempsMin = 0;
+		int tempsPas = 10;
+		int tempsMax = tempsMin + tempsPas;
+		int numPas = 0;
+		long columnTime = matrix.getColumnForLabel(Game.LOG_TIME_NAME);
+		long columnType = matrix.getColumnForLabel(Game.LOG_TYPE_NAME);
+		long columnId = matrix.getColumnForLabel("playerId");
+		Collection<Long> buffer = new ArrayList<Long>();
+		/* on cree la matrice resultat */
+		Matrix result = MatrixFactory.zeros(ValueType.STRING, 1, matrix.getColumnCount());
+		for (long column = matrix.getColumnCount()-1 ; column >= 0 ; column--)
+		{
+			result.setAsString(matrix.getAsString(0,column), 0,column);
+		}
+		/* on recupere la liste des colomnes graphes (cas special) */
+		String[] graphNames = GraphLogPack.titles().substring(0, GraphLogPack.titles().length()-1).split(";");
+		ArrayList<Long> graphColumns = new ArrayList<Long>();
+		for (int i = graphNames.length-1 ; i >= 0 ; i--)
+		{
+			graphColumns.add(matrix.getColumnForLabel(graphNames[i])); 
+		}
+		
+		while(cursor < matrix.getColumnCount())
+		{
+			/* si on depasse le pas, on ajoute le buffer au resultat */
+			while(tempsMax <= matrix.getAsInt(cursor,columnTime))
+			{
+				/* si on n'a rien trouve, on passe directement au pas suivant */
+				if (buffer.size() > 0)
+				{
+					
+					/* on recuepre la liste des joueurs */
+					ArrayList<Integer> idList = new ArrayList<Integer>();
+					
+					for (Long p : buffer)
+					{
+						if (!idList.contains(matrix.getAsInt(p,columnId)))
+						{
+							idList.add(matrix.getAsInt(p,columnId));
+						}
+					}
+					
+					Matrix tmp = MatrixFactory.zeros(ValueType.STRING, idList.size(), matrix.getColumnCount());
+			
+					for (long b : buffer)
+					{
+						long row = idList.indexOf(matrix.getAsInt(b,columnId));
+						
+						/* on remplace un a un les valeurs, avec comme cas special les valeurs de graphe */
+						for (long column = matrix.getColumnCount()-1 ; column >= 0 ; column--)
+						{
+							if (graphColumns.contains(column))
+							{
+								ArrayList<String> graphBuffer = new ArrayList<String>();
+								String columnContent =  tmp.getAsString(row,column);
+								if (columnContent != null)
+								{
+									graphBuffer.addAll(DynamicGraph.stringToTab(columnContent));
+								}
+								columnContent =  matrix.getAsString(b,column);
+								if (columnContent != null)
+								{
+									graphBuffer.addAll(DynamicGraph.stringToTab(columnContent));
+								}
+								tmp.setAsString(DynamicGraph.tabToString(graphBuffer), row, column);
+							}
+							else
+							{
+								tmp.setAsString(matrix.getAsString(b,column), row,column);
+							}
+						}
+					}
+					
+					/* on change la colonne time pour que celle ci se synchronise sur le pas */
+					for (long row = tmp.getRowCount()-1 ; row >= 0 ; row--)
+					{
+						tmp.setAsInt(numPas, 0,columnTime);
+					}
+					
+					/* on ajoute la matrice tmp au resultat */
+					Matrix n2 = result.appendVertically(tmp);	
+					result=n2.subMatrix(Ret.NEW, 0, 0, n2.getRowCount()-1, n2.getColumnCount()-1);
+					for(long column =0; column<matrix.getColumnCount(); column++ ){
+						long nc=result.getColumnCount()-matrix.getColumnCount()+column;
+						result.setColumnLabel(nc, matrix.getColumnLabel(column));
+					}
+					
+				}
+				
+				
+				/* on initialise pour la partie suivante */
+				buffer.clear();
+				numPas++;
+				tempsMax += tempsPas;
+			}
+			
+			/* on ajoute la ligne logp a la liste du pas */
+			if (matrix.getAsString(cursor,columnType).equals("logp"))
+			{
+				buffer.add(cursor);
+			}
+			
+			cursor++;
+		}
+		
+		JFrame v = result.showGUI();
+		
+		while (v.isVisible());
+		
+		// TODO CONTINUER PLUS TARD
+		
+	}
 	
 	public static void main(String[] args) {
 
@@ -1271,9 +1421,12 @@ public class GuiTestMain
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
+			generateSimAnalyzerLog();
 			//to ensure that whatever happens, system shutdowns in the proper way
 			Runtime.getRuntime().exit(0);
 		}
+		
+		
 	}
 
 	@Override

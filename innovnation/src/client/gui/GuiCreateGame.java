@@ -29,6 +29,8 @@ import org.eclipse.swt.widgets.Text;
  */
 public class GuiCreateGame {
 	
+	public static final String GAME_NAME = "a_game";
+	
 	@SuppressWarnings("unused")
 	private Logger logger = Logger.getLogger("client.gui.createGame");
 	
@@ -171,7 +173,7 @@ public class GuiCreateGame {
 		fieldGameName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING | GridData.GRAB_HORIZONTAL));
 		
 		if (GuiTestMain.TEST_MODE) 
-			fieldGameName.setText("a_game");
+			fieldGameName.setText(GAME_NAME);
 		
 		fieldGameName.addModifyListener(new ModifyListener() {
 			

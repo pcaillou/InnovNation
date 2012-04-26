@@ -1,8 +1,11 @@
 package functions.logs;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
+import org.graphstream.graph.Edge;
 import org.graphstream.ui.swingViewer.Viewer;
 
 import data.IComment;
@@ -26,7 +29,8 @@ public class GraphLogPack implements LogPack {
 
 	private Collection<String> nbVotesList;
 	private Collection<String> weightVotesList;
-	
+	private HashMap<Integer,Collection<String>> logPNbVotes;
+	private HashMap<Integer,Collection<String>> logPWeightVotes;
 	
 	public static Viewer getInnovGraphViewer()
 	{
@@ -38,12 +42,13 @@ public class GraphLogPack implements LogPack {
 		return null;
 	}
 	
-	
 	public GraphLogPack(Game _game)
 	{
 		game = _game;
 		nbVotesList = new ArrayList<String>();
 		weightVotesList = new ArrayList<String>();
+		logPNbVotes = new HashMap<Integer, Collection<String>>();
+		logPWeightVotes = new HashMap<Integer, Collection<String>>();
 		try {
 			graph = new GraphInnovNation("1");
 		} catch (GraphInnovNationException e) {
@@ -54,14 +59,13 @@ public class GraphLogPack implements LogPack {
 	static public String titles() {
 		StringBuilder sb = new StringBuilder("nbVoteGraph;weightVoteGraph;");
 		return sb.toString(); 
-		
 	}
 
 	static public String zeros() {
 		StringBuilder sb = new StringBuilder("[];[];");
 		return sb.toString(); 
 	}
-	
+
 	public String log(int time) {
 		StringBuilder sb = new StringBuilder();
 
@@ -108,6 +112,79 @@ public class GraphLogPack implements LogPack {
 		return sb.toString();
 	}
 
+	public HashMap<Integer,String> getLogpLogs(int time) throws IOException
+	{
+		HashMap<Integer,String> result = new HashMap<Integer,String>();
+		HashMap<Integer,Collection<String>> newLogPNbVotes = new HashMap<Integer,Collection<String>>();
+		HashMap<Integer,Collection<String>> newLogPWeightVotes = new HashMap<Integer,Collection<String>>();
+		
+		/* on genere les nouvelles logPList */
+		DynamicGraph gNbVotes = graph.getNbVoteGraph();
+		DynamicGraph gWeightVotes = graph.getWeightVoteGraph();
+		Collection<String> edges;
+		for(Integer p : game.getAllPlayersIds())
+		{
+			/* on recupere la liste des arcs + declaration node pour le joueur p sur le graphe nbVotes */
+			edges = new ArrayList<String>();
+			
+			edges.add(gNbVotes.nodeToString(gNbVotes.getNode(p.toString())));
+			
+			for (Edge e : gNbVotes.getNode(p.toString()).getEachLeavingEdge())
+			{
+				edges.add(gNbVotes.edgeToString(e));
+			}
+			
+			newLogPNbVotes.put(p, edges);
+
+			/* on recupere la liste des arcs + declaration node pour le joueur p sur le graphe weightVotes */
+			edges = new ArrayList<String>();
+			
+			edges.add(gWeightVotes.nodeToString(gWeightVotes.getNode(p.toString())));
+			
+			for (Edge e : gWeightVotes.getNode(p.toString()).getEachLeavingEdge())
+			{
+				edges.add(gWeightVotes.edgeToString(e));
+			}
+			
+			newLogPWeightVotes.put(p, edges);
+		}
+
+		/* on calcule la difference pour chaque logP et on l'ajoute au resultat */
+		Collection<String> difference = new ArrayList<String>();
+		for(Integer p : game.getAllPlayersIds())
+		{
+			result.put(p,"");
+			
+			if (!logPNbVotes.containsKey(p))
+			{
+				logPNbVotes.put(p,new ArrayList<String>());
+			}
+			System.out.println("new logPNb " + p + " : " + newLogPNbVotes.get(p));
+			difference.addAll(newLogPNbVotes.get(p));
+			difference.removeAll(logPNbVotes.get(p));
+			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
+			difference.clear();
+			
+			if (!logPWeightVotes.containsKey(p))
+			{
+				logPWeightVotes.put(p,new ArrayList<String>());
+			}
+			System.out.println("new logPWeight " + p + " : " + newLogPWeightVotes.get(p));
+			difference.addAll(newLogPWeightVotes.get(p));
+			difference.removeAll(logPWeightVotes.get(p));
+			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
+			difference.clear();
+		}
+		
+		logPNbVotes.clear();
+		logPNbVotes.putAll(newLogPNbVotes);
+		logPWeightVotes.clear();
+		logPWeightVotes.putAll(newLogPWeightVotes);
+		
+		return result;
+		
+	}
+	
 	public void updateOnPlayer(int playerId) {
 		try {
 			graph.addPlayer(String.valueOf(playerId),(long) game.getTime());
