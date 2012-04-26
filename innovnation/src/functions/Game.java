@@ -40,7 +40,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 	private static final long serialVersionUID = 1L;
 
 	public static final String LOG_TIME_NAME = "time";
-	public static final String LOG_TYPE_NAME = "time";
+	public static final String LOG_TYPE_NAME = "type";
 	
 	private long startingTime;
 	
@@ -521,21 +521,24 @@ public class Game extends AbstractGame implements IServerSideGame {
 			logFileWriter.write(gameLP.log(now));
 
 			//graph data
-			logFileWriter.write(graphLogs.get(p));
+			String t = graphLogs.get(p);
+			logFileWriter.write(t);
 			
 			//player data
 			logFileWriter.write(playerLPs.get(p).log(now));
-			
+
 			
 			//item data
 			logFileWriter.write(
 				ItemLogPack.zeros()
-			);
+			);			
+
 			
 			//idea data
 			logFileWriter.write(
 					IdeaLogPack.zeros()
-				);
+				);			
+
 			
 			//à vérifier
 			//idea sons data
@@ -546,6 +549,8 @@ public class Game extends AbstractGame implements IServerSideGame {
 				CommentLogPack.zeros()
 			);
 			
+			System.out.println("Comment : " + CommentLogPack.titles().split(";").length + "/" + CommentLogPack.zeros().split(";").length   + "/" + CommentLogPack.zeros().split(";").length );
+
 			
 			logFileWriter.write(logMessage);
 			logFileWriter.write('\n');

@@ -34,7 +34,6 @@ public class Comment extends GameObject implements IComment {
 		super(authorId, shortName);
 		this.commented=commented;
 		this.valence=valence;
-		System.out.println("MA VALENCE : " + valence);
 		this.text=text;
 		this.tokens = 0;
 		
@@ -55,7 +54,6 @@ public class Comment extends GameObject implements IComment {
 		super(authorId, shortName);
 		this.commented=commented;
 		this.valence=valence;
-		System.out.println("MA VALENCE : " + valence);
 		this.text=text;
 		this.tokens = tokens;
 		

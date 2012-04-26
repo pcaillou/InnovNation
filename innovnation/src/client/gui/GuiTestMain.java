@@ -7,7 +7,9 @@ import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
 import org.ujmp.core.exceptions.MatrixException;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
@@ -22,7 +24,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.Stack;
 
-import javax.swing.JFrame;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.eclipse.swt.SWT;
@@ -45,7 +46,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.graphstream.ui.swingViewer.Viewer;
 //import org.graphstream.ui.swingViewer.Viewer;
 
 import client.DelegatingClientCore;
@@ -1289,8 +1289,6 @@ public class GuiTestMain
 		for(long column = 0; column < matrix.getColumnCount(); column++ ){
 			matrix.setColumnLabel(column, matrix.getAsString(0,column));
 		}
-
-		matrix.showGUI();
 		
 		/* on recupere les logP par groupe de pas de temps pour regenerer les logs */
 		long cursor = 1;
@@ -1316,15 +1314,14 @@ public class GuiTestMain
 			graphColumns.add(matrix.getColumnForLabel(graphNames[i])); 
 		}
 		
-		while(cursor < matrix.getColumnCount())
+		while(cursor <= matrix.getRowCount() || buffer.size() > 0)
 		{
-			/* si on depasse le pas, on ajoute le buffer au resultat */
-			while(tempsMax <= matrix.getAsInt(cursor,columnTime))
+			/* si on depasse le pas, ou qu'on est au dernier buffer, on ajoute le buffer au resultat */
+			while((buffer.size() > 0 && cursor >= matrix.getRowCount()) || tempsMax <= matrix.getAsInt(cursor,columnTime))
 			{
 				/* si on n'a rien trouve, on passe directement au pas suivant */
 				if (buffer.size() > 0)
 				{
-					
 					/* on recuepre la liste des joueurs */
 					ArrayList<Integer> idList = new ArrayList<Integer>();
 					
@@ -1390,25 +1387,57 @@ public class GuiTestMain
 				tempsMax += tempsPas;
 			}
 			
-			/* on ajoute la ligne logp a la liste du pas */
-			if (matrix.getAsString(cursor,columnType).equals("logp"))
+			
+			if (cursor < matrix.getRowCount())
 			{
-				buffer.add(cursor);
+				/* on ajoute la ligne logp a la liste du pas */
+				if (matrix.getAsString(cursor,columnType).equals("logp"))
+				{
+					buffer.add(cursor);
+				}
 			}
 			
 			cursor++;
 		}
 		
-		JFrame v = result.showGUI();
-		
-		while (v.isVisible());
-		
-		// TODO CONTINUER PLUS TARD
+		/* on sauvegarde la matrice dans un fichier */
+		String line,filename = GuiCreateGame.GAME_NAME + "_symLog.csv";
+		try
+		{
+			FileWriter fw = new FileWriter(filename, false);
+			BufferedWriter output = new BufferedWriter(fw);
+			
+			/* on parcourt chaque ligne qu'on ajoute au fichier */
+			for(long row = 0; row < result.getRowCount(); row++ ){
+				line = "";
+				for(long col = 0; col < result.getColumnCount(); col++ ){
+					if (!line.equals(""))
+					{
+						line += ";";
+					}
+					line += result.getAsString(row,col);
+				}
+				
+				output.write(line + "\n");
+			}
+			
+			/* on ecrit le tout dans le fichier */
+			output.flush();
+			output.close();
+			System.out.println("Matrice SimAnalyzer sauvegardee dans le fichier : \"" + filename + "\"");
+		}
+		catch(IOException e){
+			System.out.print("Erreur lors de la sauvegarde du fichier: ");
+			e.printStackTrace();
+		}
 		
 	}
 	
 	public static void main(String[] args) {
 
+		generateSimAnalyzerLog();
+		System.exit(1);
+		
 		//System.setSecurityManager(new RMISecurityManager());
 		try {
 			GuiTestMain t = new GuiTestMain();

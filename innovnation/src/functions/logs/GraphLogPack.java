@@ -159,7 +159,6 @@ public class GraphLogPack implements LogPack {
 			{
 				logPNbVotes.put(p,new ArrayList<String>());
 			}
-			System.out.println("new logPNb " + p + " : " + newLogPNbVotes.get(p));
 			difference.addAll(newLogPNbVotes.get(p));
 			difference.removeAll(logPNbVotes.get(p));
 			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
@@ -169,7 +168,6 @@ public class GraphLogPack implements LogPack {
 			{
 				logPWeightVotes.put(p,new ArrayList<String>());
 			}
-			System.out.println("new logPWeight " + p + " : " + newLogPWeightVotes.get(p));
 			difference.addAll(newLogPWeightVotes.get(p));
 			difference.removeAll(logPWeightVotes.get(p));
 			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
