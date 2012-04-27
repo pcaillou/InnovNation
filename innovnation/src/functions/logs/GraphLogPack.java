@@ -119,8 +119,12 @@ public class GraphLogPack implements LogPack {
 		HashMap<Integer,Collection<String>> newLogPWeightVotes = new HashMap<Integer,Collection<String>>();
 		
 		/* on genere les nouvelles logPList */
-		DynamicGraph gNbVotes = graph.getNbVoteGraph();
-		DynamicGraph gWeightVotes = graph.getWeightVoteGraph();
+		GraphInnovNation graph2 = graph.clone();
+		graph2.divideTime(SimAnalyzerLog.SYM_LOGP_STEP);
+		
+		DynamicGraph gNbVotes = graph2.getNbVoteGraph();
+		DynamicGraph gWeightVotes = graph2.getWeightVoteGraph();
+
 		Collection<String> edges;
 		for(Integer p : game.getAllPlayersIds())
 		{

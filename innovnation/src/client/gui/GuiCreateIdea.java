@@ -75,6 +75,7 @@ public class GuiCreateIdea implements IEventListener {
 	private Table fieldAllAvailableItems = null;
 	private Table fieldSelectedItems = null;
 	
+	@SuppressWarnings("unused")
 	private Text fieldNewItem = null;
 
 	private Button buttonAdd = null;
@@ -101,7 +102,9 @@ public class GuiCreateIdea implements IEventListener {
 	private final static String TXT_BUTTON_VALIDATE = "Créer l'idée";
 	private final static String TXT_BUTTON_CANCEL = "Annuler";
 
+	@SuppressWarnings("unused")
 	private final static String TXT_TOOLTIP_NEWITEM_NAME = "Un nom clair qui distinguera votre idée";
+	@SuppressWarnings("unused")
 	private final static String TXT_TOOLTIP_NEWITEM_DESC = "Description de l'Item";
 
 	private final static String TXT_BUTTON_CREATENEWITEM = "Créer un item";
@@ -116,6 +119,7 @@ public class GuiCreateIdea implements IEventListener {
 	private final int LOOK_COMPOSITE_STYLE_SUBSPACES = SWT.NONE; // SWT.BORDER;
 	
 	private final int LOOK_NB_LINES_DESC = 3;
+	@SuppressWarnings("unused")
 	private final int LOOK_NB_LINES_ITEMDESC = 2;
 	private final int LOOK_NB_LINES_ITEMS_AVAILABLE = 10;
 	private final int LOOK_NB_LINES_ITEMS_SELECTED = 8;

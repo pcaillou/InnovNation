@@ -228,7 +228,6 @@ public class GraphInnovNation extends MultiGraph{
 	 * @param timeAdd : temps auquel l'idee a ete ajoutee
 	 * @throws GraphInnovNationException
 	 */
-	
 	public void addIdea(String id,ArrayList<String> idIdeasSource, String idPlayerSource, Long timeAdd) throws GraphInnovNationException
 	{
 		id = toRightIdFormat(id);
@@ -342,9 +341,9 @@ public class GraphInnovNation extends MultiGraph{
 		if (e != null)
 		{
 			
-			if (e.getAttribute(TIME_ADD) == timeAdd){
+			/*if (e.getAttribute(TIME_ADD) == timeAdd){
 				throw new TemporalIncoherence("Cannot update Edge " + PREFIX_VOTE + id + " at the time it is created (" + timeAdd + ")");
-			}
+			}*/
 			
 			if (e.getOpposite(getNode(playerId)).equals(getNode(ideaId)))
 			{
@@ -352,10 +351,10 @@ public class GraphInnovNation extends MultiGraph{
 				int pos = 0;
 				for (pos = 0 ; pos < hist.size(); pos++)
 				{
-					if (hist.get(pos)[0] == timeAdd)
+					/*if (hist.get(pos)[0] == timeAdd)
 					{
 						throw new TemporalIncoherence("Cannot update Edge " + PREFIX_VOTE + id + " : an update already exists at time " + timeAdd);
-					}
+					}*/
 					if (hist.get(pos)[0] > timeAdd)
 					{
 						break;
@@ -419,6 +418,36 @@ public class GraphInnovNation extends MultiGraph{
 		lastEventTime = Math.max(lastEventTime, timeAdd);
 	}
 	
+	
+	/**
+	 * Divise le temps de creation et les historiques de tout les arcs et noeuds
+	 * @param factor : tout les temps seront multiplies par cette valeur
+	 */
+	public void divideTime(Integer step)
+	{
+		for(Node n : getEachNode())
+		{
+			n.setAttribute(TIME_ADD,(long)(((Long)n.getAttribute(TIME_ADD))/step));
+		}
+		
+		for (Edge e : getEachEdge())
+		{
+			e.setAttribute(TIME_ADD,(long)(((Long)e.getAttribute(TIME_ADD))/step));
+		}
+		
+		for (Integer i : votes)
+		{
+			Edge e = getEdge(i);
+			
+			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST);
+			
+			for (long[] h : hist)
+			{
+				h[0] = (long)(h[0]/step);
+			}
+		}
+	}
+	
 	/**
 	 * Affiche le graphe
 	 * @return Viewer : un Viewer pour le graphe
@@ -438,6 +467,54 @@ public class GraphInnovNation extends MultiGraph{
 	public Viewer displayGraph(long time) throws GraphInnovNationException
 	{
 		return getGraphAtTime(time).display();
+	}
+	
+	public GraphInnovNation clone()
+	{
+		GraphInnovNation g = null;
+		try {
+			g = new GraphInnovNation((String) getNode(root).getAttribute("ID"));
+	
+			Node tmpn;
+			Edge tmpe;
+			
+			for (Integer p : players)
+			{
+				tmpn = getNode(p);
+				g.addPlayer((tmpn.getId()).substring(PREFIX_PLAYER.length()), (Long)tmpn.getAttribute(TIME_ADD));
+			}
+			
+			for (Integer p : ideas)
+			{
+				tmpn = getNode(p);
+				ArrayList<String> idsSource = tmpn.getAttribute(IDEA_SOURCE),
+								  ids = new ArrayList<String>();
+				for (String idSource : idsSource)
+				{
+					ids.add(idSource.substring(PREFIX_IDEA.length()));
+				}
+				
+				g.addIdea((tmpn.getId()).substring(PREFIX_IDEA.length()),ids, ((String)tmpn.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), (Long)tmpn.getAttribute(TIME_ADD));
+			}
+			
+			for (Integer p : votes)
+			{
+				tmpe = getEdge(p);
+				ArrayList<long[]> hist = tmpe.getAttribute(VOTE_HIST);
+				for (long[] h : hist)
+				{
+					g.addVote((tmpe.getId()).substring(PREFIX_VOTE.length()), ((String)tmpe.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), ((String)tmpe.getAttribute(IDEA_TARGET)).substring(PREFIX_IDEA.length()), ((Long)h[1]).intValue(), ((Long)h[2]).intValue(), h[0]);
+				}
+			}
+			
+			if (hasAttribute("ui.stylesheet"))
+			{
+				g.setAttribute("ui.stylesheet", getAttribute("ui.stylesheet"));
+			}
+		} catch (GraphInnovNationException e) {
+			e.printStackTrace();
+		}
+		return g;
 	}
 	
 	/**
