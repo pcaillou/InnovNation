@@ -72,19 +72,19 @@ public class GameLogPack implements LogPack {
 	public void updateOnPlayer(int playerId){
 		players++;
 		try {
-			playersList = "[";
+			playersList = "" + DynamicGraph.LEFT_BRACE;
 			for (Integer player : game.getAllPlayersIds())
 			{
-				if (playersList != "[")
+				if (!playersList.equals("" + DynamicGraph.LEFT_BRACE))
 				{
-					playersList += ",";
+					playersList += DynamicGraph.SEPARATOR;
 				}
 				playersList+= player;
 			}
-			playersList += "]";
+			playersList += DynamicGraph.RIGHT_BRACE;
 		} catch (RemoteException e1) {
 			e1.printStackTrace();
-			playersList = "[]";
+			playersList = "" + DynamicGraph.RIGHT_BRACE + DynamicGraph.LEFT_BRACE;
 		}
 		
 		
@@ -99,19 +99,19 @@ public class GameLogPack implements LogPack {
 	public void updateOnPlayerLeft(int playerId){
 		players--;
 		try {
-			playersList = "[";
+			playersList = "" + DynamicGraph.LEFT_BRACE;
 			for (Integer player : game.getAllPlayersIds())
 			{
-				if (playersList != "[")
+				if (!playersList.equals("" + DynamicGraph.LEFT_BRACE))
 				{
-					playersList += ",";
+					playersList += DynamicGraph.SEPARATOR;
 				}
 				playersList+= player;
 			}
-			playersList += "]";
+			playersList += DynamicGraph.RIGHT_BRACE;
 		} catch (RemoteException e1) {
 			e1.printStackTrace();
-			playersList = "[]";
+			playersList = "" + DynamicGraph.RIGHT_BRACE + DynamicGraph.LEFT_BRACE;
 		}
 	}
 	
