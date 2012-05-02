@@ -16,87 +16,105 @@
     -->
 
     <target name="innovnation_linux_gtk_64bits">
-        <fatjar.build output="c:\dev\github\Innovnation\innovnation\builds\innovnation_linux_gtk2_64bits.jar">
-            <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\bin" relpath=""/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\cls" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\prefuse.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\jar-in-jar-loader.zip" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\log4j-1.2.8.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\swt\swt-3.6.1-gtk-linux-x86_64\swt.jar" relpath=""/>
+        <fatjar.build output="builds\innovnation_linux_gtk2_64bits.jar">
+            <fatjar.manifest manifestfile="manifestExport.txt"/>
+            <fatjar.filesource path="bin" relpath=""/>
+            <fatjar.filesource path="cls" relpath=""/>
+            <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
+            <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
+	            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
+            <fatjar.jarsource file="lib\swt\swt-3.6.1-gtk-linux-x86_64\swt.jar" relpath=""/>
         </fatjar.build>
     </target>
 	<target name="innovnation_linux_gtk_32bits">
-	        <fatjar.build output="c:\dev\github\Innovnation\innovnation\builds\innovnation_linux_gtk2_32bits.jar">
-	              <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\bin" relpath=""/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\cls" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\prefuse.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\jar-in-jar-loader.zip" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\log4j-1.2.8.jar" relpath=""/>
-	            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\swt\swt-3.6.1-gtk-linux-x86\swt.jar" relpath=""/>
+	        <fatjar.build output="builds\innovnation_linux_gtk2_32bits.jar">
+	              <fatjar.manifest manifestfile="manifestExport.txt"/>
+            <fatjar.filesource path="bin" relpath=""/>
+            <fatjar.filesource path="cls" relpath=""/>
+            <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
+            <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+	            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+	            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
+		            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
+	            <fatjar.jarsource file="lib\swt\swt-3.6.1-gtk-linux-x86\swt.jar" relpath=""/>
 	        </fatjar.build>
 	    </target>
 		<target name="innovnation_macosX_carbon">
-		        <fatjar.build output="c:\dev\github\Innovnation\innovnation\builds\innovnation_macosX_carbon.jar">
-		            <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-		             <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\bin" relpath=""/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\cls" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\prefuse.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\jar-in-jar-loader.zip" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\log4j-1.2.8.jar" relpath=""/>
-		            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\swt\swt-3.6.1-carbon-macosx\swt.jar" relpath=""/>
+		        <fatjar.build output="builds\innovnation_macosX_carbon.jar">
+		            <fatjar.manifest manifestfile="manifestExport.txt"/>
+		             <fatjar.manifest manifestfile="manifestExport.txt"/>
+            <fatjar.filesource path="bin" relpath=""/>
+            <fatjar.filesource path="cls" relpath=""/>
+            <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
+            <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+		            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+		            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
+			            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
+		            <fatjar.jarsource file="lib\swt\swt-3.6.1-carbon-macosx\swt.jar" relpath=""/>
 		        </fatjar.build>
 		    </target>
 		<target name="innovnation_macosX_cocoa_32bits">
-			        <fatjar.build output="c:\dev\github\Innovnation\innovnation\builds\innovnation_macosX_cocoa_32bits.jar">
-			            <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-			              <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\bin" relpath=""/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\cls" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\prefuse.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\jar-in-jar-loader.zip" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\log4j-1.2.8.jar" relpath=""/>
-			            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\swt\swt-3.6.1-cocoa-macosx\swt.jar" relpath=""/>
+			        <fatjar.build output="builds\innovnation_macosX_cocoa_32bits.jar">
+			            <fatjar.manifest manifestfile="manifestExport.txt"/>
+			              <fatjar.manifest manifestfile="manifestExport.txt"/>
+            <fatjar.filesource path="bin" relpath=""/>
+            <fatjar.filesource path="cls" relpath=""/>
+            <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
+            <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+			            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+			            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
+			            <fatjar.jarsource file="lib\swt\swt-3.6.1-cocoa-macosx\swt.jar" relpath=""/>
 			        </fatjar.build>
 			    </target>
 		<target name="innovnation_macosX_cocoa_64bits">
-				        <fatjar.build output="c:\dev\github\Innovnation\innovnation\builds\innovnation_macosX_cocoa_64bits.jar">
-				            <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-				             <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\bin" relpath=""/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\cls" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\prefuse.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\jar-in-jar-loader.zip" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\log4j-1.2.8.jar" relpath=""/>
-				            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\swt\swt-3.6.1-cocoa-macosx-x86_64\swt.jar" relpath=""/>
+				        <fatjar.build output="builds\innovnation_macosX_cocoa_64bits.jar">
+				            <fatjar.manifest manifestfile="manifestExport.txt"/>
+				             <fatjar.manifest manifestfile="manifestExport.txt"/>
+            <fatjar.filesource path="bin" relpath=""/>
+            <fatjar.filesource path="cls" relpath=""/>
+            <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
+            <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
+					            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\swt\swt-3.6.1-cocoa-macosx-x86_64\swt.jar" relpath=""/>
 				        </fatjar.build>
 				    </target>
 	<target name="innovnation_win_32bits">
-				        <fatjar.build output="c:\dev\github\Innovnation\innovnation\builds\innovnation_win_32bits.jar">
-				           <fatjar.manifest manifestfile="c:\dev\github\Innovnation\innovnation\manifestExport.txt"/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\bin" relpath=""/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\cls" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\prefuse.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\jar-in-jar-loader.zip" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\log4j-1.2.8.jar" relpath=""/>
-				            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\swt\swt-3.6.1-win32-win32-x86\swt.jar" relpath=""/>
+				        <fatjar.build output="builds\innovnation_win_32bits.jar">
+				           <fatjar.manifest manifestfile="manifestExport.txt"/>
+            <fatjar.filesource path="bin" relpath=""/>
+            <fatjar.filesource path="cls" relpath=""/>
+            <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
+            <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
+					            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\swt\swt-3.6.1-win32-win32-x86\swt.jar" relpath=""/>
 				        </fatjar.build>
 				    </target>
 	<target name="innovnation_win_64bits">
-				        <fatjar.build output="c:\dev\github\InnovNation\innovnation\builds\innovnation_win_64bits.jar">
-				            <fatjar.manifest manifestfile="c:\dev\github\InnovNation\innovnation\manifestExport.txt"/>
-				          <fatjar.manifest manifestfile="c:\dev\github\InnovNation\innovnation\manifestExport.txt"/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\bin" relpath=""/>
-            <fatjar.filesource path="c:\dev\github\Innovnation\innovnation\cls" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\prefuse.jar" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\jar-in-jar-loader.zip" relpath=""/>
-            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\log4j-1.2.8.jar" relpath=""/>
-				            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\samtcommons.jar" relpath=""/>
-				            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\ujmp-complete-0.2.5.jar" relpath=""/>
-					            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\gs-core-1.1.1.jar" relpath=""/>
-				            <fatjar.jarsource file="c:\dev\github\Innovnation\innovnation\lib\swt\swt-3.6.1-win32-win32-x86_64\swt.jar" relpath=""/>
+				        <fatjar.build output="builds\innovnation_win_64bits.jar">
+				            <fatjar.manifest manifestfile="manifestExport.txt"/>
+				          <fatjar.manifest manifestfile="manifestExport.txt"/>
+            <fatjar.filesource path="bin" relpath=""/>
+            <fatjar.filesource path="cls" relpath=""/>
+            <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
+            <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
+					            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\swt\swt-3.6.1-win32-win32-x86_64\swt.jar" relpath=""/>
 				        </fatjar.build>
 				    </target>
 	<target name="main" depends="innovnation_linux_gtk_32bits,innovnation_linux_gtk_64bits,innovnation_win_32bits,innovnation_win_64bits,innovnation_macosX_carbon,innovnation_macosX_cocoa_32bits,innovnation_macosX_cocoa_64bits">
