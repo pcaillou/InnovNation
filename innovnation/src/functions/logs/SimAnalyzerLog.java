@@ -19,7 +19,7 @@ import functions.Game;
 
 public class SimAnalyzerLog {
 
-	public static final Integer SYM_LOGP_STEP = 10;
+	public static final Integer SYM_LOGP_STEP = 60;
 	
 	/**
 	 * Genere des logs pour SimAnalyzer depuis des logs deja crees
@@ -58,13 +58,18 @@ public class SimAnalyzerLog {
 		long columnTime = matrix.getColumnForLabel(Game.LOG_TIME_NAME);
 		long columnType = matrix.getColumnForLabel(Game.LOG_TYPE_NAME);
 		long columnId = matrix.getColumnForLabel("playerId");
+		long columnAbstract = matrix.getColumnForLabel("abstract");
 		Collection<Long> buffer = new ArrayList<Long>();
+		
 		/* on cree la matrice resultat */
 		Matrix result = MatrixFactory.zeros(ValueType.STRING, 1, matrix.getColumnCount());
-		for (long column = matrix.getColumnCount()-1 ; column >= 0 ; column--)
+		for (long column = matrix.getColumnCount()-1 ; column >= 2 ; column--)
 		{
 			result.setAsString(matrix.getAsString(0,column), 0,column);
 		}
+		result.setAsString("min", 0,0);
+		result.setAsString("id", 0,1);
+		
 		/* on recupere la liste des colomnes graphes (cas special) */
 		String[] graphNames = GraphLogPack.titles().substring(0, GraphLogPack.titles().length()-1).split(";");
 		ArrayList<Long> graphColumns = new ArrayList<Long>();
@@ -127,6 +132,15 @@ public class SimAnalyzerLog {
 					for (long row = tmp.getRowCount()-1 ; row >= 0 ; row--)
 					{
 						tmp.setAsInt(numPas, row,columnTime);
+					}
+					
+					/* on modifie les 2 premieres colonnes pour rajouter min et id
+					 *  et la colonne abstract car elle provoque des erreurs dans symAnalizer */
+					for (long row = tmp.getRowCount()-1 ; row >= 0 ; row--)
+					{
+						tmp.setAsString(String.valueOf(numPas), row,0);
+						tmp.setAsString(tmp.getAsString(row,columnId), row,1);
+						tmp.setAsString("0", row,columnAbstract);
 					}
 					
 					/* on ajoute la matrice tmp au resultat */

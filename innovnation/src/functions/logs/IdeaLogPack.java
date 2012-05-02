@@ -223,20 +223,20 @@ public class IdeaLogPack implements LogPack {
 		
 		Collection<IIdea> myParents = idea.getParents();
 		this.parents = myParents.size();
-		this.parentsId = "[";
+		this.parentsId = "" + DynamicGraph.LEFT_BRACE;
 		
 		for (IIdea parent : idea.getParents())
 		{
-			if (this.parentsId.equals("["))
+			if (this.parentsId.equals(""+DynamicGraph.LEFT_BRACE))
 			{
 				this.parentsId += parent.getUniqueId();
 			}
 			else
 			{
-				this.parentsId += "," + parent.getUniqueId();
+				this.parentsId += DynamicGraph.SEPARATOR + parent.getUniqueId();
 			}
 		}
-		this.parentsId +="]";
+		this.parentsId +=DynamicGraph.RIGHT_BRACE;
 		
 		this.childrens=0;
 		this.sameOwnerParent = false;
