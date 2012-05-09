@@ -15,6 +15,8 @@ import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 import java.rmi.RemoteException;
 
+import javax.swing.ImageIcon;
+
 import prefuse.Constants;
 import prefuse.render.AbstractShapeRenderer;
 import prefuse.render.ImageFactory;
@@ -82,7 +84,10 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
     protected int m_imageMargin = 0;
     protected int m_arcWidth    = 0;
     protected int m_arcHeight   = 0;
-    
+
+    protected int maxx   = 10;
+    protected int maxy   = 10;
+
 	protected String fieldForObject = "obj";
 
 	
@@ -262,6 +267,8 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
      */
     public void setMaxImageDimensions(int width, int height) {
         if ( m_images == null ) m_images = new ImageFactory();
+        maxx=width;
+        maxy=height;
         m_images.setMaxImageDimensions(width, height);
     }
     
@@ -285,7 +292,22 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
      */
     protected Image getImage(VisualItem item) {
         String imageLoc = getImageLocation(item);
-        return ( imageLoc == null ? null : m_images.getImage(imageLoc) );
+		if (imageLoc==null) return null;
+//		System.out.println("try to find : "+imageLoc+" from "+item.toString());		
+//		ImageIcon im=new ImageIcon(getClass().getResource("/"+imageLoc));
+//		Image imag=im.getImage();
+/*		int imx=im.getIconWidth();
+		int imy=im.getIconHeight();
+		if ((imx>maxx)|(imy>maxy))
+		{
+			double sc=Math.max(((double)imx)/maxx,((double)imy)/maxy);
+			System.out.println("sc "+(int)(imx/sc)+"/"+(int)(imx/sc)+"/"+sc);
+			imag=im.getImage().getScaledInstance((int)(imx/sc), (int)(imy/sc), Image.SCALE_DEFAULT);
+		}*/
+//		m_images.addImage(imageLoc, imag);
+		
+//        return ( imageLoc == null ? null : imag );
+        return ( imageLoc == null ? null : m_images.getImage("/"+imageLoc) );
     }
     
     

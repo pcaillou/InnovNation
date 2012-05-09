@@ -2,6 +2,8 @@ package client.gui;
 
 import java.rmi.RemoteException;
 
+import javax.swing.ImageIcon;
+
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -26,6 +28,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.jfree.experimental.swt.SWTUtils;
+
 
 import client.IClientCore;
 import data.Avatars;
@@ -458,7 +462,13 @@ public class GuiCreatePlayer {
 			
 			for (String currentAvatar : Avatars.getAvailableAvatars()) {
 				TableItem item = new TableItem(fieldAvailableAvatars, SWT.NONE);
-				Image image = new Image(display,  Avatars.getPathForAvatar(currentAvatar));
+				
+//				Image image = new Image(display,  Avatars.getPathForAvatar(currentAvatar));
+				logger.debug("avatar ressource : "+"/"+currentAvatar);		
+				ImageIcon im=new ImageIcon(getClass().getResource("/"+currentAvatar));
+				logger.debug("avatar ressourceb : "+"/"+currentAvatar);		
+				Image image=new Image(display,SWTUtils.convertAWTImageToSWT(im.getImage()));
+				logger.debug("avatar ressourcec : "+"/"+currentAvatar);		
 				
 				Image rescaled = resize(image, AVATAR_MAX_X, AVATAR_MAX_Y);
 				

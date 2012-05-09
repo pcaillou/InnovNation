@@ -27,6 +27,7 @@ permission java.net.SocketPermission "192.168.0.5:1024-", "listen,connect,resolv
  */
 public class Misc {
 	public final static Logger logger = Logger.getLogger("misc.avatars");
+	public static String ResPath="";
 
 	  public static String[] getResourceListing(String path) throws java.net.URISyntaxException, java.io.IOException {
 		  return getResourceListing(path.getClass(), path);
@@ -69,7 +70,9 @@ public class Misc {
 			logger.debug("avatar dir "+dirURL.toString());
 	      if (dirURL.getProtocol().equals("jar")) {
 	        /* A JAR path */
+		        ResPath=dirURL.toString().substring(0, dirURL.getPath().indexOf("!"))+"!/";
 	        String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
+			logger.debug("jar path "+ResPath);
 	        JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
 	        Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
 	        Set<String> result = new HashSet<String>(); //avoid duplicates in case it is a subdirectory
@@ -99,6 +102,13 @@ public class Misc {
       String type = fileNameMap.getContentTypeFor(fileUrl);
 
       return type;
+    }
+	
+	public static String getCompletePath(String fileUrl) throws java.io.IOException
+    {
+      String path = ResPath+fileUrl;
+
+      return path;
     }
 	
 	public static final Random random = new Random(System.currentTimeMillis());

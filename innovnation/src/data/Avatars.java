@@ -45,8 +45,9 @@ public class Avatars {
 			LinkedList<String> res = new LinkedList<String>();
 
 			for (String currentFile : children) {
-				
 				String currentType = Misc.getMimeType(currentFile);
+				logger.debug("avatar test : "+currentFile+" type "+currentType);
+				
 				if ( (currentType != null) && currentType.startsWith("image"))
 					res.add(currentFile);
 				
@@ -113,7 +114,14 @@ public class Avatars {
 	public static String getPathForAvatar(String avatar) {
 		if (resourcePath.length()>1)
 		return resourcePath+File.separator+avatar;
-		else return avatar;
+		else
+/*			try {
+				return Misc.getCompletePath(avatar);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
+		return avatar;
 	}
 	
 }
