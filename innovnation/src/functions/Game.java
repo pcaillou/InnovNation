@@ -17,6 +17,7 @@ import data.CommentValence;
 import data.IComment;
 import data.IIdea;
 import data.IItem;
+import data.IPlayer;
 import data.IStorable;
 import data.Idea;
 import data.Item;
@@ -280,12 +281,45 @@ public class Game extends AbstractGame implements IServerSideGame {
 	
 
 	@Override
+	public boolean testExistingPlayer(String playerName) throws RemoteException
+	{
+		boolean newplayer=true;
+		int id=-1;
+		for (IPlayer pl:this.getAllPlayers())
+		{
+			if (pl.getShortName().equals(playerName))
+			{
+				newplayer=false;
+				id=pl.getUniqueId();
+				System.out.println("existing player "+id);
+			}
+		}
+		return (!newplayer);
+		
+	}
+	@Override
 	public int addPlayer(String playerName, String avatar)
 			throws RemoteException {
-		int id = injectPlayer(new Player(playerName, avatar));
+		
+		boolean newplayer=true;
+		int id=-1;
+		for (IPlayer pl:this.getAllPlayers())
+		{
+			if (pl.getShortName().equals(playerName))
+			{
+				newplayer=false;
+				id=pl.getUniqueId();
+				System.out.println("use existing player "+id);
+			}
+		}
+		
+		if (newplayer)
+		{
+		id = injectPlayer(new Player(playerName, avatar));
+		graphLP.updateOnPlayer(id);
+		}
 		
 		gameLP.updateOnPlayer(id);
-		graphLP.updateOnPlayer(id);
 		playerLPs.put(id, new PlayerLogPack(this,getPlayer(id), getNow()));
 		
 		firePlayerJoinedEvent(id);

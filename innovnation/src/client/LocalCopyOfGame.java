@@ -467,6 +467,25 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 		return singletonInstance;
 	}
 
+	@Override
+	public boolean testExistingPlayer(String playerName) throws RemoteException
+	{
+		boolean newplayer=true;
+		int id=-1;
+		for (IPlayer pl:this.getAllPlayers())
+		{
+			if (pl.getShortName().equals(playerName))
+			{
+				newplayer=false;
+				id=pl.getUniqueId();
+				System.out.println("existing player "+id);
+			}
+		}
+		return (!newplayer);
+		
+	}
+
+
 	
 	
 }

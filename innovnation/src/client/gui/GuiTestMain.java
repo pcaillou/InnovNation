@@ -882,7 +882,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		if ( (name == null) || (avatar == null) )
 			return;
 		
-		
 		try {
 			Integer id = clientCore.getGame().addPlayer(name, avatar);
 			setPlayerId(id);
