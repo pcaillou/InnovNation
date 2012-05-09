@@ -92,7 +92,6 @@ public class DynamicGraph{
 		Integer level = 0;
 		String buffer = "";
 		ArrayList<String> result = new ArrayList<String>();
-		System.out.println(tab);
 		tab = tab.substring(1, tab.length()-1);
 		
 		/* on parcourt la chaine pour recuperer toutes les cellules */

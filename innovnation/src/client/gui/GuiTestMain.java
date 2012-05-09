@@ -69,6 +69,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private GuiClientMode modeClient = GuiClientMode.DISCONNECTED;
 	private GuiServerMode modeServer = GuiServerMode.NO_SERVER;
 	
+	private ArrayList<Thread> botThreads;
+	
 	
 	public static final boolean TEST_MODE = true;
 	
@@ -106,7 +108,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	 */
 	private Integer playerId = null;
 	
-	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer;
+	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot;
 	
 	@SuppressWarnings("unused")
 	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
@@ -214,6 +216,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		itemCreateServerLocal.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemCreateServer.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemShutdownServer.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemAddBot.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 
 		itemCreateGame.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		
@@ -367,6 +370,17 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 					
 				}
 				{
+					itemAddBot= new MenuItem (menuServer, SWT.PUSH);
+					itemAddBot.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickAddBot();
+						}
+					});
+					itemAddBot.setText ("Ajouter un bot...");
+					
+					
+				}
+				{
 					itemCreateGame = new MenuItem (menuServer, SWT.PUSH);
 					itemCreateGame.addListener (SWT.Selection, new Listener() {
 						public void handleEvent (Event e) {
@@ -489,6 +503,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		display = new Display ();
 		shell = new Shell (display, SWT.SHELL_TRIM);
 		shell.setText(TXT_WINDOW_TITLE);
+		
+		botThreads = new ArrayList<Thread>();
 
 		//shell.setLayout(new GridLayout(2, false));
 		shell.setLayout(new GridLayout(1, false));
@@ -725,6 +741,31 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	}
 
 	
+	/**
+	 * Cree un bot avec un GUI separe
+	 */
+	private void clickAddBot()
+	{
+		GuiBot bot = new GuiBot(clientWhiteboard, gameBindName, display, this);
+		
+		bot.init();
+		
+		try {
+			Integer id;
+			id = bot.getBotCore().getGame().addPlayer(bot.getBotCore().getName(), bot.getBotCore().getAvatar());
+			bot.getBotCore().setPlayerId(id);
+			
+		} catch (RemoteException e) {
+			System.err.println("Error while adding the bot to the game :");
+			e.printStackTrace();
+		}
+		
+		Thread t = new Thread(bot);
+		
+		t.start();
+		
+		botThreads.add(t);
+	}
 	
 	private void clickDisconnect() {
 		
@@ -1076,8 +1117,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 			throw e;
 		}
-		
-		
 	}
 
 	private void updateShellTitle() {
@@ -1252,7 +1291,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		}
 	}
 	
-		public static void main(String[] args) {
+	public static void main(String[] args) {
 		
 		//System.setSecurityManager(new RMISecurityManager());
 		try {
@@ -1299,6 +1338,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 		// we should also update the tree of comments
 		display.asyncExec(ideaCommentTreeFillerRunnable);
+		
 	}
 
 	@Override
@@ -1307,7 +1347,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 
 	@Override
 	public void playerLeft(PlayerEvent e) throws RemoteException {
-		
 	}
 	
 	
