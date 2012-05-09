@@ -1402,6 +1402,33 @@ public final class ClientWhiteboardSWT
 		}
 	
 	}
+	public void refreshCommentDirect() throws RemoteException {
+
+		Set<Integer> originalComments = new HashSet<Integer>(commentIds2nodes.keySet());
+		
+		// iterate accross all the players retrieved from the server
+		
+			for (IComment com : game.getAllComments()) {
+				
+				// create or update 
+				findOrCreateNodeForComment(com, TypeEdge.COMMENT2IDEA, true);
+				
+				// remove this player from the original ones
+				originalComments.remove(com.getUniqueId());
+				
+			}
+	
+		// remove all other players
+		for (Integer itemToRemove : originalComments) {
+			// remove from node 
+			Node nodeToRemove = commentIds2nodes.get(itemToRemove);
+			
+			prefusegraph.removeNode(nodeToRemove);
+			
+			commentIds2nodes.remove(itemToRemove);
+		}
+	
+	}
 	
 	/**
 	 * Refresh everything from data (kind of a re-syncing !).
@@ -1414,6 +1441,7 @@ public final class ClientWhiteboardSWT
 			refreshIdeasDirect();
 			refreshPlayersDirect();
 			refreshItemsDirect();
+			refreshCommentDirect();
 			
 		} catch (RemoteException e) {
 			synchroProblem(e);
