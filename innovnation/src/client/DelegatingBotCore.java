@@ -30,7 +30,6 @@ public class DelegatingBotCore extends ClientCore {
 	private long timeCreation;
 	private long nextAction;
 	
-	
 	private IEventListener listener;
 	
 	/* liste des parametres */
@@ -40,6 +39,10 @@ public class DelegatingBotCore extends ClientCore {
 	private int adaptation;
 	private int persuation;
 	
+	/**
+	 * Cree un bot avec le listener fourni
+	 * @param ui
+	 */
 	public DelegatingBotCore(IEventListener ui) {
 		super();
 		if(ui==null) throw new NullPointerException();
@@ -58,6 +61,8 @@ public class DelegatingBotCore extends ClientCore {
 		avatar = BOT_AVATAR;
 		
 		botCount++;
+		
+		//TypeScore.adaptation.calculer(g, playerId)
 	}
 
 	/**
@@ -146,56 +151,109 @@ public class DelegatingBotCore extends ClientCore {
 		}
 	}
 	
-	public long getNextAction(long time)
+	/**
+	 * Recupere le temps auquel le bot fera sa prochaine action (donne par System.currentTimeMillis())
+	 * @param time
+	 * @return
+	 */
+	private long getNextAction(long time)
 	{
-		return (long) (time + 1000 + (Math.random() * 10000 / reactivity));
+		return (long) (time + ((10000 + (Math.random() * 50000)) / reactivity));
 	}
 	
+	/**
+	 * Reset le temps auquel le bot fera sa prochaine action
+	 */
+	public void resetNextAction()
+	{
+		nextAction = getNextAction(System.currentTimeMillis());
+	}
+	
+	/**
+	 * Setter pour reactivity
+	 * @param _reactivity
+	 */
 	public void setReactivity(int _reactivity)
 	{
 		reactivity = _reactivity;
 	}
 	
+	/**
+	 * Getter pour reactivity
+	 * @return int
+	 */
 	public int getReactivity()
 	{
 		return reactivity;
 	}
 	
+	/**
+	 * Setter pour creativity
+	 * @param _creativity
+	 */
 	public void setCreativity(int _creativity)
 	{
 		creativity = _creativity;
 	}
 	
+	/**
+	 * Getter pour creativity
+	 * @return int
+	 */
 	public int getCreativity()
 	{
 		return creativity;
 	}
 	
+	/**
+	 * Setter pour relevance
+	 * @param _relevance
+	 */
 	public void setRelevance(int _relevance)
 	{
 		relevance = _relevance;
 	}
 	
+	/**
+	 * Getter pour relevance
+	 * @return int
+	 */
 	public int getRelevance()
 	{
 		return relevance;
 	}
 	
+	/**
+	 * Setter pour adaptation
+	 * @param _adaptation
+	 */
 	public void setAdaptation(int _adaptation)
 	{
 		adaptation = _adaptation;
 	}
 	
+	/**
+	 * Getter pour adaptation
+	 * @return int
+	 */
 	public int getAdaptation()
 	{
 		return adaptation;
 	}
 	
+	/**
+	 * Setter pour persuation
+	 * @param _persuation
+	 */
 	public void setPersuation(int _persuation)
 	{
 		persuation = _persuation;
 	}
 	
+	/**
+	 * Getter pour persuation
+	 * @return int
+	 */
 	public int getPersuation()
 	{
 		return persuation;
@@ -288,30 +346,58 @@ public class DelegatingBotCore extends ClientCore {
 
 	}	
 		
+	/**
+	 * Listener pour l'evenement player left
+	 * @param e
+	 */
 	public void playerLeft(PlayerEvent e) throws RemoteException {
 		listener.playerLeft(e);
 	}
 
+	/**
+	 * Listener pour l'evenement player join
+	 * @param e
+	 */
 	public void playerJoined(PlayerEvent e) throws RemoteException {
 		listener.playerJoined(e);
 	}
 
+	/**
+	 * Listener pour l'evenement item cree
+	 * @param e
+	 */
 	public void ItemCreated(GameObjectEvent e) throws RemoteException {
 		listener.ItemCreated(e);
 	}
 
+	/**
+	 * Listener pour l'evenement idee creee
+	 * @param e
+	 */
 	public void IdeaCreated(GameObjectEvent e) throws RemoteException {
 		listener.IdeaCreated(e);
 	}
 
+	/**
+	 * Listener pour l'evenement lien d'idee cree
+	 * @param e
+	 */
 	public void IdeaLinkCreated(LinkEvent e) throws RemoteException {
 		listener.IdeaLinkCreated(e);
 	}
 
+	/**
+	 * Listener pour l'evenement commentaire cree
+	 * @param e
+	 */
 	public void ideaCommentCreated(GameObjectEvent e) throws RemoteException {
 		listener.ideaCommentCreated(e);
 	}
 
+	/**
+	 * Listener pour l'evenement fin de partie
+	 * @param e
+	 */
 	public void endOfGame() throws RemoteException {
 		listener.endOfGame();
 	}

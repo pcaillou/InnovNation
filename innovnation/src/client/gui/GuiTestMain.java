@@ -69,7 +69,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private GuiClientMode modeClient = GuiClientMode.DISCONNECTED;
 	private GuiServerMode modeServer = GuiServerMode.NO_SERVER;
 	
-	private ArrayList<Thread> botThreads;
+	private ArrayList<GuiBot> botThreads;
 	
 	
 	public static final boolean TEST_MODE = true;
@@ -81,7 +81,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	/**
 	 * Only relevant if mode != DISCONNECTED.
 	 */	
-	@SuppressWarnings("unused")
 	private String gameBindName = null;
 	
 	
@@ -108,7 +107,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	 */
 	private Integer playerId = null;
 	
-	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot;
+	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot, itemStartBots, itemPauseBots, itemRemoveBots;
 	
 	@SuppressWarnings("unused")
 	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
@@ -217,6 +216,9 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		itemCreateServer.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemShutdownServer.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		itemAddBot.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemStartBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemPauseBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemRemoveBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 
 		itemCreateGame.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		
@@ -381,6 +383,35 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 					
 				}
 				{
+					itemStartBots= new MenuItem (menuServer, SWT.PUSH);
+					itemStartBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickStartBots();
+						}
+					});
+					itemStartBots.setText ("Demarrer les bots...");
+					
+					
+				}
+				{
+					itemPauseBots= new MenuItem (menuServer, SWT.PUSH);
+					itemPauseBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickPauseBots();
+						}
+					});
+					itemPauseBots.setText ("Stopper les bots...");
+				}
+				{
+					itemRemoveBots= new MenuItem (menuServer, SWT.PUSH);
+					itemRemoveBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickRemoveBots();
+						}
+					});
+					itemRemoveBots.setText ("Supprimer les bots...");
+				}
+				{
 					itemCreateGame = new MenuItem (menuServer, SWT.PUSH);
 					itemCreateGame.addListener (SWT.Selection, new Listener() {
 						public void handleEvent (Event e) {
@@ -504,7 +535,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		shell = new Shell (display, SWT.SHELL_TRIM);
 		shell.setText(TXT_WINDOW_TITLE);
 		
-		botThreads = new ArrayList<Thread>();
+		botThreads = new ArrayList<GuiBot>();
 
 		//shell.setLayout(new GridLayout(2, false));
 		shell.setLayout(new GridLayout(1, false));
@@ -760,11 +791,43 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 			e.printStackTrace();
 		}
 		
-		Thread t = new Thread(bot);
+		bot.start();
 		
-		t.start();
-		
-		botThreads.add(t);
+		botThreads.add(bot);
+	}
+	
+	/**
+	 * Demarre tous les bots
+	 */
+	private void clickStartBots()
+	{
+		for (GuiBot t : botThreads)
+		{
+			t.startBot();
+		}
+	}
+	
+	/**
+	 * Stoppe tous les bots
+	 */
+	private void clickPauseBots()
+	{
+		for (GuiBot t : botThreads)
+		{
+			t.pauseBot();
+		}
+	}
+	
+	/**
+	 * Supprime tous les bots
+	 */
+	private void clickRemoveBots()
+	{
+		for (GuiBot t : botThreads)
+		{
+			t.close();
+		}
+		botThreads.clear();
 	}
 	
 	private void clickDisconnect() {

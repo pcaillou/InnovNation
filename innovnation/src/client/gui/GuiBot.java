@@ -21,11 +21,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 
 import client.DelegatingBotCore;
 import events.IEventListener;
+import functions.TypeScore;
 
 
 // TODO gestion des parametres + ajouter creativite etc..
@@ -43,17 +45,21 @@ public class GuiBot extends Thread{
 	private Display display = null;
 	
 	
-	private final static int LOOK_MIN_WIDTH = 400;
-	private final static int LOOK_MIN_HEIGHT = 450;
+	private final static int LOOK_MIN_WIDTH = 100;
+	private final static int LOOK_MIN_HEIGHT = 100;
 
 	/* constantes de la description du bot */
-	private final static String TXT_STATUS = "Status";
-	private final static String TXT_HOST = "  Serveur :  ";
-	private final static String TXT_BOT = "  Bot :  ";
-	private final static String TXT_UPTIME = "  UpTime :  ";
-	private final static String TXT_NBIDEAS = "  Idees :  ";
-	private final static String TXT_NBCOMMENTS = "  Commentaires :  ";
-	private final static String TXT_TOKENS = "  Tokens :  ";
+	private final static String TXT_HOST = "Serveur :  ";
+	private final static String TXT_BOT = "Bot :\t\t";
+	private final static String TXT_UPTIME = "UpTime :\t";
+	private final static String TXT_NBIDEAS = "Idees :\t\t";
+	private final static String TXT_NBCOMMENTS = "Commentaires :\t";
+	private final static String TXT_TOKENS = "Tokens :\t\t";
+	private final static String TXT_ADAPTATION = "Adaptation :\t"; 
+	private final static String TXT_CREATIVITY = "Creativite :\t";  
+	private final static String TXT_PERSUATION = "Persuation :\t";  
+	private final static String TXT_RELEVANCE = "Pertinence :\t";   
+	
 	
 	private final static String TOOLTIP_HOST = "Serveur de la partie";
 	private final static String TOOLTIP_BOT = "Nom du bot";
@@ -61,24 +67,27 @@ public class GuiBot extends Thread{
 	private final static String TOOLTIP_NBIDEAS = "Nombre d'idees crees";
 	private final static String TOOLTIP_NBCOMMENTS = "Nombre de commentaires crees";
 	private final static String TOOLTIP_TOKENS = "Nombre de tokens restant";
+	private final static String TOOLTIP_ADAPTATION = "Taux d'adaptation calcule"; 
+	private final static String TOOLTIP_CREATIVITY = "Taux de creativite calcule";  
+	private final static String TOOLTIP_PERSUATION = "Taux de persuation calcule";  
+	private final static String TOOLTIP_RELEVANCE = "Taux de pertinence calcule"; 
 	
 	/* constantes des parametres */
-	private final static String TXT_PARAMS = "Parametres";
-	private final static String TXT_REACTIVITY = "Reactivite : ";
-	private final static String TXT_CREATIVITY = "Creativite : ";
-	private final static String TXT_RELEVANCE = "Pertinence : ";
-	private final static String TXT_ADAPTATION = "Adaptation : ";
-	private final static String TXT_PERSUATION = "Persuation : ";
+	private final static String TEXT_REACTIVITY = "Reactivite :\t";
+	private final static String TEXT_CREATIVITY = "Creativite :\t";
+	private final static String TEXT_RELEVANCE =  "Pertinence :\t";
+	private final static String TEXT_ADAPTATION = "Adaptation :\t";
+	private final static String TEXT_PERSUATION = "Persuation :\t";
 
 	private final static String TOOLTIP_REACTIVITY = "Rapidite avec laquelle le bot agira et reagira\n"
 													+"1 : lent - 10 : rapide";
-	private final static String TOOLTIP_CREATIVITY = "Taux de creativite des idees\n"
+	private final static String TOOLTIP_PCREATIVITY = "Taux de creativite des idees\n"
 			+"1 : peu creatif - 10 : tres creatif";
-	private final static String TOOLTIP_RELEVANCE = "Taux de pertinence des idees et commentaires\n"
+	private final static String TOOLTIP_PRELEVANCE = "Taux de pertinence des idees et commentaires\n"
 			+"1 : peu pertinent - 10 : tres pertinent";
-	private final static String TOOLTIP_ADAPTATION = "Taux d'adaptation face aux idees et commentaires\n"
+	private final static String TOOLTIP_PADAPTATION = "Taux d'adaptation face aux idees et commentaires\n"
 			+"1 : peu adaptatif - 10 : tres adaptatif";
-	private final static String TOOLTIP_PERSUATION = "Taux de persuation des idees et commentaires\n"
+	private final static String TOOLTIP_PPERSUATION = "Taux de persuation des idees et commentaires\n"
 			+"1 : peu persuasif - 10 : tres persuasif";
 	
 	/* constantes des boutons */
@@ -89,13 +98,9 @@ public class GuiBot extends Thread{
 	private final static String TXT_PAUSE = "Pause bot";
 		
 	private final static String FIELD_DEFAULT_TEXT = "                                                          ";
-	private final static String LABEL_DEFAULT_TEXT = "                         ";
 	
 	private Color LOOK_COLOR_BACKGROUND_MAINSPACE = null;
 	private Color LOOK_COLOR_BACKGROUND_SUBSPACES = null;
-	
-	/* Style des composants */
-	private final int LOOK_COMPOSITE_STYLE_SUBSPACES = SWT.BORDER; // SWT.NONE; // 
 	
 	/* EmbbedType des composants */
 	private GuiEmbbedType embbedType;
@@ -110,6 +115,10 @@ public class GuiBot extends Thread{
 	private Label labelNbIdeas;
 	private Label labelNbComments;
 	private Label labelNbTokens;
+	private Label labelAdaptation;
+	private Label labelCreativity;
+	private Label labelRelevance;
+	private Label labelPersuation;
 	
 	/* list des textbox */
 	private Combo textReactivity;
@@ -237,27 +246,23 @@ public class GuiBot extends Thread{
 			
 		}
 		
-		Label 	labelReactivity,
-				labelCreativity,
-				labelRelevance,
-				labelAdaptation,
-				labelPersuation;
 		
+		/* partie onglets */
+		TabFolder tab = new TabFolder(compositeHost, SWT.NONE);
+		TabItem itemStatus = new TabItem (tab, SWT.NONE);
+		itemStatus.setText ("Status");
+		TabItem itemParams = new TabItem (tab, SWT.NONE);
+		itemParams.setText ("Parametres");
 		
 		/* partie description du bot */
 		{
 			/* on cree le layout */
 			GridLayout layoutDescr = new GridLayout(1, false);
-			Composite compositeDescr = new Composite(compositeHost, LOOK_COMPOSITE_STYLE_SUBSPACES);
+			Composite compositeDescr = new Composite(tab,  SWT.NONE);
+			itemStatus.setControl(compositeDescr);
 			compositeDescr.setBackground(LOOK_COLOR_BACKGROUND_MAINSPACE);
 			compositeDescr.setLayout(layoutDescr);
 			compositeDescr.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
-
-			/* on ajoute le nom de la partie status */
-			Label labelStatus = new Label(compositeDescr, SWT.READ_ONLY);
-			labelStatus.setText(TXT_STATUS);
-			labelStatus.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelStatus.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
 			
 			/* on ajoute la ligne description du serveur */
 			labelHost = new Label(compositeDescr, SWT.READ_ONLY);
@@ -300,26 +305,54 @@ public class GuiBot extends Thread{
 			labelNbTokens.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
 			labelNbTokens.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
 			labelNbTokens.setToolTipText(TOOLTIP_TOKENS);
+			
+			/* on ajoute la creativite */
+			labelCreativity = new Label(compositeDescr, SWT.READ_ONLY);
+			labelCreativity.setText(TXT_CREATIVITY + FIELD_DEFAULT_TEXT);
+			labelCreativity.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelCreativity.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelCreativity.setToolTipText(TOOLTIP_CREATIVITY);
+			
+			/* on ajoute l'adaptation */
+			labelAdaptation = new Label(compositeDescr, SWT.READ_ONLY);
+			labelAdaptation.setText(TXT_ADAPTATION + FIELD_DEFAULT_TEXT);
+			labelAdaptation.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelAdaptation.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelAdaptation.setToolTipText(TOOLTIP_ADAPTATION);
+			
+			/* on ajoute pertinence */
+			labelRelevance = new Label(compositeDescr, SWT.READ_ONLY);
+			labelRelevance.setText(TXT_RELEVANCE + FIELD_DEFAULT_TEXT);
+			labelRelevance.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelRelevance.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelRelevance.setToolTipText(TOOLTIP_RELEVANCE);
+			
+			/* on ajoute la persuation */
+			labelPersuation = new Label(compositeDescr, SWT.READ_ONLY);
+			labelPersuation.setText(TXT_PERSUATION + FIELD_DEFAULT_TEXT);
+			labelPersuation.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelPersuation.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelPersuation.setToolTipText(TOOLTIP_PERSUATION);
 		}
 		
 		/* partie parametres */
+		Label 	labelReactivity,
+				labelCreativity,
+				labelRelevance,
+				labelAdaptation,
+				labelPersuation;
 		{
 
 			/* on cree le layout */
 			GridLayout layoutParams = new GridLayout(1, false);
-			Composite compositeParams = new Composite(compositeHost, LOOK_COMPOSITE_STYLE_SUBSPACES);
+			Composite compositeParams = new Composite(tab, SWT.NONE);
+			itemParams.setControl(compositeParams);
 			compositeParams.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
 			compositeParams.setLayout(layoutParams);
 			compositeParams.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
 
 			/* on cree le layout des lignes */
 			RowLayout layoutRow = new RowLayout(SWT.HORIZONTAL);
-			
-			/* on ajoute le nom de la partie status */
-			Label labelStatus = new Label(compositeParams, SWT.READ_ONLY);
-			labelStatus.setText(TXT_PARAMS);
-			labelStatus.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelStatus.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
 
 			/* on ajoute la ligne du parametre reactivity */
 			{
@@ -330,7 +363,7 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le label */
 				labelReactivity = new Label(rowExemple, SWT.READ_ONLY);
-				labelReactivity.setText(LABEL_DEFAULT_TEXT);
+				labelReactivity.setText(TEXT_REACTIVITY);
 				labelReactivity.setToolTipText(TOOLTIP_REACTIVITY);
 				
 				/* on ajoute le champ */
@@ -353,8 +386,8 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le label */
 				labelCreativity = new Label(rowExemple, SWT.READ_ONLY);
-				labelCreativity.setText(LABEL_DEFAULT_TEXT);
-				labelCreativity.setToolTipText(TOOLTIP_CREATIVITY);
+				labelCreativity.setText(TEXT_CREATIVITY);
+				labelCreativity.setToolTipText(TOOLTIP_PCREATIVITY);
 				
 				/* on ajoute le champ */
 				textCreativity = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
@@ -376,8 +409,8 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le label */
 				labelRelevance = new Label(rowExemple, SWT.READ_ONLY);
-				labelRelevance.setText(LABEL_DEFAULT_TEXT);
-				labelRelevance.setToolTipText(TOOLTIP_RELEVANCE);
+				labelRelevance.setText(TEXT_RELEVANCE);
+				labelRelevance.setToolTipText(TOOLTIP_PRELEVANCE);
 				
 				/* on ajoute le champ */
 				textRelevance = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
@@ -399,8 +432,8 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le label */
 				labelAdaptation = new Label(rowExemple, SWT.READ_ONLY);
-				labelAdaptation.setText(LABEL_DEFAULT_TEXT);
-				labelAdaptation.setToolTipText(TOOLTIP_ADAPTATION);
+				labelAdaptation.setText(TEXT_ADAPTATION);
+				labelAdaptation.setToolTipText(TOOLTIP_PADAPTATION);
 				
 				/* on ajoute le champ */
 				textAdaptation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
@@ -422,8 +455,8 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le label */
 				labelPersuation = new Label(rowExemple, SWT.READ_ONLY);
-				labelPersuation.setText(LABEL_DEFAULT_TEXT);
-				labelPersuation.setToolTipText(TOOLTIP_PERSUATION);
+				labelPersuation.setText(TEXT_PERSUATION);
+				labelPersuation.setToolTipText(TOOLTIP_PPERSUATION);
 				
 				/* on ajoute le champ */
 				textPersuation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
@@ -523,14 +556,7 @@ public class GuiBot extends Thread{
 		}
 		
 		/* on initialise les parametres et boutons */
-		labelAdaptation.setText(TXT_ADAPTATION);
-		labelReactivity.setText(TXT_REACTIVITY);
-		labelCreativity.setText(TXT_CREATIVITY);
-		labelRelevance.setText(TXT_RELEVANCE);
-		labelPersuation.setText(TXT_PERSUATION);
-
 		updateButtonsStates();
-		
 		getParams();
 		paramsChanged = false;
 		
@@ -545,15 +571,28 @@ public class GuiBot extends Thread{
 	}
 	
 	/**
-	 * Rafraichit les informations a l'ecran ainsi que le bot
+	 * Rafraichit les informations a l'ecran
 	 */
 	private void refresh()
 	{
 		/* on raffraichit les labels */
-		labelUpTime.setText(TXT_UPTIME + clientCore.getUpTime()/1000 + " s");
+		labelUpTime.setText(TXT_UPTIME + clientCore.getUpTime()/1000 + " s");		
 		labelNbIdeas.setText(TXT_NBIDEAS + clientCore.getNbIdeas());
 		labelNbComments.setText(TXT_NBCOMMENTS + clientCore.getNbComments());
 		labelNbTokens.setText(TXT_TOKENS + clientCore.getRemainingTokens());
+		try {
+			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(TypeScore.adaptation.calculer(clientCore.getGame(), clientCore.getPlayerId())));
+			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(TypeScore.creativite.calculer(clientCore.getGame(), clientCore.getPlayerId())));
+			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(TypeScore.pertinence.calculer(clientCore.getGame(), clientCore.getPlayerId())));
+			labelPersuation.setText(TXT_PERSUATION + String.valueOf(TypeScore.persuasion.calculer(clientCore.getGame(), clientCore.getPlayerId())));
+
+		} catch (Exception e) {
+			System.err.println("Error bot : error while computing bot stats : " + e.getClass());
+			labelAdaptation.setText(TXT_ADAPTATION + "compute error");
+			labelCreativity.setText(TXT_CREATIVITY + "compute error");
+			labelRelevance.setText(TXT_RELEVANCE + "compute error");
+			labelPersuation.setText(TXT_PERSUATION + "compute error");
+		}
 	}
 	
 	/**
@@ -594,7 +633,7 @@ public class GuiBot extends Thread{
 	/**
 	 * Ferme la fenetre du bot, et le deconnecte
 	 */
-	private void close() {
+	public void close() {
 				
 		/* on deconnecte le bot */
 		clientCore.disconnectFromGame();
@@ -613,6 +652,7 @@ public class GuiBot extends Thread{
 	{
 		botPaused = !botPaused;
 		updateButtonsStates();
+		clientCore.resetNextAction();
 	}
 	
 	/** 
@@ -639,6 +679,31 @@ public class GuiBot extends Thread{
 	private void clickRemove()
 	{
 		close();
+	}
+	
+	/**
+	 * Met le bot en marche si celui-ci etait en pause
+	 */
+	public void startBot()
+	{
+		if (botPaused)
+		{
+			botPaused = false;
+			updateButtonsStates();
+			clientCore.resetNextAction();
+		}
+	}
+	
+	/**
+	 * Met le bot en pause si celui-ci etait en marche
+	 */
+	public void pauseBot()
+	{
+		if (!botPaused)
+		{
+			botPaused = true;
+			updateButtonsStates();
+		}
 	}
 	
 	/**
@@ -685,14 +750,6 @@ public class GuiBot extends Thread{
 		
 		param = clientCore.getRelevance();
 		textRelevance.select(param-1);
-	}
-	
-	@SuppressWarnings("unused")
-	private void displayError(String title, String msg) {
-		MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
-		mb.setText(title);
-		mb.setMessage(msg);
-		mb.open();
 	}
 	
 }
