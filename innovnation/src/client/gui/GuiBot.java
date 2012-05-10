@@ -26,6 +26,8 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 import client.DelegatingBotCore;
+import errors.AlreadyExistsException;
+import errors.TooLateException;
 import events.IEventListener;
 import functions.TypeScore;
 
@@ -611,15 +613,21 @@ public class GuiBot extends Thread{
 					try {
 						clientCore.refresh();
 					} catch (RemoteException e) {
-						System.err.println("Bot error : impossible de refresh");
+						System.err.println(getName() + " error : impossible de refresh (remote exception)");
 						e.printStackTrace();
-					}
+					} catch (TooLateException e) {
+						System.err.println(getName() + " error : impossible de refresh (too late exception)");
+						e.printStackTrace();
+					} catch (AlreadyExistsException e) {
+						System.err.println(getName() + " error : impossible de refresh (already exists exception)");
+						e.printStackTrace();
+					} 
 				}
 				
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					System.err.println("SLeep failed");
+					System.err.println(getName() + " error : sLeep failed");
 					e.printStackTrace();
 				}
 			}

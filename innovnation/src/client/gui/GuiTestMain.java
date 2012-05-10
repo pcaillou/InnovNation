@@ -107,7 +107,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	 */
 	private Integer playerId = null;
 	
-	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot, itemStartBots, itemPauseBots, itemRemoveBots;
+	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot, itemAddTenBots, itemStartBots, itemPauseBots, itemRemoveBots;
 	
 	@SuppressWarnings("unused")
 	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
@@ -216,6 +216,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		itemCreateServer.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemShutdownServer.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		itemAddBot.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemAddTenBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		itemStartBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		itemPauseBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		itemRemoveBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
@@ -379,6 +380,20 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 						}
 					});
 					itemAddBot.setText ("Ajouter un bot...");
+					
+					
+				}
+				{
+					itemAddTenBots = new MenuItem (menuServer, SWT.PUSH);
+					itemAddTenBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							for (int i = 0 ; i < 10 ; i++)
+							{
+								clickAddBot();
+							}
+						}
+					});
+					itemAddTenBots.setText ("Ajouter 10 bots...");
 					
 					
 				}

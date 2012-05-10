@@ -68,8 +68,10 @@ public class DelegatingBotCore extends ClientCore {
 	/**
 	 * Raffraichit le bot, et effectue une action si celui-ci a prevu d'en faire une
 	 * @throws RemoteException 
+	 * @throws AlreadyExistsException
+	 * @throws TooLateException
 	 */
-	public void refresh() throws RemoteException
+	public void refresh() throws AlreadyExistsException, TooLateException, RemoteException
 	{
 		long time = System.currentTimeMillis();
 		if (time > nextAction)
