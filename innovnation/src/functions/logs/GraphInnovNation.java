@@ -2,6 +2,10 @@ package functions.logs;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -22,6 +26,8 @@ public class GraphInnovNation extends MultiGraph{
 	public static String PLAYER_TARGET = "playerTarger";
 	public static String IDEA_SOURCE = "ideaSource";
 	public static String IDEA_TARGET = "ideaTarger";
+	public static String IDEA_HAS_LABEL = "has idea";
+	public static String IDEA_FROM_LABEL = "from";
 	public static String VOTE_SOURCE = "voteSource";
 	public static String VOTE_TARGET = "voteTarger";
 	public static String VOTE_NOTE = "voteNote";
@@ -279,7 +285,7 @@ public class GraphInnovNation extends MultiGraph{
 		addEdge(playerId + " has idea " + ideaId, playerId, ideaId, false);
 		Edge e = getEdge(playerId + " has idea " + ideaId);
 		e.addAttribute("ui.class","has_idea");
-		e.addAttribute("ui.label","has idea");
+		e.addAttribute("ui.label",IDEA_HAS_LABEL);
 		e.addAttribute(TIME_ADD, timeAdd);
 		
 		for (String idIdea : ideaSourceIds)
@@ -287,7 +293,7 @@ public class GraphInnovNation extends MultiGraph{
 			addEdge(idIdea + " from " + ideaId, ideaId, idIdea, true);
 			e = getEdge(idIdea + " from " + ideaId);
 			e.addAttribute("ui.class","fromidea");
-			e.addAttribute("ui.label","from");
+			e.addAttribute("ui.label",IDEA_FROM_LABEL);
 			e.addAttribute(TIME_ADD, timeAdd);
 		}
 		lastEventTime = Math.max(lastEventTime, timeAdd);
@@ -427,12 +433,16 @@ public class GraphInnovNation extends MultiGraph{
 	{
 		for(Node n : getEachNode())
 		{
+			System.out.println(n.getAttribute(TIME_ADD));
 			n.setAttribute(TIME_ADD,(long)(((Long)n.getAttribute(TIME_ADD))/step));
+			System.out.println(n.getAttribute(TIME_ADD));
 		}
 		
 		for (Edge e : getEachEdge())
 		{
+			System.out.println(e.getAttribute(TIME_ADD));
 			e.setAttribute(TIME_ADD,(long)(((Long)e.getAttribute(TIME_ADD))/step));
+			System.out.println(e.getAttribute(TIME_ADD));
 		}
 		
 		for (Integer i : votes)
@@ -443,7 +453,9 @@ public class GraphInnovNation extends MultiGraph{
 			
 			for (long[] h : hist)
 			{
+				System.out.println(h[0]);
 				h[0] = (long)(h[0]/step);
+				System.out.println(h[0]);
 			}
 		}
 	}
@@ -689,6 +701,199 @@ public class GraphInnovNation extends MultiGraph{
 	}
     
     /* fonctions de converstion en GraphGeneric */
+    
+    /**
+     * Retourne le graphe de persuasion ou chaque arc indique le nombre de points de persuation que donne chaque joueur a un autre
+     * @return DynamicGraph
+     */
+    public DynamicGraph getPersuasionGraph()
+    {
+		DynamicGraph g = new DynamicGraph();
+		
+		/* on ajoute les joueurs au graphe */
+		for (Integer p : getPlayersIndexs())
+		{
+			g.addNode(p.toString());
+		}
+		
+		double distcoef=1.0;
+		Node idea;
+		
+		HashMap<Integer,Integer> lastVoteTime, lastVoteValence;
+		
+		/* on cree le comparateur pour trier les votes sur le temps */
+		//Collections.sort(list, c);
+		Comparator<int[]> comparator = new Comparator<int[]>() {
+			// 01 plus petit que 02 => neg
+			public int compare(int[] o1, int[] o2) {
+				if (o1[0] < o2[0])
+				{
+					return -1;
+				}
+				else if (o1[0] > o2[0])
+				{
+					return 1;
+				}
+				return 0;
+			} 
+		};
+		
+		for (Integer i : getIdeasIndexs())
+		{
+			idea = getNode(i);
+			
+			/* liste des votes pour le noeud {time,source,poids,valence} */
+			List<int[]> votes = new ArrayList<int[]>();
+
+			/* on ajoute les votes dans le desordre */
+			for (Edge e : idea.getEachEnteringEdge())
+			{
+				if (e.getAttribute("ui.label").equals(IDEA_FROM_LABEL) || e.getAttribute("ui.label").equals(IDEA_HAS_LABEL))
+				{
+					continue;
+				}
+				
+				Integer indexSource = e.getOpposite(idea).getIndex();
+			
+				ArrayList<long[]> hist = e.getAttribute(VOTE_HIST);
+				
+				for (long[] h : hist)
+				{
+					votes.add(new int[]{(int) h[0],indexSource,(int) h[1],(int) h[2]});
+				}
+			}
+
+			/* on trie les votes par temps d'arrivee */
+			Collections.sort(votes,comparator);
+			
+
+			lastVoteTime = new HashMap<Integer, Integer>();
+			lastVoteValence = new HashMap<Integer, Integer>();
+			int poids = 0;
+			for (int[] v : votes) // {time,source,poids,valence} 
+			{
+				
+				lastVoteTime.put(v[1], v[0]);
+				lastVoteValence.put(v[1], v[3]);
+				if (v[3] == 0)
+				{
+					if (v[2] > 0)
+					{
+						lastVoteValence.put(v[1], 1);
+					}
+					else if (v[2] < 0)
+					{
+						lastVoteValence.put(v[1], -1);
+					}
+				}
+
+				poids = poids - v[2];
+				
+				if (poids != 0)
+				{
+					// ajouter au graphe les arc qui contiennent la valeur de persuation
+					for (int j = 0 ; j < getPlayersIndexs().size(); j++)
+					{
+						if (j == v[1] || !lastVoteTime.containsKey(v[1]) || !lastVoteTime.containsKey(j))
+						{
+							continue;
+						}
+						
+						int distance = lastVoteTime.get(v[1]) - lastVoteTime.get(j);
+						/* si les votes sont arrives en même temps, on considere que chacun persuade l'autre */
+						if (distance == 0)
+						{
+							distance = 1;
+						}
+						int value = 0;
+						
+						
+						if (g.edgesExists(g.getNode(String.valueOf(j)), g.getNode(String.valueOf(v[1])), v[0], v[0]))
+						{
+							Edge e = g.getEdge(String.valueOf(j), String.valueOf(v[1]), v[0]);
+							value += g.getWeight(e);
+							g.removeEdge(e);
+							
+						}
+						
+						value += (int) (poids*lastVoteValence.get(j)) * 100 / (distcoef*distance);
+						
+						g.addEdge(
+								String.valueOf(j), 
+								String.valueOf(v[1]), 
+								value, 
+								v[0], 
+								v[0]
+										);
+						
+					}
+				}
+				poids = v[2];
+			}
+		}
+		
+		/* on recree un graphe resultat a partir de celui genere mais en sommant les valeurs sur le temps */
+		
+		DynamicGraph result = new DynamicGraph();
+		
+		/* on ajoute les joueurs au graphe */
+		for (Integer p : getPlayersIndexs())
+		{
+			result.addNode(p.toString());
+		}
+		
+		Node source, target;
+		long timeAdd;
+		
+		/* on cree une liste d'arc que l'on trie */
+		List<Edge> edges = new ArrayList<Edge>();
+		for (Edge e : g.getEachEdge())
+		{
+			edges.add(e);
+		}
+		Collections.sort(edges,new Comparator<Edge>() {
+			public int compare(Edge arg0, Edge arg1) {
+				if ((Long)arg0.getAttribute(DynamicGraph.TIME_CREATION) < (Long)arg1.getAttribute(DynamicGraph.TIME_CREATION))
+				{
+					return -1;
+				}
+				else if ((Long)arg0.getAttribute(DynamicGraph.TIME_CREATION) > (Long)arg1.getAttribute(DynamicGraph.TIME_CREATION))
+				{
+					return 1;
+				}
+				return 0;
+			}
+
+		});
+			
+			
+		for (Edge e : edges)
+		{
+			int poids = 0;
+			
+			source = result.getNode(e.getSourceNode().getId());
+			target = result.getNode(e.getTargetNode().getId());
+			timeAdd = g.getTimeCreation(e);
+			
+			if (result.edgesExists(source,target,timeAdd,timeAdd))
+			{
+				Edge edge = result.getEdge(source.getId(), target.getId(),timeAdd);
+				poids += result.getWeight(edge);
+				
+			}
+			
+			poids += g.getWeight(e);
+						
+			result.insertEdge(
+					source.getId(), target.getId(),
+					poids, 
+					timeAdd,
+					Long.MAX_VALUE
+							);
+		}
+		
+		return result;
+    }
     
     /**
      * Retourne un GraphGeneric ou chaque branche contient le nombre de vote de chaque joueur envers un autre joueur (pour une de ses idees)

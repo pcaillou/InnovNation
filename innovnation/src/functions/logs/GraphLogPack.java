@@ -29,8 +29,10 @@ public class GraphLogPack implements LogPack {
 
 	private Collection<String> nbVotesList;
 	private Collection<String> weightVotesList;
+	private Collection<String> persuasionList;
 	private HashMap<Integer,Collection<String>> logPNbVotes;
 	private HashMap<Integer,Collection<String>> logPWeightVotes;
+	private HashMap<Integer,Collection<String>> logPPersuasion;
 	
 	public static Viewer getInnovGraphViewer()
 	{
@@ -47,8 +49,10 @@ public class GraphLogPack implements LogPack {
 		game = _game;
 		nbVotesList = new ArrayList<String>();
 		weightVotesList = new ArrayList<String>();
+		persuasionList = new ArrayList<String>();
 		logPNbVotes = new HashMap<Integer, Collection<String>>();
 		logPWeightVotes = new HashMap<Integer, Collection<String>>();
+		logPPersuasion = new HashMap<Integer, Collection<String>>();
 		try {
 			graph = new GraphInnovNation("1");
 		} catch (GraphInnovNationException e) {
@@ -57,12 +61,12 @@ public class GraphLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		StringBuilder sb = new StringBuilder("nbVoteGraph;weightVoteGraph;");
+		StringBuilder sb = new StringBuilder("nbVoteGraph;weightVoteGraph;persuasionGraph");
 		return sb.toString(); 
 	}
 
 	static public String zeros() {
-		StringBuilder sb = new StringBuilder("[];[];");
+		StringBuilder sb = new StringBuilder("[];[];[];");
 		return sb.toString(); 
 	}
 
@@ -72,18 +76,23 @@ public class GraphLogPack implements LogPack {
 		/* nouvelles liste de log des sous graphes */
 		Collection<String> newNbVotesList = graph.getNbVoteGraph().toStringArray();
 		Collection<String> newWeightVotesList = graph.getWeightVoteGraph().toStringArray();
+		Collection<String> newPersuasionList = graph.getPersuasionGraph().toStringArray();
 		
 		/* listes contenant la difference entre les nouvelles logs et les anciennes */
 		Collection<String> diffNbVotesList = new ArrayList<String>();
 		Collection<String> diffWeightVotesList = new ArrayList<String>();
+		Collection<String> diffPersuasionList = new ArrayList<String>();
 		
 		diffNbVotesList.addAll(nbVotesList);
 		diffNbVotesList.removeAll(newNbVotesList);
 		diffWeightVotesList.addAll(weightVotesList);
 		diffWeightVotesList.removeAll(newWeightVotesList);
+		diffPersuasionList.addAll(persuasionList);
+		diffPersuasionList.removeAll(newPersuasionList);
 		
 		nbVotesList = newNbVotesList;
 		weightVotesList = newWeightVotesList;
+		persuasionList = newPersuasionList;
 		
 		/* on ajoute les nouvelles logs du graphe nbVotes */
 		String list = "";
@@ -108,6 +117,18 @@ public class GraphLogPack implements LogPack {
 			list += s;
 		}
 		sb.append(DynamicGraph.LEFT_BRACE).append(list).append(DynamicGraph.RIGHT_BRACE).append(';');
+
+		/* on ajoute les nouvelles logs du graphe persuasion */
+		list = "";
+		for (String s : diffPersuasionList)
+		{
+			if (list.length() > 0)
+			{
+				list += DynamicGraph.SEPARATOR;
+			}
+			list += s;
+		}
+		sb.append(DynamicGraph.LEFT_BRACE).append(list).append(DynamicGraph.RIGHT_BRACE).append(';');
 		
 		return sb.toString();
 	}
@@ -117,6 +138,7 @@ public class GraphLogPack implements LogPack {
 		HashMap<Integer,String> result = new HashMap<Integer,String>();
 		HashMap<Integer,Collection<String>> newLogPNbVotes = new HashMap<Integer,Collection<String>>();
 		HashMap<Integer,Collection<String>> newLogPWeightVotes = new HashMap<Integer,Collection<String>>();
+		HashMap<Integer,Collection<String>> newLogPPersuasions = new HashMap<Integer,Collection<String>>();
 		
 		/* on genere les nouvelles logPList */
 		GraphInnovNation graph2 = graph.clone();
@@ -124,6 +146,7 @@ public class GraphLogPack implements LogPack {
 		
 		DynamicGraph gNbVotes = graph2.getNbVoteGraph();
 		DynamicGraph gWeightVotes = graph2.getWeightVoteGraph();
+		DynamicGraph gPersuasion = graph2.getPersuasionGraph();
 
 		Collection<String> edges;
 		for(Integer p : game.getAllPlayersIds())
@@ -151,6 +174,18 @@ public class GraphLogPack implements LogPack {
 			}
 			
 			newLogPWeightVotes.put(p, edges);
+
+			/* on recupere la liste des arcs + declaration node pour le joueur p sur le graphe persuasion */
+			edges = new ArrayList<String>();
+			
+			edges.add(gPersuasion.nodeToString(gPersuasion.getNode(p.toString())));
+			
+			for (Edge e : gPersuasion.getNode(p.toString()).getEachLeavingEdge())
+			{
+				edges.add(gPersuasion.edgeToString(e));
+			}
+			
+			newLogPPersuasions.put(p, edges);
 		}
 
 		/* on calcule la difference pour chaque logP et on l'ajoute au resultat */
@@ -176,12 +211,23 @@ public class GraphLogPack implements LogPack {
 			difference.removeAll(logPWeightVotes.get(p));
 			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
 			difference.clear();
+			
+			if (!logPPersuasion.containsKey(p))
+			{
+				logPPersuasion.put(p,new ArrayList<String>());
+			}
+			difference.addAll(newLogPPersuasions.get(p));
+			difference.removeAll(logPPersuasion.get(p));
+			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
+			difference.clear();
 		}
 		
 		logPNbVotes.clear();
 		logPNbVotes.putAll(newLogPNbVotes);
 		logPWeightVotes.clear();
 		logPWeightVotes.putAll(newLogPWeightVotes);
+		logPPersuasion.clear();
+		logPPersuasion.putAll(newLogPPersuasions);
 		
 		return result;
 		
