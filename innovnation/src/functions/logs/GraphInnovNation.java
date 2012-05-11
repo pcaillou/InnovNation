@@ -433,16 +433,12 @@ public class GraphInnovNation extends MultiGraph{
 	{
 		for(Node n : getEachNode())
 		{
-			System.out.println(n.getAttribute(TIME_ADD));
 			n.setAttribute(TIME_ADD,(long)(((Long)n.getAttribute(TIME_ADD))/step));
-			System.out.println(n.getAttribute(TIME_ADD));
 		}
 		
 		for (Edge e : getEachEdge())
 		{
-			System.out.println(e.getAttribute(TIME_ADD));
 			e.setAttribute(TIME_ADD,(long)(((Long)e.getAttribute(TIME_ADD))/step));
-			System.out.println(e.getAttribute(TIME_ADD));
 		}
 		
 		for (Integer i : votes)
@@ -453,9 +449,7 @@ public class GraphInnovNation extends MultiGraph{
 			
 			for (long[] h : hist)
 			{
-				System.out.println(h[0]);
 				h[0] = (long)(h[0]/step);
-				System.out.println(h[0]);
 			}
 		}
 	}
@@ -713,7 +707,7 @@ public class GraphInnovNation extends MultiGraph{
 		/* on ajoute les joueurs au graphe */
 		for (Integer p : getPlayersIndexs())
 		{
-			g.addNode(p.toString());
+			g.addNode((String)getNode(p).getAttribute("ID"));
 		}
 		
 		double distcoef=1.0;
@@ -807,10 +801,9 @@ public class GraphInnovNation extends MultiGraph{
 						}
 						int value = 0;
 						
-						
-						if (g.edgesExists(g.getNode(String.valueOf(j)), g.getNode(String.valueOf(v[1])), v[0], v[0]))
+						if (g.edgesExists(g.getNode((String)getNode(j).getAttribute("ID")), g.getNode((String)getNode(v[1]).getAttribute("ID")), v[0], v[0]))
 						{
-							Edge e = g.getEdge(String.valueOf(j), String.valueOf(v[1]), v[0]);
+							Edge e = g.getEdge((String)getNode(j).getAttribute("ID"), (String)getNode(v[1]).getAttribute("ID"), v[0]);
 							value += g.getWeight(e);
 							g.removeEdge(e);
 							
@@ -819,8 +812,8 @@ public class GraphInnovNation extends MultiGraph{
 						value += (int) (poids*lastVoteValence.get(j)) * 100 / (distcoef*distance);
 						
 						g.addEdge(
-								String.valueOf(j), 
-								String.valueOf(v[1]), 
+								(String)getNode(j).getAttribute("ID"), 
+								(String)getNode(v[1]).getAttribute("ID"), 
 								value, 
 								v[0], 
 								v[0]
@@ -839,7 +832,7 @@ public class GraphInnovNation extends MultiGraph{
 		/* on ajoute les joueurs au graphe */
 		for (Integer p : getPlayersIndexs())
 		{
-			result.addNode(p.toString());
+			result.addNode((String)getNode(p).getAttribute("ID"));
 		}
 		
 		Node source, target;

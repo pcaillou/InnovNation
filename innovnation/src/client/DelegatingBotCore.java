@@ -81,17 +81,13 @@ public class DelegatingBotCore extends ClientCore {
 			if (time%10 == 0)
 			{ /* on ajoute une idee au hazard */
 				Integer nbSources = (int) ((Math.random()*100));
-				if (nbSources <= 75)
+				if (nbSources <= 95)
 				{
 					nbSources = 1;
 				}
-				else if (nbSources <= 98)
-				{
-					nbSources = 2;
-				}
 				else
 				{
-					nbSources = 3;
+					nbSources = 2;
 				}
 				
 				Collection<Integer> sources = new ArrayList<Integer>();
