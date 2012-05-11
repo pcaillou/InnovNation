@@ -43,6 +43,18 @@ public class GraphLogPack implements LogPack {
 		}
 		return null;
 	}
+	public static Viewer getVoteGraphViewer()
+	{
+		return graph.getNbVoteGraph().displayGraph(Long.MAX_VALUE);
+	}
+	public static Viewer getWeightVoteGraphViewer()
+	{
+		return graph.getWeightVoteGraph().displayGraph(Long.MAX_VALUE);
+	}
+	public static Viewer getPersuasionGraphViewer()
+	{
+		return graph.getPersuasionGraph().displayGraph(Long.MAX_VALUE);
+	}
 	
 	public GraphLogPack(Game _game)
 	{
