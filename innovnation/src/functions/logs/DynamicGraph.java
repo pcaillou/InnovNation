@@ -92,7 +92,7 @@ public class DynamicGraph{
 		Integer level = 0;
 		String buffer = "";
 		ArrayList<String> result = new ArrayList<String>();
-		if (tab.length() == 0)
+		if (tab.length() < 2)
 		{
 			return result;
 		}

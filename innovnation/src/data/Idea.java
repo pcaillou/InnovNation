@@ -37,6 +37,8 @@ public final class Idea extends GameObject implements IIdea {
 	
 	private Integer index;
 	
+	private int value;
+	
 	private ArrayList<Integer> parentsIndexs;
 	
 	LinkedList<Integer> items = null;
@@ -68,6 +70,7 @@ public final class Idea extends GameObject implements IIdea {
 		else this.items = new LinkedList<Integer>(itemsIds);
 		this.graphIdeas = graphIdeas;
 		this.desc = createIdeaDescWithReturn(desc);
+		value =(int)(Math.random() * IIdea.IDEA_MAX_VALUE);
 		
 		/* on cree un nouvel index pour l'idee */
 		parentsIndexs = new ArrayList<Integer>();
@@ -373,5 +376,14 @@ public final class Idea extends GameObject implements IIdea {
 	@Override
 	public String getDesc() {
 		return desc;
+	}
+
+
+	public int getIdeaValue() {
+		return value;
+	}
+	
+	public void setIdeaValue(int v) {
+		value = v;
 	}
 }

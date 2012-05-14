@@ -78,6 +78,7 @@ public class SimAnalyzerLog {
 			graphColumns.add(matrix.getColumnForLabel(graphNames[i])); 
 		}
 		
+		/* on lit la matrice de haut en bas, et on stocke chaque pas de temps dans une seule ligne */
 		while(cursor <= matrix.getRowCount() || buffer.size() > 0)
 		{
 			/* si on depasse le pas, ou qu'on est au dernier buffer, on ajoute le buffer au resultat */

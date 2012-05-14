@@ -15,7 +15,6 @@ import functions.Game;
 
 /**
  * Classe pour gerer les logs de graphe dans InnovNation
- * TODO tout rajouter
  * 
  * @author Destannes Alexandre
  *
@@ -73,7 +72,7 @@ public class GraphLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		StringBuilder sb = new StringBuilder("nbVoteGraph;weightVoteGraph;persuasionGraph");
+		StringBuilder sb = new StringBuilder("nbVoteGraph;weightVoteGraph;persuasionGraph;");
 		return sb.toString(); 
 	}
 

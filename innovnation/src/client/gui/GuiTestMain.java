@@ -870,15 +870,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		// TODO disconnect and so on if relevant
 		
 		// TODO confirmation
-
-		
-		// TODO Destannes : modifications faites ici
 		
 		shell.setVisible(false);
-		
-		//Viewer v = GraphLogPack.getInnovGraphViewer();
-		
-		//while(v.getDefaultView().isVisible());
 		
 		shell.dispose();
 		

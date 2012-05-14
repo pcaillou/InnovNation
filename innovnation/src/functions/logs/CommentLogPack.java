@@ -48,7 +48,7 @@ public class CommentLogPack implements LogPack {
 				}
 			}
 		} catch (RemoteException e1) {
-			e1.printStackTrace(); // TODO continuer ici
+			e1.printStackTrace();
 		}
 /*		IIdea i;
 		try {

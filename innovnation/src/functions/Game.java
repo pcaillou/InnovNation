@@ -69,6 +69,9 @@ public class Game extends AbstractGame implements IServerSideGame {
 		
 		/* on cree l'idee racine de la partie */
 		int root = createRootIdea(new Idea(IStorable.notAnId, descr.getTheme(), "", ideas,null));
+		
+		/* l'idee root doit avoir une valeur de 1 pour les bots */
+		getIdea(root).setIdeaValue(1);
 
 		/* on cree le fichier servant aux logs de la partie */
 		logFileWriter = new FileWriter(new File(descr.getName()+".csv"));
