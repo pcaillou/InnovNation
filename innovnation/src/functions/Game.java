@@ -70,8 +70,8 @@ public class Game extends AbstractGame implements IServerSideGame {
 		/* on cree l'idee racine de la partie */
 		int root = createRootIdea(new Idea(IStorable.notAnId, descr.getTheme(), "", ideas,null));
 		
-		/* l'idee root doit avoir une valeur de 1 pour les bots */
-		getIdea(root).setIdeaValue(1);
+		/* l'idee root doit avoir une valeur de ROOT_VALUE pour les bots (pour servir de depart sans rester longtemps en jeu) */
+		getIdea(root).setIdeaValue(IIdea.ROOT_VALUE);
 
 		/* on cree le fichier servant aux logs de la partie */
 		logFileWriter = new FileWriter(new File(descr.getName()+".csv"));
@@ -471,6 +471,8 @@ public class Game extends AbstractGame implements IServerSideGame {
 		logFileWriter.write(logMessage);
 		logFileWriter.write('\n');
 		
+		HashMap<Integer, String> graphLogs = graphLP.getLogiLogs(now);
+		
 		for(IIdea i : this.getAllIdeas()){
 			//as root has no owner, we can't update him... 
 			//type
@@ -482,7 +484,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 			logFileWriter.write(gameLP.log(now));
 			
 			//graph data
-			logFileWriter.write(GraphLogPack.zeros());
+			logFileWriter.write(graphLogs.get(i.getUniqueId()));
 			
 			//player data
 			logFileWriter.write(
@@ -512,7 +514,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 			logFileWriter.write('\n');
 		}
 		
-		HashMap<Integer, String> graphLogs = graphLP.getLogpLogs(now);
+		graphLogs = graphLP.getLogpLogs(now);
 		
 		for(int p : this.getAllPlayersIds()){
 			//type
@@ -524,8 +526,7 @@ public class Game extends AbstractGame implements IServerSideGame {
 			logFileWriter.write(gameLP.log(now));
 
 			//graph data
-			String t = graphLogs.get(p);
-			logFileWriter.write(t);
+			logFileWriter.write(graphLogs.get(p));
 			
 			//player data
 			logFileWriter.write(playerLPs.get(p).log(now));

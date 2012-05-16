@@ -382,6 +382,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 						}
 					});
 					itemAddBot.setText ("Ajouter un bot...");
+					itemAddBot.setAccelerator (SWT.CTRL + 'B');
 					
 					
 				}

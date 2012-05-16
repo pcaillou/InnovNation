@@ -14,7 +14,8 @@ public interface IIdea
 extends IGameObject {
 
 	/** valeur maximale d'une idee (servant d'heuristique pour les bots pour les bots */
-	public static final int IDEA_MAX_VALUE = 1000;
+	public static final int IDEA_MAX_VALUE = 3000;
+	public static final int ROOT_VALUE = 300;
 	
 	Collection<Integer> getItemsIds();
 	

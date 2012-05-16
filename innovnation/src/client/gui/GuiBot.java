@@ -626,11 +626,11 @@ public class GuiBot extends Thread{
 			updateHeuristicTable();
 
 		} catch (Exception e) {
-			System.err.println("Error bot : error while computing bot stats : " + e.getClass());
-			labelAdaptation.setText(TXT_ADAPTATION + "compute error");
-			labelCreativity.setText(TXT_CREATIVITY + "compute error");
-			labelRelevance.setText(TXT_RELEVANCE + "compute error");
-			labelPersuation.setText(TXT_PERSUATION + "compute error");
+			//System.err.println("Error bot : error while computing bot stats : " + e.getClass());
+			//labelAdaptation.setText(TXT_ADAPTATION + "compute error");
+			//labelCreativity.setText(TXT_CREATIVITY + "compute error");
+			//labelRelevance.setText(TXT_RELEVANCE + "compute error");
+			//labelPersuation.setText(TXT_PERSUATION + "compute error");
 		}
 	}
 	
@@ -698,11 +698,16 @@ public class GuiBot extends Thread{
 					catch (AlreadyExistsException e) 
 					{
 						System.err.println(getName() + " error : impossible de refresh (already exists exception)");
-						e.printStackTrace();
+						DelegatingBotCore.ideaCount++;
 					} 
 					catch(ConcurrentModificationException e)
 					{
 						System.err.println(getName() + " error : impossible de rajouter le commentaire (concurent modification exception)");
+					}
+					catch(Exception e)
+					{
+						System.err.println(getName() + " error : erreur inconnue");
+						e.printStackTrace();
 					}
 				}
 				

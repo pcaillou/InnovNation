@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import data.CommentValence;
 import data.IComment;
@@ -19,12 +20,14 @@ import events.PlayerEvent;
 
 public class DelegatingBotCore extends ClientCore {
 
-	public final static int BOT_BASE_SPEED = 5000;
+	public final static int BOT_BASE_SPEED = 2500;
 	public final static String BOT_AVATAR = "usertile11.jpg";
 	public final static String BOT_NAME = "Wall-e ";
 	
+	public final static int PARAM_MAX_VALUE = 10;
+	
 	private static Integer botCount = 1;
-	private static int ideaCount = 1;
+	public static int ideaCount = 1;
 
 	private String name;
 	private String avatar;
@@ -40,7 +43,7 @@ public class DelegatingBotCore extends ClientCore {
 	private HashMap<Integer, Long> lastHeuristics;
 	
 	/* liste des parametres */
-	private int reactivity;
+	private int reactivity; /* vitesse du bot */
 	private int creativity; /* capacite a avoir de bonne idees */
 	private int relevance;  /* capacite a suivre les bonnes idees */
 	private int adaptation; /* capacite a suivre les autres commentaires */
@@ -57,10 +60,10 @@ public class DelegatingBotCore extends ClientCore {
 		lastHeuristics = new HashMap<Integer, Long>();
 		
 		reactivity = 5;
-		creativity = 5;
-		relevance = 5;
-		adaptation = 5;
-		persuation = 5;
+		creativity = (int) (Math.random()*PARAM_MAX_VALUE +1);
+		relevance = (int) (Math.random()*PARAM_MAX_VALUE +1);
+		adaptation = (int) (Math.random()*PARAM_MAX_VALUE +1);
+		persuation = (int) (Math.random()*PARAM_MAX_VALUE +1);
 		
 		timeCreation = System.currentTimeMillis();
 		nextAction = getNextAction(timeCreation) ;
@@ -85,14 +88,20 @@ public class DelegatingBotCore extends ClientCore {
 		long time = System.currentTimeMillis();
 		if (time > nextAction)
 		{
-			/* on calcule les chances d'obtenir une idee (entre 5 et 20) */
+			/* on calcule les chances d'obtenir une idee (entre 1 et 30) reduit par le nombre d'idees deja creees */
 			double nbIdeas = getGame().getAllIdeas().size()-1;
 			double nbPlayerIdeas = getNbIdeas();
 			double nbPlayers = getGame().getAllPlayers().size();
-			double ideaCreationChance = 4 + (46 * (1-Math.sqrt((nbIdeas+nbPlayerIdeas) / ((nbPlayers) + nbIdeas+nbPlayerIdeas))));
-							
+			double ideaCreationChance = (20 * (1-Math.sqrt((nbIdeas+nbPlayerIdeas) / ((nbPlayers) + nbIdeas+nbPlayerIdeas))));
+			/* un bot creatif va plus chercher a rajouter des idees */
+			ideaCreationChance = ideaCreationChance + 5 * creativity / 5 ;
+			/* un bot qui s'adapte va plus chercher à commenter */
+			double commentCreationChance = 25 * adaptation / 5 + 25 * relevance / 5;
+			
+			
 			if (Math.random()*100 <= ideaCreationChance)
-			{ /* on ajoute une idee */
+			{ 
+				/* on ajoute une idee */
 				
 				/* on calcule le nombre d'idees source */
 				Integer nbSources;
@@ -109,7 +118,7 @@ public class DelegatingBotCore extends ClientCore {
 				Collection<Integer> sources = new ArrayList<Integer>();
 				for (int i = 0 ; i < nbSources ; i++)
 				{
-					int id = getBestIdea();
+					int id = getBestIdeaForIdea();
 					if (!sources.contains(id))
 					{
 						sources.add(id);
@@ -120,41 +129,74 @@ public class DelegatingBotCore extends ClientCore {
 				createIdea(sources);
 				
 			}
-			else
-			{ /* on ajoute un commentaire */
-				Integer id = getBestIdea();
-				Integer tokensGiven = getCurrentIdeasTokens().get(id);
+			else if (Math.random()*100 <= commentCreationChance)
+			{
+				/* on ajoute un commentaire */
+				int id = getBestIdeaForVote();
+				int tokensToGive = 0;
+				int tokensGiven = getCurrentIdeasTokens().get(id);
+				double tokensIdea = getGame().getIdea(id).getTotalBids();
 				
-				/* on cree un commentaire */
-				if (getRemainingTokens() == 0 && tokensGiven == 0)
+				/* on choisit si le commentaire doit etre positif ou negatif */
+				double chancePositiveComments = 30f + 7f * adaptation * tokensIdea / (getGame().getAllPlayersIds().size()*getGame().getMaxTokensByPlayer());
+				
+				double rand = Math.random()*100;
+						
+				System.out.println("chances vote positif : " + chancePositiveComments);
+				
+				if (chancePositiveComments >= rand)
 				{
-					createComment(id,0,CommentValence.NEUTRAL);
+					/* on fait un commentaire positif */
+					
+					System.out.println("commentaire positif");
+					
+					/* on donne un nombre de tokens variable */
+					tokensToGive = (int) ((Math.random()*getGame().getMaxTokensByPlayer()) - (getGame().getMaxTokensByPlayer()-getRemainingTokens()-tokensGiven)/2) - tokensGiven;
+					
+					/* si on a deja donne plus de tokens a cette idee, on ne donne aucun token */
+					if (tokensToGive > 0)
+					{
+						/* si on n'a pas assez de tokens, on en retire aux autres idees */
+						if (tokensToGive > getRemainingTokens())
+						{
+							int tokensRemoved = 0;
+							Set<Entry<Integer, Integer>> tokens = getCurrentIdeasTokens().entrySet();
+							
+							while (tokensRemoved < tokensToGive)
+							{
+								/* on recherche la plus mauvaise idee */
+								Integer worstIdea = -1;
+								for (Entry<Integer, Integer> e : tokens)
+								{
+									if (worstIdea == -1 || (heuristicIdea(worstIdea) > heuristicIdea(e.getKey()) && e.getValue() > 0))
+									{
+										worstIdea = e.getKey();
+									}
+								}
+								
+								/* on retire les tokens */
+								int removed = Math.min(getCurrentIdeasTokens().get(worstIdea),tokensToGive-tokensRemoved);
+								tokensRemoved += removed;
+								createComment(worstIdea, removed, CommentValence.NEUTRAL);
+							}
+						}
+					}
+					createComment(id,tokensToGive,CommentValence.POSITIVE);
+				}
+				else if (chancePositiveComments / rand < 0.8)
+				{
+					/* on fait un commentaire neutre */
+					
+					createComment(id, 0, CommentValence.NEUTRAL);
 				}
 				else
 				{
-					Integer tokensToGive = 0;
-
-					if ((time/10)%2 == 0)
-					{
-						tokensToGive = (int) ( 0 - tokensGiven * Math.random());
-					}
-					else
-					{
-						tokensToGive = (int) ( getRemainingTokens() * Math.random());
-					}
+					/* on fait un commentaire negatif */
 					
-					if (tokensToGive == 0)
-					{
-						createComment(id,tokensToGive,CommentValence.NEUTRAL);
-					}
-					else if(tokensToGive > 0)
-					{
-						createComment(id,tokensToGive,CommentValence.POSITIVE);
-					}
-					else if(tokensToGive < 0)
-					{
-						createComment(id,tokensToGive,CommentValence.NEGATIVE);
-					}
+					/* on retire une partie des tokens donnes */
+					tokensToGive = (int) -(Math.random()*tokensGiven/2 + tokensGiven/2);
+					createComment(id,tokensToGive,CommentValence.NEGATIVE);
+					
 				}
 			}
 			nextAction = getNextAction(time);
@@ -162,11 +204,42 @@ public class DelegatingBotCore extends ClientCore {
 	}
 	
 	/**
-	 * Donne l'id de la meilleur idee possible, chaque idee ayant plus de chance d'etre obtenue selon ses caracteristiques et celles du bot
+	 * Donne l'id de la meilleur idee possible pour vote, chaque idee ayant beaucoup plus de chance d'apparaitre selon son heuristique
 	 * @return int : l'id de l'idee obtenue
 	 * @throws RemoteException 
 	 */
-	public int getBestIdea() throws RemoteException
+	public int getBestIdeaForVote() throws RemoteException
+	{
+		int id = 0;
+		long totalHeuristic = 0;
+		
+		for (Entry<Integer, Long> h : lastHeuristics.entrySet())
+		{
+			totalHeuristic += Math.pow(h.getValue(), 2);
+		}
+		
+		/* on recupere une idee au hazard, les chances d'obtenir une idee sont augmentee si son heuristique est grande */
+		long rand = (int)(Math.random()*totalHeuristic);
+		for (IIdea i : getGame().getAllIdeas())
+		{
+			long h = (long) Math.pow(lastHeuristics.get(i.getUniqueId()), 2);
+			if (rand < h)
+			{
+				id = i.getUniqueId();
+				break;
+			}
+			rand -= h;
+		}
+		
+		return id;
+	}
+	
+	/**
+	 * Donne l'id de la meilleur idee possible pour une idee, chaque idee ayant plus de chance d'apparaitre selon son heuristique
+	 * @return int : l'id de l'idee obtenue
+	 * @throws RemoteException 
+	 */
+	public int getBestIdeaForIdea() throws RemoteException
 	{
 		int id = 0;
 		long totalHeuristic = 0;
@@ -220,31 +293,36 @@ public class DelegatingBotCore extends ClientCore {
 			if (c.getIdea().getUniqueId() == id)
 			{
 				int actualCommentValue = (c.getCommentValue() + c.getTokensCount() * 5)* adaptation;
+				/* on augmente la valeur du commentaire ou le reduit s'il est positif ou negatif */
 				if (c.getValence() == CommentValence.POSITIVE)
 				{
 					actualCommentValue *= 2;
 				}
 				else if (c.getValence() == CommentValence.NEGATIVE)
 				{
-					actualCommentValue /= 2;
+					actualCommentValue *= -1;
 				}
 				commentValue += actualCommentValue;
 
-				//long timeElapsed = time - c.getCreationDate();
-				//commentValue = commentValue * (1-(timeElapsed / (BOT_BASE_SPEED + timeElapsed))) ;
+				/* on modifie la valeur des commentaires en fonction de la valeur de l'idee et du temps */
+				double timeElapsed = time - c.getCreationDate();
+				commentValue = (long) (commentValue * idea.getIdeaValue() / IIdea.IDEA_MAX_VALUE * (1-(timeElapsed / (BOT_BASE_SPEED*6 + timeElapsed))));
 			}
 		}
 		
 		/* on recupere l'heuristique des parents pour en heriter d'une partie */
 		long parentsValue = 0;
-		if (idea.getParents().size() != 0)
+		/*if (idea.getParents().size() != 0)
 		{
 			for (IIdea i : idea.getParents())
 			{
-				parentsValue += lastHeuristics.get(i.getUniqueId());
+				if (lastHeuristics.containsKey(i.getUniqueId()))
+				{
+					parentsValue += lastHeuristics.get(i.getUniqueId());
+				}
 			}
 			parentsValue /= 3*idea.getParents().size();
-		}
+		}*/
 		
 		/* on calcule l'heuristique totale */
 		long total = ideaValue + commentValue;
@@ -254,7 +332,7 @@ public class DelegatingBotCore extends ClientCore {
 		//total = (long) (total * (1-timeElapsed / (BOT_BASE_SPEED*6 + timeElapsed)));
 		//System.out.println("Heuristique reduite de : " + timeElapsed / (BOT_BASE_SPEED*6 + timeElapsed));
 		
-		return 1 + (total + parentsValue) / 100;
+		return (long) (1+ total + parentsValue);
 	}
 	
 	/**
@@ -483,8 +561,8 @@ public class DelegatingBotCore extends ClientCore {
 	 */
 	public void createIdea(Collection<Integer> sources) throws AlreadyExistsException, TooLateException, RemoteException
 	{
-		Integer preValue = IIdea.IDEA_MAX_VALUE * creativity / 20 ;
-		Integer value = preValue + (int)(Math.random() * (IIdea.IDEA_MAX_VALUE-preValue) / (11-creativity));
+		Integer value = (int)(Math.random() * (IIdea.IDEA_MAX_VALUE*creativity/10));
+		System.out.println("ajout idee : " + getPlayerId() + ", " + "Idea " + ideaCount + ", this idea has a value of " + value +", " + new ArrayList<Integer>() + "," + sources );
 		getGame().addIdea(getPlayerId(),"Idea " + ideaCount, "this idea has a value of " + value, new ArrayList<Integer>(), sources);
 		ideaCount++;
 		nbIdeas++;
@@ -509,8 +587,7 @@ public class DelegatingBotCore extends ClientCore {
 		}
 		else
 		{
-			Integer preValue = IComment.COMMENT_MAX_VALUE * creativity / 20 ;
-			Integer value = preValue + (int)(Math.random() * (IComment.COMMENT_MAX_VALUE-preValue) / (11-creativity));
+			Integer value = (int)(Math.random() * (IComment.COMMENT_MAX_VALUE * creativity / 10 ));
 			getGame().commentIdea(getPlayerId(), idea, "this comment has a value of " + value, tokens, valence);
 			spendTokens(tokens);
 			nbComments++;
