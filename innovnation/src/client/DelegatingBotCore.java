@@ -160,16 +160,20 @@ public class DelegatingBotCore extends ClientCore {
 						if (tokensToGive > getRemainingTokens())
 						{
 							int tokensRemoved = 0;
+							
 							Set<Entry<Integer, Integer>> tokens = getCurrentIdeasTokens().entrySet();
 							
-							while (tokensRemoved < tokensToGive)
+							while (getRemainingTokens() < tokensToGive)
 							{
 								/* on recherche la plus mauvaise idee */
 								Integer worstIdea = -1;
+								System.out.println(" Il faut retirer des tokens sur d'autre idees : " + tokens);
 								for (Entry<Integer, Integer> e : tokens)
 								{
-									if (worstIdea == -1 || (heuristicIdea(worstIdea) > heuristicIdea(e.getKey()) && e.getValue() > 0))
+									
+									if (e.getValue() > 0 && (worstIdea == -1 || (heuristicIdea(worstIdea) > heuristicIdea(e.getKey()))))
 									{
+										System.out.println("Nouvelle plus mauvaise idee trouvee : " + e);
 										worstIdea = e.getKey();
 									}
 								}
@@ -177,7 +181,8 @@ public class DelegatingBotCore extends ClientCore {
 								/* on retire les tokens */
 								int removed = Math.min(getCurrentIdeasTokens().get(worstIdea),tokensToGive-tokensRemoved);
 								tokensRemoved += removed;
-								createComment(worstIdea, removed, CommentValence.NEUTRAL);
+								createComment(worstIdea, -removed, CommentValence.NEUTRAL);
+								System.err.println(removed + " tokens retires");
 							}
 						}
 					}
