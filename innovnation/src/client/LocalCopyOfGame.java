@@ -267,8 +267,6 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 	 * synchronize with the remote server, so that actual content is reflected.
 	 */
 	public void resync() {
-		// TODO !!!
-		System.out.println("_________ SYNCHRONISATION _________");
 		
 		try {
 			LinkedList<Integer> localIds;
@@ -431,7 +429,6 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 			e.printStackTrace();
 		}
 
-		System.out.println("_________ FIN SYNCHRONISATION _________");
 
 	}
 

@@ -52,6 +52,7 @@ import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters;
 import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters.GUIParametersMode;
 import functions.GameServer;
 import functions.TypeScore;
+import functions.logs.GraphLogPack;
 import functions.logs.SimAnalyzerLog;
 /**
  * TODO déconnecter si connecté !
@@ -69,6 +70,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private GuiClientMode modeClient = GuiClientMode.DISCONNECTED;
 	private GuiServerMode modeServer = GuiServerMode.NO_SERVER;
 	
+	private ArrayList<GuiBot> botThreads;
+	
 	
 	public static final boolean TEST_MODE = true;
 	
@@ -79,7 +82,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	/**
 	 * Only relevant if mode != DISCONNECTED.
 	 */	
-	@SuppressWarnings("unused")
 	private String gameBindName = null;
 	
 	
@@ -106,7 +108,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	 */
 	private Integer playerId = null;
 	
-	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer;
+	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot, itemAddTenBots, itemStartBots, itemPauseBots, 
+			itemRemoveBots, itemDisplayInnovGraph, itemDisplayVoteGraph, itemDisplayWeightGraph, itemDisplayPersuasionGraph;
 	
 	@SuppressWarnings("unused")
 	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
@@ -214,7 +217,17 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		itemCreateServerLocal.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemCreateServer.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemShutdownServer.setEnabled(modeServer != GuiServerMode.NO_SERVER);
-
+		itemAddBot.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemAddTenBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemStartBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemPauseBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemRemoveBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayInnovGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayVoteGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayWeightGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayPersuasionGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		
+		
 		itemCreateGame.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		
 		clientWhiteboard.setActionsEnabled(modeClient == GuiClientMode.PLAYING);
@@ -367,6 +380,96 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 					
 				}
 				{
+					itemAddBot= new MenuItem (menuServer, SWT.PUSH);
+					itemAddBot.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickAddBot();
+						}
+					});
+					itemAddBot.setText ("Ajouter un bot...");
+					
+					
+				}
+				{
+					itemAddTenBots = new MenuItem (menuServer, SWT.PUSH);
+					itemAddTenBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							for (int i = 0 ; i < 10 ; i++)
+							{
+								clickAddBot();
+							}
+						}
+					});
+					itemAddTenBots.setText ("Ajouter 10 bots...");
+					
+					
+				}
+				{
+					itemStartBots= new MenuItem (menuServer, SWT.PUSH);
+					itemStartBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickStartBots();
+						}
+					});
+					itemStartBots.setText ("Demarrer les bots...");
+					
+					
+				}
+				{
+					itemPauseBots= new MenuItem (menuServer, SWT.PUSH);
+					itemPauseBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickPauseBots();
+						}
+					});
+					itemPauseBots.setText ("Stopper les bots...");
+				}
+				{
+					itemRemoveBots= new MenuItem (menuServer, SWT.PUSH);
+					itemRemoveBots.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickRemoveBots();
+						}
+					});
+					itemRemoveBots.setText ("Supprimer les bots...");
+				}
+				{
+					itemDisplayInnovGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayInnovGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayInnovGraph();
+						}
+					});
+					itemDisplayInnovGraph.setText ("Afficher le graphe innovnation...");
+				}
+				{
+					itemDisplayVoteGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayVoteGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayVoteGraph();
+						}
+					});
+					itemDisplayVoteGraph.setText ("Afficher le graphe de votes...");
+				}
+				{
+					itemDisplayWeightGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayWeightGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayWeightGraph();
+						}
+					});
+					itemDisplayWeightGraph.setText ("Afficher le graphe de poids de votes...");
+				}
+				{
+					itemDisplayPersuasionGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayPersuasionGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayPersuasionGraph();
+						}
+					});
+					itemDisplayPersuasionGraph.setText ("Afficher le graphe de persuasion...");
+				}
+				{
 					itemCreateGame = new MenuItem (menuServer, SWT.PUSH);
 					itemCreateGame.addListener (SWT.Selection, new Listener() {
 						public void handleEvent (Event e) {
@@ -489,6 +592,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		display = new Display ();
 		shell = new Shell (display, SWT.SHELL_TRIM);
 		shell.setText(TXT_WINDOW_TITLE);
+		
+		botThreads = new ArrayList<GuiBot>();
 
 		//shell.setLayout(new GridLayout(2, false));
 		shell.setLayout(new GridLayout(1, false));
@@ -725,7 +830,83 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	}
 
 	
+	/**
+	 * Cree un bot avec un GUI separe
+	 */
+	private void clickAddBot()
+	{
+		GuiBot bot = new GuiBot(clientWhiteboard, gameBindName, display, this);
+		
+		bot.init();
+		
+		try {
+			Integer id;
+			id = bot.getBotCore().getGame().addPlayer(bot.getBotCore().getName(), bot.getBotCore().getAvatar());
+			bot.getBotCore().setPlayerId(id);
+			
+		} catch (RemoteException e) {
+			System.err.println("Error while adding the bot to the game :");
+			e.printStackTrace();
+		}
+		
+		bot.start();
+		
+		botThreads.add(bot);
+	}
 	
+	/**
+	 * Demarre tous les bots
+	 */
+	private void clickStartBots()
+	{
+		for (GuiBot t : botThreads)
+		{
+			t.startBot();
+		}
+	}
+	
+	/**
+	 * Stoppe tous les bots
+	 */
+	private void clickPauseBots()
+	{
+		for (GuiBot t : botThreads)
+		{
+			t.pauseBot();
+		}
+	}
+	
+	/**
+	 * Supprime tous les bots
+	 */
+	private void clickRemoveBots()
+	{
+		for (GuiBot t : botThreads)
+		{
+			t.close();
+		}
+		botThreads.clear();
+	}
+	
+	private void clickDisplayInnovGraph()
+	{
+		GraphLogPack.getInnovGraphViewer();
+	}
+
+	private void clickDisplayVoteGraph()
+	{
+		GraphLogPack.getVoteGraphViewer();
+	}
+
+	private void clickDisplayWeightGraph()
+	{
+		GraphLogPack.getWeightVoteGraphViewer();
+	}
+
+	private void clickDisplayPersuasionGraph()
+	{
+		GraphLogPack.getPersuasionGraphViewer();
+	}
 	private void clickDisconnect() {
 		
 		clientCore.disconnectFromGame();
@@ -733,7 +914,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		setClientMode(GuiClientMode.DISCONNECTED);
 		
 	}
-	
 	
 	private void clickShutdownServer() {
 		
@@ -1075,8 +1255,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 			throw e;
 		}
-		
-		
 	}
 
 	private void updateShellTitle() {
@@ -1251,7 +1429,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		}
 	}
 	
-		public static void main(String[] args) {
+	public static void main(String[] args) {
 		
 		//System.setSecurityManager(new RMISecurityManager());
 		try {
@@ -1298,6 +1476,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 		// we should also update the tree of comments
 		display.asyncExec(ideaCommentTreeFillerRunnable);
+		
 	}
 
 	@Override
@@ -1306,7 +1485,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 
 	@Override
 	public void playerLeft(PlayerEvent e) throws RemoteException {
-		
 	}
 	
 	

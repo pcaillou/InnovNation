@@ -583,9 +583,6 @@ public class Game extends AbstractGame implements IServerSideGame {
 				CommentLogPack.zeros()
 			);
 			
-			System.out.println("Comment : " + CommentLogPack.titles().split(";").length + "/" + CommentLogPack.zeros().split(";").length   + "/" + CommentLogPack.zeros().split(";").length );
-
-			
 			logFileWriter.write(logMessage);
 			logFileWriter.write('\n');
 			//as root has no owner, we can't update him... 
