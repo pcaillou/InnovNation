@@ -13,10 +13,6 @@ import functions.IGame;
 public interface IIdea 
 extends IGameObject {
 
-	/** valeur maximale d'une idee (servant d'heuristique pour les bots pour les bots */
-	public static final int IDEA_MAX_VALUE = 3000;
-	public static final int ROOT_VALUE = 300;
-	
 	Collection<Integer> getItemsIds();
 	
 	Collection<IItem> getItems();
@@ -57,17 +53,6 @@ extends IGameObject {
 	
 	public Integer getMaxBids();
 	
-	/**
-	 * Retourne la valeur d'une idee (servant au bot pour savoir si une idee est bonne ou non)
-	 * @return int
-	 */
-	public int getIdeaValue();
-	
-	/**
-	 * Met a jour la valeur d'une idee (servant au bot pour savoir si une idee est bonne ou non)
-	 * @param v
-	 */
-	public void setIdeaValue(int v);
 	
 	public void betChanged(int nbTokens, IPlayer p, IGame g) throws RemoteException ;
 	

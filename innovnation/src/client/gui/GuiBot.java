@@ -4,9 +4,6 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
@@ -27,9 +24,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 
 import client.DelegatingBotCore;
 import errors.AlreadyExistsException;
@@ -128,9 +122,6 @@ public class GuiBot extends Thread{
 	private Label labelRelevance;
 	private Label labelPersuation;
 	
-	/* tableau d'affichage des heuristiques */
-	private Table heuristicsTable;
-	
 	/* list des textbox */
 	private Combo textReactivity;
 	private Combo textCreativity;
@@ -174,16 +165,6 @@ public class GuiBot extends Thread{
 		botPaused = true;
 		initColors();
 
-		/* initialisation de la fonction refresh */
-		refresh = new Runnable() {
-            public void run() {
-            	if (!shell.isDisposed ()) {
-            		refresh();
-            	}
-            }
-         };
-		
-        /* on connecte le bot a la partie */
 		try {
 			clientCore.connectToGame(host);
 			clientCore.getGame().addListener(main);
@@ -225,6 +206,7 @@ public class GuiBot extends Thread{
 	 * Met a jour l'etat des boutons 
 	 */
 	protected void updateButtonsStates() {
+		
 		buttonCancel.setEnabled(paramsChanged);
 		buttonUpdate.setEnabled(paramsChanged);
 		
@@ -273,8 +255,6 @@ public class GuiBot extends Thread{
 		itemStatus.setText ("Status");
 		TabItem itemParams = new TabItem (tab, SWT.NONE);
 		itemParams.setText ("Parametres");
-		TabItem itemHeuristics = new TabItem (tab, SWT.NONE);
-		itemHeuristics.setText ("Heuristiques");
 		
 		/* partie description du bot */
 		{
@@ -524,32 +504,7 @@ public class GuiBot extends Thread{
 					}
 				});
 			}
-		}
-		
-		{
-
-			/* on cree le layout */
-			GridLayout layoutHeuristics = new GridLayout(1, false);
-			Composite compositeHeuristics = new Composite(tab, SWT.NONE);
-			itemHeuristics.setControl(compositeHeuristics);
-			compositeHeuristics.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			compositeHeuristics.setLayout(layoutHeuristics);
-			compositeHeuristics.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
 			
-			heuristicsTable = new Table(compositeHeuristics, SWT.NONE);
-			GridData gdGames = new GridData(
-					GridData.FILL_HORIZONTAL | 
-					GridData.FILL_VERTICAL | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL);
-			heuristicsTable.setLayoutData(gdGames);
-			heuristicsTable.setHeaderVisible (true);
-			heuristicsTable.setLinesVisible (true);
-			
-			TableColumn column = new TableColumn (heuristicsTable, SWT.NONE);
-			column.setText("Idee");
-			column.setWidth(75);
-			column = new TableColumn (heuristicsTable, SWT.NONE);
-			column.setText("Heuristique");
-			column.setWidth(225);
 		}
 		
 		/* on ajoute les boutons */
@@ -606,6 +561,15 @@ public class GuiBot extends Thread{
 		updateButtonsStates();
 		getParams();
 		paramsChanged = false;
+		
+		/* initialisation de la fonction refresh */
+		refresh = new Runnable() {
+            public void run() {
+            	if (!shell.isDisposed ()) {
+            		refresh();
+            	}
+            }
+         };
 	}
 	
 	/**
@@ -623,51 +587,13 @@ public class GuiBot extends Thread{
 			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(TypeScore.creativite.calculer(clientCore.getGame(), clientCore.getPlayerId())));
 			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(TypeScore.pertinence.calculer(clientCore.getGame(), clientCore.getPlayerId())));
 			labelPersuation.setText(TXT_PERSUATION + String.valueOf(TypeScore.persuasion.calculer(clientCore.getGame(), clientCore.getPlayerId())));
-			updateHeuristicTable();
 
 		} catch (Exception e) {
-			//System.err.println("Error bot : error while computing bot stats : " + e.getClass());
-			//labelAdaptation.setText(TXT_ADAPTATION + "compute error");
-			//labelCreativity.setText(TXT_CREATIVITY + "compute error");
-			//labelRelevance.setText(TXT_RELEVANCE + "compute error");
-			//labelPersuation.setText(TXT_PERSUATION + "compute error");
-		}
-	}
-	
-	/**
-	 * Met a jour le tableau des heuristiques
-	 * @throws RemoteException
-	 */
-	public void updateHeuristicTable() throws RemoteException
-	{
-		HashMap<Integer,Long> heuristics = clientCore.getHeuristics();
-		TableItem item;
-		
-		for (Entry<Integer, Long> h : heuristics.entrySet())
-		{
-			int rowIndex = -1;
-			/* on regarde si l'idee est deja existante dans le tableau */
-			for (int i = 0 ; i < heuristicsTable.getItemCount() ; i++)
-			{
-				if (heuristicsTable.getItem(i).getText(0).equals(clientCore.getGame().getIdea(h.getKey()).getShortName()))
-				{
-					rowIndex = i;
-					break;
-				}
-			}
-			
-			/* on modifie ou ajoute l'idee */
-			if (rowIndex != -1)
-			{
-				heuristicsTable.getItem(rowIndex).setText(1, h.getValue().toString());
-			}
-			else
-			{
-				item = new TableItem(heuristicsTable, SWT.NONE);
-				item.setText(0, clientCore.getGame().getIdea(h.getKey()).getShortName());					
-				item.setText(1, h.getValue().toString());
-				item.setData("");
-			}
+			System.err.println("Error bot : error while computing bot stats : " + e.getClass());
+			labelAdaptation.setText(TXT_ADAPTATION + "compute error");
+			labelCreativity.setText(TXT_CREATIVITY + "compute error");
+			labelRelevance.setText(TXT_RELEVANCE + "compute error");
+			labelPersuation.setText(TXT_PERSUATION + "compute error");
 		}
 	}
 	
@@ -678,41 +604,25 @@ public class GuiBot extends Thread{
 		if (embbedType == GuiEmbbedType.STANDALONE) {
 
 			while (!shell.isDisposed ()) {
+
+				Display.getDefault().asyncExec(refresh);
 				
 				/* on raffraichit le bot */
 				if (!botPaused)
 				{
 					try {
 						clientCore.refresh();
-					} 
-					catch (RemoteException e) 
-					{
+					} catch (RemoteException e) {
 						System.err.println(getName() + " error : impossible de refresh (remote exception)");
 						e.printStackTrace();
-					} 
-					catch (TooLateException e) 
-					{
+					} catch (TooLateException e) {
 						System.err.println(getName() + " error : impossible de refresh (too late exception)");
 						e.printStackTrace();
-					} 
-					catch (AlreadyExistsException e) 
-					{
+					} catch (AlreadyExistsException e) {
 						System.err.println(getName() + " error : impossible de refresh (already exists exception)");
-						DelegatingBotCore.ideaCount++;
-					} 
-					catch(ConcurrentModificationException e)
-					{
-						System.err.println(getName() + " error : impossible de rajouter le commentaire (concurent modification exception)");
-					}
-					catch(Exception e)
-					{
-						System.err.println(getName() + " error : erreur inconnue");
 						e.printStackTrace();
-					}
+					} 
 				}
-				
-				/* on raffraichir l'affichage */
-				Display.getDefault().asyncExec(refresh);
 				
 				try {
 					Thread.sleep(100);
@@ -721,7 +631,6 @@ public class GuiBot extends Thread{
 					e.printStackTrace();
 				}
 			}
-
 			
 		}
 		
