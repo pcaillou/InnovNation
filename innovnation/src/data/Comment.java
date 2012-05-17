@@ -13,8 +13,6 @@ public class Comment extends GameObject implements IComment {
 
 	private static Integer indexCount = 0;
 	
-	private int value;
-	
 	private IIdea idea;
 	
 	private Integer index;
@@ -38,7 +36,6 @@ public class Comment extends GameObject implements IComment {
 		this.valence=valence;
 		this.text=text;
 		this.tokens = 0;
-		value =(int)(Math.random() * IComment.COMMENT_MAX_VALUE);
 		
 		/* on cree un nouvel index pour l'idee */
 		index = indexCount;
@@ -59,7 +56,6 @@ public class Comment extends GameObject implements IComment {
 		this.valence=valence;
 		this.text=text;
 		this.tokens = tokens;
-		value =(int)(Math.random() * IComment.COMMENT_MAX_VALUE);
 		
 		/* on cree un nouvel index pour l'idee */
 		index = indexCount;
@@ -128,11 +124,4 @@ public class Comment extends GameObject implements IComment {
 		return tokens;
 	}
 
-	public int getCommentValue() {
-		return value;
-	}
-	
-	public void setCommentValue(int v) {
-		value = v;
-	}
 }

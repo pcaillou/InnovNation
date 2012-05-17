@@ -52,6 +52,7 @@ import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters;
 import fr.research.samthiriot.commons.parameters.gui.swt.GUIParameters.GUIParametersMode;
 import functions.GameServer;
 import functions.TypeScore;
+import functions.logs.GraphLogPack;
 import functions.logs.SimAnalyzerLog;
 /**
  * TODO déconnecter si connecté !
@@ -108,7 +109,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private Integer playerId = null;
 	
 	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot, itemAddTenBots, itemStartBots, itemPauseBots, 
-			itemRemoveBots;
+			itemRemoveBots, itemDisplayInnovGraph, itemDisplayVoteGraph, itemDisplayWeightGraph, itemDisplayPersuasionGraph;
 	
 	@SuppressWarnings("unused")
 	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
@@ -221,6 +222,10 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		itemStartBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		itemPauseBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		itemRemoveBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayInnovGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayVoteGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayWeightGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemDisplayPersuasionGraph.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		
 		
 		itemCreateGame.setEnabled(modeServer != GuiServerMode.NO_SERVER);
@@ -382,7 +387,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 						}
 					});
 					itemAddBot.setText ("Ajouter un bot...");
-					itemAddBot.setAccelerator (SWT.CTRL + 'B');
 					
 					
 				}
@@ -428,6 +432,42 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 						}
 					});
 					itemRemoveBots.setText ("Supprimer les bots...");
+				}
+				{
+					itemDisplayInnovGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayInnovGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayInnovGraph();
+						}
+					});
+					itemDisplayInnovGraph.setText ("Afficher le graphe innovnation...");
+				}
+				{
+					itemDisplayVoteGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayVoteGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayVoteGraph();
+						}
+					});
+					itemDisplayVoteGraph.setText ("Afficher le graphe de votes...");
+				}
+				{
+					itemDisplayWeightGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayWeightGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayWeightGraph();
+						}
+					});
+					itemDisplayWeightGraph.setText ("Afficher le graphe de poids de votes...");
+				}
+				{
+					itemDisplayPersuasionGraph= new MenuItem (menuServer, SWT.PUSH);
+					itemDisplayPersuasionGraph.addListener (SWT.Selection, new Listener() {
+						public void handleEvent (Event e) {
+							clickDisplayPersuasionGraph();
+						}
+					});
+					itemDisplayPersuasionGraph.setText ("Afficher le graphe de persuasion...");
 				}
 				{
 					itemCreateGame = new MenuItem (menuServer, SWT.PUSH);
@@ -847,7 +887,26 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		}
 		botThreads.clear();
 	}
+	
+	private void clickDisplayInnovGraph()
+	{
+		GraphLogPack.getInnovGraphViewer();
+	}
 
+	private void clickDisplayVoteGraph()
+	{
+		GraphLogPack.getVoteGraphViewer();
+	}
+
+	private void clickDisplayWeightGraph()
+	{
+		GraphLogPack.getWeightVoteGraphViewer();
+	}
+
+	private void clickDisplayPersuasionGraph()
+	{
+		GraphLogPack.getPersuasionGraphViewer();
+	}
 	private void clickDisconnect() {
 		
 		clientCore.disconnectFromGame();
@@ -871,8 +930,15 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		// TODO disconnect and so on if relevant
 		
 		// TODO confirmation
+
+		
+		// TODO Destannes : modifications faites ici
 		
 		shell.setVisible(false);
+		
+		//Viewer v = GraphLogPack.getInnovGraphViewer();
+		
+		//while(v.getDefaultView().isVisible());
 		
 		shell.dispose();
 		

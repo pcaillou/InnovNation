@@ -12,8 +12,6 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.swingViewer.Viewer;
 
-// TODO tester esport / import
-
 /**
  * 
  * @author Destannes Alexandre
@@ -40,17 +38,7 @@ public class GraphInnovNation extends MultiGraph{
 	public static String PREFIX_PLAYER = "P_";
 	public static String PREFIX_VOTE = "V_";
 	
-	public static final char LEFT_BRACE =  '[';
-	public static final char RIGHT_BRACE = ']';
-	public static final char SEPARATOR =   ':';
-	
-	private static final int TYPE_NODE_PLAYER = 1;
-	private static final int TYPE_NODE_IDEA = 2;
-	private static final int TYPE_NODE_ROOT = 3;
-	private static final int TYPE_EDGE_VOTE = 4;
-	private static final int TYPE_EDGE_IDEA_PARENT = 5;
-	private static final int TYPE_EDGE_IDEA_SOURCE = 6;
-	
+	public static String SEPARATOR = ";";
 	
 	private ArrayList<Integer> players;
 	private ArrayList<Integer> ideas;
@@ -58,70 +46,6 @@ public class GraphInnovNation extends MultiGraph{
 	private Integer root;
 	
 	private long lastEventTime;
-	
-	/**
-	 * Retourne le tableau sous forme de chaine en utilisant le separateur et les encadrant definit dans LEFT_BRACE, RIGHT_BRACE, SEPARATOR
-	 * @param tab : la chaine sous forme de tableau {cell1,cell2,cell3,...}
-	 * @return la chaine au format "[cell1,cell2,cell3,...]"
-	 */
-	public static String tabToString(Collection<String> tab)
-	{
-		String result = LEFT_BRACE + "";
-		for(String s : tab)
-		{
-			if (result.length() > 1)
-			{
-				result += SEPARATOR;
-			}
-			result += s;
-		}
-		result += RIGHT_BRACE;
-		
-		return result;
-	}
-	
-	/**
-	 * Retourne la chaine sous forme de tableau en utilisant le separateur et les encadrant definit dans LEFT_BRACE, RIGHT_BRACE, SEPARATOR
-	 * @param tab : la chaine au format "[cell1,cell2,cell3,...]"
-	 * @return la chaine sous forme de tableau {cell1,cell2,cell3,...}
-	 */
-	public static ArrayList<String> stringToTab(String tab)
-	{
-		Integer level = 0;
-		String buffer = "";
-		ArrayList<String> result = new ArrayList<String>();
-		tab = tab.substring(1, tab.length()-1);
-		
-		/* on parcourt la chaine pour recuperer toutes les cellules */
-		for (char c : tab.toCharArray())
-		{
-			if (c == LEFT_BRACE)
-			{
-				level++;
-			}
-			else if (c == RIGHT_BRACE)
-			{
-				level--;
-			}
-			
-			if (c == SEPARATOR && level == 0)
-			{
-				result.add(buffer);
-				buffer = "";
-			}
-			else
-			{
-				buffer+= c;
-			}
-		}
-		
-		if (buffer != "")
-		{
-			result.add(buffer);
-		}
-		
-		return result;
-	}
 	
 	/**
 	 * Constructeur de Graphe InnovNation
@@ -138,20 +62,6 @@ public class GraphInnovNation extends MultiGraph{
 		init();
 		
 		addRoot(idRootIdea);
-	}
-
-	/**
-	 * Constructeur de Graphe InnovNation sans racine
-	 * @throws GraphInnovNationException : erreur si l'id du root est deja prise
-	 */
-	public GraphInnovNation() throws GraphInnovNationException
-	{
-		super("InnovNation");
-		lastEventTime = 0;
-		players = new ArrayList<Integer>();
-		ideas = new ArrayList<Integer>();
-		votes = new ArrayList<Integer>();
-		init();
 	}
 	
 	/**
@@ -172,8 +82,8 @@ public class GraphInnovNation extends MultiGraph{
 		n.addAttribute("ID", id);
 		n.addAttribute("ui.class","root_idea");
 		n.addAttribute("ui.label",IdeaId);
-		n.addAttribute("layout.force", 0);
 		n.addAttribute(TIME_ADD, Long.valueOf(0));
+		n.addAttribute("layout.force", 0);
 	}
 	
 	/**
@@ -380,7 +290,8 @@ public class GraphInnovNation extends MultiGraph{
 		
 		for (String idIdea : ideaSourceIds)
 		{
-			e = addEdge(idIdea + " from " + ideaId, ideaId, idIdea, true);
+			addEdge(idIdea + " from " + ideaId, ideaId, idIdea, true);
+			e = getEdge(idIdea + " from " + ideaId);
 			e.addAttribute("ui.class","fromidea");
 			e.addAttribute("ui.label",IDEA_FROM_LABEL);
 			e.addAttribute(TIME_ADD, timeAdd);
@@ -464,8 +375,9 @@ public class GraphInnovNation extends MultiGraph{
 		}
 		else
 		{
-			e = addEdge(voteId,playerId,ideaId,true);
-			
+			addEdge(voteId,playerId,ideaId,true);
+				
+			e = getEdge(voteId);
 			votes.add(e.getIndex());
 			e.addAttribute("ID", id);
 			e.addAttribute(VOTE_NOTE, vote);
@@ -512,6 +424,7 @@ public class GraphInnovNation extends MultiGraph{
 		lastEventTime = Math.max(lastEventTime, timeAdd);
 	}
 	
+	
 	/**
 	 * Divise le temps de creation et les historiques de tout les arcs et noeuds
 	 * @param factor : tout les temps seront multiplies par cette valeur
@@ -520,12 +433,16 @@ public class GraphInnovNation extends MultiGraph{
 	{
 		for(Node n : getEachNode())
 		{
+			System.out.println(n.getAttribute(TIME_ADD));
 			n.setAttribute(TIME_ADD,(long)(((Long)n.getAttribute(TIME_ADD))/step));
+			System.out.println(n.getAttribute(TIME_ADD));
 		}
 		
 		for (Edge e : getEachEdge())
 		{
+			System.out.println(e.getAttribute(TIME_ADD));
 			e.setAttribute(TIME_ADD,(long)(((Long)e.getAttribute(TIME_ADD))/step));
+			System.out.println(e.getAttribute(TIME_ADD));
 		}
 		
 		for (Integer i : votes)
@@ -536,7 +453,9 @@ public class GraphInnovNation extends MultiGraph{
 			
 			for (long[] h : hist)
 			{
+				System.out.println(h[0]);
 				h[0] = (long)(h[0]/step);
+				System.out.println(h[0]);
 			}
 		}
 	}
@@ -562,10 +481,6 @@ public class GraphInnovNation extends MultiGraph{
 		return getGraphAtTime(time).display();
 	}
 	
-	/**
-	 * Clone le graphe
-	 * @return GraphInnovNation
-	 */
 	public GraphInnovNation clone()
 	{
 		GraphInnovNation g = null;
@@ -647,11 +562,7 @@ public class GraphInnovNation extends MultiGraph{
 					ids.add(idSource.substring(PREFIX_IDEA.length()));
 				}
 				
-				g.addIdea(
-						(tmpn.getId()).substring(PREFIX_IDEA.length()),
-						ids, 
-						((String)tmpn.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), 
-						(Long)tmpn.getAttribute(TIME_ADD));
+				g.addIdea((tmpn.getId()).substring(PREFIX_IDEA.length()),ids, ((String)tmpn.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), (Long)tmpn.getAttribute(TIME_ADD));
 			}
 		}
 		
@@ -667,12 +578,7 @@ public class GraphInnovNation extends MultiGraph{
 					{
 						break;
 					}
-					g.addVote(
-							(tmpe.getId()).substring(PREFIX_VOTE.length()), 
-							((String)tmpe.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), 
-							((String)tmpe.getAttribute(IDEA_TARGET)).substring(PREFIX_IDEA.length()), 
-							((Long)h[1]).intValue(), 
-							((Long)h[2]).intValue(), h[0]);
+					g.addVote((tmpe.getId()).substring(PREFIX_VOTE.length()), ((String)tmpe.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), ((String)tmpe.getAttribute(IDEA_TARGET)).substring(PREFIX_IDEA.length()), ((Long)h[1]).intValue(), ((Long)h[2]).intValue(), h[0]);
 				}
 			}
 		}
@@ -791,7 +697,7 @@ public class GraphInnovNation extends MultiGraph{
 	 */
     private static String toRightIdFormat(String id)
 	{
-		return id.replace(SEPARATOR, '_').replace(';', '|').replace(LEFT_BRACE, '{').replace(RIGHT_BRACE, '}');
+		return id.replace(":", "_").replace(";", "|").replace("[", "{").replace("]", "}");
 	}
     
     /* fonctions de converstion en GraphGeneric */
@@ -807,7 +713,7 @@ public class GraphInnovNation extends MultiGraph{
 		/* on ajoute les joueurs au graphe */
 		for (Integer p : getPlayersIndexs())
 		{
-			g.addNode((String)getNode(p).getAttribute("ID"));
+			g.addNode(p.toString());
 		}
 		
 		double distcoef=1.0;
@@ -901,9 +807,10 @@ public class GraphInnovNation extends MultiGraph{
 						}
 						int value = 0;
 						
-						if (g.edgesExists(g.getNode((String)getNode(j).getAttribute("ID")), g.getNode((String)getNode(v[1]).getAttribute("ID")), v[0], v[0]))
+						
+						if (g.edgesExists(g.getNode(String.valueOf(j)), g.getNode(String.valueOf(v[1])), v[0], v[0]))
 						{
-							Edge e = g.getEdge((String)getNode(j).getAttribute("ID"), (String)getNode(v[1]).getAttribute("ID"), v[0]);
+							Edge e = g.getEdge(String.valueOf(j), String.valueOf(v[1]), v[0]);
 							value += g.getWeight(e);
 							g.removeEdge(e);
 							
@@ -912,8 +819,8 @@ public class GraphInnovNation extends MultiGraph{
 						value += (int) (poids*lastVoteValence.get(j)) * 100 / (distcoef*distance);
 						
 						g.addEdge(
-								(String)getNode(j).getAttribute("ID"), 
-								(String)getNode(v[1]).getAttribute("ID"), 
+								String.valueOf(j), 
+								String.valueOf(v[1]), 
 								value, 
 								v[0], 
 								v[0]
@@ -932,7 +839,7 @@ public class GraphInnovNation extends MultiGraph{
 		/* on ajoute les joueurs au graphe */
 		for (Integer p : getPlayersIndexs())
 		{
-			result.addNode((String)getNode(p).getAttribute("ID"));
+			result.addNode(p.toString());
 		}
 		
 		Node source, target;
@@ -1150,274 +1057,6 @@ public class GraphInnovNation extends MultiGraph{
     	
     	return g;
     }
-
-    /* fonctions d'export / import en chaine */
-    
-	/**
-	 * Transforme l'arc en String
-	 * @param e
-	 * @return
-	 */
-	public String edgeToString(Edge e)
-	{
-		String result = "" + LEFT_BRACE;
-		
-		if (ideas.contains(e.getNode0().getIndex()))
-		{
-			/* cas de liaison idee fille / mere */
-			result += "" + TYPE_EDGE_IDEA_PARENT 
-					+ SEPARATOR + (String)e.getNode0().getAttribute("ID") 
-					+ SEPARATOR + (String)e.getNode1().getAttribute("ID")
-					+ SEPARATOR + (Long)e.getAttribute(TIME_ADD);
-		}
-		else
-		{
-			if (votes.contains(e.getIndex()))
-			{
-				/* cas du vote */
-				String cible = (String)e.getAttribute(IDEA_TARGET);
-				String source = (String)e.getAttribute(PLAYER_SOURCE) ;
-				result += "" + TYPE_EDGE_VOTE 									// 0
-						+ SEPARATOR + (String)e.getNode0().getAttribute("ID") 	// 1
-						+ SEPARATOR + (String)e.getNode1().getAttribute("ID")	// 2
-					    + SEPARATOR + (Long)e.getAttribute(TIME_ADD) 			// 3
-					    + SEPARATOR + (Integer)e.getAttribute(VOTE_NOTE) 		// 4
-					    + SEPARATOR + (String)e.getAttribute("ID") 				// 5
-					    + SEPARATOR + cible.substring(2,cible.length())			// 6
-						+ SEPARATOR + source.substring(2,source.length())		// 7
-						;
-
-				ArrayList<long[]> hist = e.getAttribute(VOTE_HIST);
-				String tmpHist = "" + LEFT_BRACE;
-				for(long[] h : hist)
-				{
-					if (tmpHist.equals(""+LEFT_BRACE))
-					{
-						tmpHist += "" + LEFT_BRACE + h[0] + SEPARATOR + h[1] + SEPARATOR + h[2] + RIGHT_BRACE;
-					}
-					else
-					{
-						tmpHist += "" + SEPARATOR + LEFT_BRACE + h[0] + SEPARATOR + h[1] + SEPARATOR + h[2] + RIGHT_BRACE;
-					}
-				}
-				result += "" + SEPARATOR + tmpHist + RIGHT_BRACE;				// 8
-			}
-			else
-			{
-				/* cas de source d'idee */
-				result += "" + TYPE_EDGE_IDEA_SOURCE 
-						+ SEPARATOR + (String)e.getNode0().getAttribute("ID") 
-						+ SEPARATOR + (String)e.getNode1().getAttribute("ID")
-						+ SEPARATOR + (Long)e.getAttribute(TIME_ADD);
-			}
-		}
-		
-		result += RIGHT_BRACE;
-				
-		return result;
-	}
-	
-	/**
-	 * Transforme la node en String
-	 * @param n
-	 * @return
-	 */
-	public String nodeToString(Node n)
-	{
-		if (players.contains(n.getIndex()))
-		{
-			return "" + LEFT_BRACE + TYPE_NODE_PLAYER + SEPARATOR + (String)n.getAttribute("ID") + SEPARATOR + (Long)n.getAttribute(TIME_ADD) + RIGHT_BRACE;
-		}
-		else if (ideas.contains(n.getIndex()))
-		{
-			String result = "" + LEFT_BRACE + TYPE_NODE_IDEA 
-					+ SEPARATOR + (String)n.getAttribute("ID") 
-					+ SEPARATOR + (Long)n.getAttribute(TIME_ADD);
-			
-			@SuppressWarnings("unchecked")
-			ArrayList<String> idea_sources = (ArrayList<String>)n.getAttribute(IDEA_SOURCE);
-			String sources = "" + LEFT_BRACE;
-			for (String s : idea_sources)
-			{
-				if (sources.equals(""+LEFT_BRACE))
-				{
-					sources += s.substring(2,s.length());
-				}
-				else
-				{
-					sources += SEPARATOR + s.substring(2,s.length());
-				}
-			}
-			sources += RIGHT_BRACE;
-			
-			String pSource = (String)n.getAttribute(PLAYER_SOURCE);
-			
-			result += SEPARATOR + sources
-					+ SEPARATOR + pSource.substring(2,pSource.length())
-					+ RIGHT_BRACE;
-			
-			return result;		
-		}
-		return "" + LEFT_BRACE + TYPE_NODE_ROOT + SEPARATOR + (String)n.getAttribute("ID") + SEPARATOR + (Long)n.getAttribute(TIME_ADD) +  RIGHT_BRACE;
-	}
-	
-	/**
-	 * Transforme le graphe en chaine en utilisant le separateur et les encadrant definit dans LEFT_BRACE, RIGHT_BRACE, SEPARATOR
-	 * @return la chaine creee
-	 */
-	public String toString()
-	{
-		String result = "" + LEFT_BRACE;
-		
-		for (Node n : getEachNode())
-		{
-			if (result.length() != 1)
-			{
-				result += SEPARATOR;
-			}
-			result += nodeToString(n);
-		}
-		
-		for (Edge e : getEachEdge())
-		{
-			if (result.length() != 1)
-			{
-				result += SEPARATOR;
-			}
-			
-			result += edgeToString(e);
-		}
-		result += RIGHT_BRACE;
-		
-		return result;
-	}
-
-	/**
-	 * Transforme le graphe en tableau de String, chaque String contenant la declaration d'une node ou d'un arc
-	 * @return le tableau creee
-	 */
-	public Collection<String> toStringArray()
-	{
-		ArrayList<String> result = new ArrayList<String>();
-		
-		for (Node n : getEachNode())
-		{
-			result.add(nodeToString(n));
-		}
-		
-		for (Edge e : getEachEdge())
-		{
-			result.add(edgeToString(e));
-		}
-		
-		return result;
-	}
-	
-	/**
-	 * Charge les donnees graphes depuis la chaine donne
-	 * @param source : chaine contenant les donnes graphes dans le format LEFT_BRACE attr1 SEPARATOR attr2 SEPARATOR ... RIGHT_BRACE
-	 * @param weightDefault : poids par defaut si non specifie
-	 * @param timeStartDefault : temps de creation par defaut si non specifie
-	 * @param timeEndDefault : temps de suppression par defaut si non specifie (ou egal au temps de creation si la valeur lui est inférieure)
-	 * @param insert : vrai si les donnes doivent etre inserees, faux si elles doivent etre ajoutees (voir fonction addEdge et insertEdge)
-	 */
-	@SuppressWarnings("unchecked")
-	public void loadFromString(String source)
-	{
-		ArrayList<String> chaines = stringToTab(source);
-				
-		for(String s : chaines)
-		{
-			if (s.length() == 0)
-			{
-				continue;
-			}
-			
-			ArrayList<String> graphContent = stringToTab(s);
-			Node n;
-			Edge e;
-			ArrayList<String> hist;
-			ArrayList<long[]> attHist;
-			String node0, node1;
-			switch(Integer.valueOf(graphContent.get(0)))
-			{
-				case TYPE_NODE_IDEA :
-					n = addNode(PREFIX_IDEA + graphContent.get(1));
-					ideas.add(n.getIndex());
-					n.addAttribute("ui.class","idea");
-					n.addAttribute("ui.label",PREFIX_IDEA + graphContent.get(1));
-					n.addAttribute("layout.force", 0);
-					n.addAttribute("ID", graphContent.get(1));
-					n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
-					ArrayList<String> sources = stringToTab((String)graphContent.get(3));
-					for (int i = 0 ; i < sources.size(); i++)
-					{
-						sources.set(i, PREFIX_IDEA + sources.get(i));
-					}
-					n.addAttribute(IDEA_SOURCE,sources);
-					n.addAttribute(PLAYER_SOURCE, PREFIX_PLAYER + (String)graphContent.get(4));
-					break;
-				case TYPE_NODE_PLAYER :
-					n = addNode(PREFIX_PLAYER + graphContent.get(1));
-					players.add(n.getIndex());
-					n.addAttribute("ID", graphContent.get(1));
-					n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
-					n.addAttribute("ui.class","player");
-					n.addAttribute("ui.label",PREFIX_PLAYER + graphContent.get(1));
-					break;
-				case TYPE_NODE_ROOT :
-					n = addNode(PREFIX_IDEA + graphContent.get(1));
-					root = n.getIndex();
-					n.addAttribute("ID", graphContent.get(1));
-					n.addAttribute("ui.class","root_idea");
-					n.addAttribute("layout.force", 100);
-					n.addAttribute("ui.label",PREFIX_IDEA + graphContent.get(1));
-					n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
-					//n.addAttribute(IDEA_SOURCE, graphContent.get(3));
-					//n.addAttribute(PLAYER_SOURCE, graphContent.get(4));
-					break;
-				case TYPE_EDGE_IDEA_PARENT :
-					node0 = PREFIX_IDEA + graphContent.get(1);
-					node1 = PREFIX_IDEA + graphContent.get(2);
-					e = addEdge(node0 + " from " + node1, node0, node1);
-					e.addAttribute("ui.class","fromidea");
-					e.addAttribute("ui.label",IDEA_FROM_LABEL);
-					e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
-					break;
-				case TYPE_EDGE_IDEA_SOURCE :
-					node0 = PREFIX_PLAYER + graphContent.get(1);
-					node1 = PREFIX_IDEA + graphContent.get(2);
-					e = addEdge(node0 + " has idea " + node1, node0, node1);
-					e.addAttribute("ui.class","has_idea");
-					e.addAttribute("ui.label",IDEA_HAS_LABEL);
-					e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
-					break;
-				case TYPE_EDGE_VOTE :
-					node0 = PREFIX_PLAYER + graphContent.get(1);
-					node1 = PREFIX_IDEA + graphContent.get(2);
-					e = addEdge(PREFIX_VOTE + graphContent.get(5), node0, node1);
-					votes.add(e.getIndex());
-					e.addAttribute("ID", graphContent.get(5));
-					e.addAttribute("ui.class","vote");
-					e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
-					e.addAttribute(VOTE_NOTE, Integer.valueOf(graphContent.get(4)));
-					e.addAttribute(IDEA_TARGET, PREFIX_IDEA + graphContent.get(6));
-					e.addAttribute(PLAYER_SOURCE, PREFIX_PLAYER + graphContent.get(7));
-					e.addAttribute(VOTE_HIST, new ArrayList<long[]>());
-					attHist = (ArrayList<long[]>)e.getAttribute(VOTE_HIST);
-					hist = stringToTab(graphContent.get(8));
-					for (String h : hist)
-					{
-						ArrayList<String> tabh = stringToTab(h);
-						attHist.add(new long[]{Long.valueOf(tabh.get(0)),Long.valueOf(tabh.get(1)),Long.valueOf(tabh.get(2))});
-					}
-					
-					break;
-				default :
-					break;
-			}
-		}
-	}
 }
 
 class GraphInnovNationException extends Exception{
