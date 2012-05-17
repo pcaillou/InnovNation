@@ -366,6 +366,9 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(comment);
 		
+//		ideaComments.get(commentedId).add(node);
+
+		
 		if(fastCommentLookup.containsKey(commentedId)){
 			//this is an answer to another comment
 			fastCommentLookup.get(commentedId).add(node);

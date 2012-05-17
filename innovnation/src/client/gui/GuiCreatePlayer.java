@@ -2,6 +2,8 @@ package client.gui;
 
 import java.rmi.RemoteException;
 
+import javax.swing.ImageIcon;
+
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -26,6 +28,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.jfree.experimental.swt.SWTUtils;
+
 
 import client.IClientCore;
 import data.Avatars;
@@ -64,9 +68,12 @@ public class GuiCreatePlayer {
 	private final static String TXT_AVATAR = "Mon avatar: ";
 	
 	private Table fieldAvailableAvatars = null;
-	private final static String TXT_BUTTON_CREATE_PLAYER = "Rejoindre la partie";
+	private final static String TXT_BUTTON_CREATE_PLAYER = "Créer et rejoindre";
 	private Button buttonConnectGame = null;
 	
+	private final static String TXT_BUTTON_JOIN_PLAYER = "Reutiliser un joueur ou joindre une equipe";
+	private Button buttonReuseGame = null;
+
 	private final static String TXT_BUTTON_CANCEL = "Annuler";
 
 	private Button buttonCancel = null;
@@ -292,6 +299,21 @@ public class GuiCreatePlayer {
 
 				}
 			});
+			buttonReuseGame = new Button(compositeBottom, SWT.PUSH);
+			buttonReuseGame.setText(TXT_BUTTON_JOIN_PLAYER);
+			buttonReuseGame.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					clickOnReuseGame();
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					clickOnReuseGame();
+
+				}
+			});
 			
 		}
 		updateButtonsStates();
@@ -354,6 +376,25 @@ public class GuiCreatePlayer {
 		name = fieldPlayerName.getText().trim();
 		
 		close();
+	}
+	
+	private void clickOnReuseGame() {
+
+		
+		TableItem item = fieldAvailableAvatars.getSelection()[0]; // only 1 possible 
+
+		fileAvatar = (String)item.getData();
+		name = fieldPlayerName.getText().trim();
+		
+		try {
+			if (this.clientCore.getGame().testExistingPlayer(name))
+			{
+				close();			
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -421,7 +462,13 @@ public class GuiCreatePlayer {
 			
 			for (String currentAvatar : Avatars.getAvailableAvatars()) {
 				TableItem item = new TableItem(fieldAvailableAvatars, SWT.NONE);
-				Image image = new Image(display,  Avatars.getPathForAvatar(currentAvatar));
+				
+//				Image image = new Image(display,  Avatars.getPathForAvatar(currentAvatar));
+				logger.debug("avatar ressource : "+"/"+currentAvatar);		
+				ImageIcon im=new ImageIcon(getClass().getResource("/"+currentAvatar));
+				logger.debug("avatar ressourceb : "+"/"+currentAvatar);		
+				Image image=new Image(display,SWTUtils.convertAWTImageToSWT(im.getImage()));
+				logger.debug("avatar ressourcec : "+"/"+currentAvatar);		
 				
 				Image rescaled = resize(image, AVATAR_MAX_X, AVATAR_MAX_Y);
 				

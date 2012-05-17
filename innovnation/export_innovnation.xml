@@ -24,6 +24,7 @@
             <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
             <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
             <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+            <fatjar.jarsource file="lib\jfreechart-1.0.14-swt.jar" relpath=""/>
             <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
 	            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
             <fatjar.jarsource file="lib\swt\swt-3.6.1-gtk-linux-x86_64\swt.jar" relpath=""/>
@@ -37,6 +38,7 @@
             <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
             <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
             <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+	            <fatjar.jarsource file="lib\jfreechart-1.0.14-swt.jar" relpath=""/>
 	            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
 	            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
 		            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
@@ -53,6 +55,7 @@
             <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
             <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
 		            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+		            <fatjar.jarsource file="lib\jfreechart-1.0.14-swt.jar" relpath=""/>
 		            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
 			            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
 		            <fatjar.jarsource file="lib\swt\swt-3.6.1-carbon-macosx\swt.jar" relpath=""/>
@@ -68,6 +71,7 @@
             <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
             <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
 			            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
+			            <fatjar.jarsource file="lib\jfreechart-1.0.14-swt.jar" relpath=""/>
 			            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
 				            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
 			            <fatjar.jarsource file="lib\swt\swt-3.6.1-cocoa-macosx\swt.jar" relpath=""/>
@@ -82,6 +86,7 @@
             <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
             <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
             <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\jfreechart-1.0.14-swt.jar" relpath=""/>
 				            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
 				            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
 					            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
@@ -96,6 +101,7 @@
             <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
             <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
             <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\jfreechart-1.0.14-swt.jar" relpath=""/>
 				            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
 				            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
 					            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>
@@ -111,6 +117,7 @@
             <fatjar.jarsource file="lib\prefuse.jar" relpath=""/>
             <fatjar.jarsource file="lib\jar-in-jar-loader.zip" relpath=""/>
             <fatjar.jarsource file="lib\log4j-1.2.8.jar" relpath=""/>
+				            <fatjar.jarsource file="lib\jfreechart-1.0.14-swt.jar" relpath=""/>
 				            <fatjar.jarsource file="lib\samtcommons.jar" relpath=""/>
 				            <fatjar.jarsource file="lib\ujmp-complete-0.2.5.jar" relpath=""/>
 					            <fatjar.jarsource file="lib\gs-core-1.1.1.jar" relpath=""/>

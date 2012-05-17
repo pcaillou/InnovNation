@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+
 import org.apache.log4j.Logger;
 
 import util.Pair;
@@ -382,22 +384,34 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 				
 				
 				int idNovel= current.getUniqueId();
+				int idParent=-1;
+				String nomi=current.getIdea().getShortName();
 
 				if (!commentExists(idNovel)) {
+					for (IIdea parent : ideas)
+					{
+						if (nomi.equals(parent.getShortName()))
+						{
+							idParent = parent.getUniqueId();
+							System.out.println("new index parent comment : " + idParent+" ind "+this.getIdea(idParent).getIndex());
+						}
+					}
 					//find what is commented
 					
 					//IComment retrievedComment = distantGame.getComment(commentId);
 
 					//logger.debug("novel comment created on the server ("+retrievedComment+"), updating local info...");
-
-					//int idNovelComment = injectIdeaComment(current);
-					//IComment novelComment = getComment(idNovelComment);
+					current.setIdea(this.getIdea(idParent));
+					current.setIndexSource(this.getIdea(idParent).getIndex());
+					
+					int idNovelComment = injectIdeaComment(current);
+					IComment novelComment = getComment(idNovelComment);
 
 					//logger.debug("local copy of this comment created  ("+novelComment+")");
 
 					//transmission de l'événement aux enfants
 					//logger.debug("sending event...");
-					//fireCommentCreatedEvent(new GameObjectEvent(novelComment.getPlayerId(), novelComment.getUniqueId()));
+					fireCommentCreatedEvent(new GameObjectEvent(novelComment.getPlayerId(), novelComment.getUniqueId()));
 					
 					logger.debug("comment injected as : "+getComment(idNovel));
 				} else {
@@ -449,6 +463,25 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 
 		return singletonInstance;
 	}
+
+	@Override
+	public boolean testExistingPlayer(String playerName) throws RemoteException
+	{
+		boolean newplayer=true;
+		int id=-1;
+		for (IPlayer pl:this.getAllPlayers())
+		{
+			if (pl.getShortName().equals(playerName))
+			{
+				newplayer=false;
+				id=pl.getUniqueId();
+				System.out.println("existing player "+id);
+			}
+		}
+		return (!newplayer);
+		
+	}
+
 
 	
 	

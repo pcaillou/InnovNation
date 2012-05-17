@@ -250,6 +250,8 @@ public interface IGame extends IListenable, Remote, Serializable {
 	 * @return
 	 */
 	public long getDateCreation() throws RemoteException;
+
+	boolean testExistingPlayer(String playerName) throws RemoteException;
 	
 	
 	
