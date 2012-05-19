@@ -20,7 +20,7 @@ import prefuse.visual.VisualItem;
 public class MyGraphicsLib extends GraphicsLib {
 
 	
-	public static final float TRANSPARENCY_FACTOR = 0.4f; // 1.0 means total transparency
+	public static final float TRANSPARENCY_FACTOR = 0.75f; // 1.0 means total transparency
 	
 	/**
 	 * Returns this painting color with up-to-date transparency.

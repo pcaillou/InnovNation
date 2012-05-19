@@ -467,6 +467,7 @@ public class GuiCreatePlayer {
 				logger.debug("avatar ressource : "+"/"+currentAvatar);		
 				ImageIcon im=new ImageIcon(getClass().getResource("/"+currentAvatar));
 				logger.debug("avatar ressourceb : "+"/"+currentAvatar);		
+//				Image image=new Image(display,SWTUtils.convertAWTImageToSWT(im.getImage()));
 				Image image=new Image(display,SWTUtils.convertAWTImageToSWT(im.getImage()));
 				logger.debug("avatar ressourcec : "+"/"+currentAvatar);		
 				

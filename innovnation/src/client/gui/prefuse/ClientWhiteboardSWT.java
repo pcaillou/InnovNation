@@ -171,6 +171,8 @@ public final class ClientWhiteboardSWT
 	protected final static int PREFUSE_NODE_IMG_MAX_HEIGHT = PREFUSE_NODE_IMG_MAX_WIDTH;
 	
 	protected final static int PREFUSE_NODE_TEXT_MAXWIDTH = 50;
+	
+	protected final static double AGING_SPEED=0.005d;
 
 
 	/**
@@ -511,7 +513,7 @@ public final class ClientWhiteboardSWT
 				public void process(VisualItem item, double frac) {
 					try {
 						Double precedent = (Double)item.get(PREFUSE_NODE_FIELD_AGE);
-						item.set(PREFUSE_NODE_FIELD_AGE, Math.min(precedent+0.01,1));
+						item.set(PREFUSE_NODE_FIELD_AGE, Math.min(precedent+AGING_SPEED,1));
 						
 						/*if (precedent < 1) {
 							System.out.print(precedent+" ");
@@ -1067,6 +1069,7 @@ public final class ClientWhiteboardSWT
 			logger.debug("edge between "+node1+" and "+node2+" does not exists; will create one");
 			edge = prefusegraph.addEdge(node1, node2);
 			edge.set(PREFUSE_EDGE_FIELD_TYPE, typeEdge.ordinal());
+			
 		}
 		
 		return edge;

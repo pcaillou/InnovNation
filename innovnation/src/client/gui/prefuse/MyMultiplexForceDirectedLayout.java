@@ -18,6 +18,9 @@ import client.gui.prefuse.ClientWhiteboardSWT.TypeEdge;
  */
 public final class MyMultiplexForceDirectedLayout extends ForceDirectedLayout {
 
+	public final static double COEFLENGTH=0.01;
+	public final static double MAXCOEFLENGTH=3.0;
+	
 	public MyMultiplexForceDirectedLayout(String graph) {
 		super(graph);
 	}
@@ -49,6 +52,8 @@ public final class MyMultiplexForceDirectedLayout extends ForceDirectedLayout {
 		
 		final TypeEdge type = TypeEdge.values()[typeId];
 		
+
+		
 		return type.edgeSpringCoef;
 		
 	
@@ -59,6 +64,14 @@ public final class MyMultiplexForceDirectedLayout extends ForceDirectedLayout {
 		
 		final int typeId = (Integer)e.get(ClientWhiteboardSWT.PREFUSE_EDGE_FIELD_TYPE);
 		final TypeEdge type = TypeEdge.values()[typeId];
+		
+		if (type==TypeEdge.IDEA2IDEA)
+		{
+			float val=type.edgeSpringLength;
+			int nbf=e.getSourceNode().getDegree()+e.getTargetNode().getDegree();
+			val=(float)(val*Math.min(MAXCOEFLENGTH,(1.0+nbf*this.COEFLENGTH)));
+			return val;
+		}
 		
 		return type.edgeSpringLength;
 	}
