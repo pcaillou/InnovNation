@@ -419,7 +419,8 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
         } else {
         	m_text = "";
         }
-        
+        m_text=m_text+" "+comment.getText().substring(0, 12);
+        if (comment.getText().length()>12) m_text=m_text+"..";
         Image  img  = getImage(item);
         double size = item.getSize();
         
@@ -534,6 +535,14 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
     	case COMMENT:
     		Object obj2 = item.get(ClientWhiteboardSWT.PREFUSE_NODE_FIELD_OBJ);
     		return getRawShapeComment(item, (IComment)obj2);
+
+    	case POSITIVECOMMENT:
+    		Object obj3 = item.get(ClientWhiteboardSWT.PREFUSE_NODE_FIELD_OBJ);
+    		return getRawShapeComment(item, (IComment)obj3);
+    		
+    	case NEGATIVECOMMENT:
+    		Object obj4 = item.get(ClientWhiteboardSWT.PREFUSE_NODE_FIELD_OBJ);
+    		return getRawShapeComment(item, (IComment)obj4);
 
     	case PLAYER:
     		return getRawShapeDefault(item);
@@ -1403,6 +1412,12 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
     		renderItem(g, item, (IItem)obj);
     		break;
     	case COMMENT:
+    		renderDefault(g, item);
+    		break;
+    	case POSITIVECOMMENT:
+    		renderDefault(g, item);
+    		break;
+    	case NEGATIVECOMMENT:
     		renderDefault(g, item);
     		break;
     	default:

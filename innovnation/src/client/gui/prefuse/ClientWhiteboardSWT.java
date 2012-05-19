@@ -47,6 +47,7 @@ import client.gui.GuiTestMain;
 import client.gui.ISelectionControl;
 import client.gui.prefuse.ThreadMonitorPrefusePerformance.IMonitorPrefusePerformanceListener;
 import data.Avatars;
+import data.CommentValence;
 import data.IComment;
 import data.IIdea;
 import data.IItem;
@@ -201,6 +202,8 @@ public final class ClientWhiteboardSWT
 		ITEM	(Color.WHITE, 		Color.BLACK,	1,				Color.BLACK		), 
 		IDEA	(Color.LIGHT_GRAY, 	Color.BLACK,	1,				Color.BLACK		),
 		PLAYER	(Color.WHITE,		Color.WHITE,	0,				Color.BLUE		),
+		POSITIVECOMMENT	(Color.CYAN,	Color.BLUE, 0,			Color.BLACK),
+		NEGATIVECOMMENT	(Color.PINK,	Color.RED, 0,			Color.BLACK),
 		COMMENT	(Color.LIGHT_GRAY,	Color.LIGHT_GRAY, 0,			Color.BLACK)
 		;
 		//COMMENT, 
@@ -210,7 +213,7 @@ public final class ClientWhiteboardSWT
 		public final Color 	nodeBorderColor;
 		public final int	nodeBorderWidth;
 		public final Color 	nodeTextColor;
-		
+				
 		private TypeNode(
 					Color nodeFillColor, 
 					Color nodeBorderColor, 
@@ -939,6 +942,9 @@ public final class ClientWhiteboardSWT
 			node.set(PREFUSE_NODE_FIELD_OBJ, comment);
 			node.set(PREFUSE_NODE_FIELD_IMG, null);
 			node.set(PREFUSE_NODE_FIELD_AGE, 0d);
+			if (comment.getValence()==CommentValence.POSITIVE) node.set(PREFUSE_NODE_FIELD_TYPE, TypeNode.POSITIVECOMMENT.ordinal());
+			if (comment.getValence()==CommentValence.NEGATIVE) node.set(PREFUSE_NODE_FIELD_TYPE, TypeNode.NEGATIVECOMMENT.ordinal());
+			
 			
 			{
 				Node nodeCommented = null;
