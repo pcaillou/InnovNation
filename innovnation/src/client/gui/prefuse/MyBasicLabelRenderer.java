@@ -419,7 +419,8 @@ public class MyBasicLabelRenderer extends AbstractShapeRenderer {
         } else {
         	m_text = "";
         }
-        m_text=m_text+" "+comment.getText().substring(0, 20);
+        if (comment.getText().length()>0)
+        m_text=m_text+" "+comment.getText().substring(0, Math.min(20, comment.getText().length()));
         if (comment.getText().length()>20) m_text=m_text+"..";
         Image  img  = getImage(item);
         double size = item.getSize();

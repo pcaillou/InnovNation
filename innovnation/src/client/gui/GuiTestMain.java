@@ -701,8 +701,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 								} catch (RemoteException e){
 									displayError("an anormal remote exception happened.", e);
 								}
-							}
-						}
+							}						}
 					}
 				};
 
