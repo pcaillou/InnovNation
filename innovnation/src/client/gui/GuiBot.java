@@ -4,8 +4,12 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
@@ -640,35 +644,48 @@ public class GuiBot extends Thread{
 	 */
 	public void updateHeuristicTable() throws RemoteException
 	{
+		int selection = heuristicsTable.getVerticalBar().getSelection();
 		HashMap<Integer,Long> heuristics = clientCore.getHeuristics();
-		TableItem item;
 		
-		for (Entry<Integer, Long> h : heuristics.entrySet())
+		/* on trie la map pour obtenir les idees ayant les plus hautes valeurs en haut */
+		List<Integer> mapKeys = new ArrayList<Integer>(heuristics.keySet());
+		List<Long> mapValues = new ArrayList<Long>(heuristics.values());
+		Collections.sort(mapValues);
+		Collections.sort(mapKeys);
+		  
+		Collections.reverse(mapValues);
+		  
+		LinkedHashMap<Integer,Long> sortedHeuristics = new LinkedHashMap<Integer,Long>();
+		for (Long val : mapValues) 
 		{
-			int rowIndex = -1;
-			/* on regarde si l'idee est deja existante dans le tableau */
-			for (int i = 0 ; i < heuristicsTable.getItemCount() ; i++)
+			for (Integer key : mapKeys)
 			{
-				if (heuristicsTable.getItem(i).getText(0).equals(clientCore.getGame().getIdea(h.getKey()).getShortName()))
+				if (heuristics.get(key).equals(val)) 
 				{
-					rowIndex = i;
+					//heuristics.remove(key);
+					mapKeys.remove(key);
+					sortedHeuristics.put(key, val);
 					break;
 				}
 			}
-			
-			/* on modifie ou ajoute l'idee */
-			if (rowIndex != -1)
-			{
-				heuristicsTable.getItem(rowIndex).setText(1, h.getValue().toString());
-			}
-			else
-			{
-				item = new TableItem(heuristicsTable, SWT.NONE);
-				item.setText(0, clientCore.getGame().getIdea(h.getKey()).getShortName());					
-				item.setText(1, h.getValue().toString());
-				item.setData("");
-			}
 		}
+		
+		/* si des idees ont ete ajoutees, on agrandit le tableau */
+		while (sortedHeuristics.size() > heuristicsTable.getItemCount())
+		{
+			new TableItem(heuristicsTable, SWT.NONE);
+		}
+		
+		int cursor = 0;
+		for (Entry<Integer, Long> h : sortedHeuristics.entrySet())
+		{
+			heuristicsTable.getItem(cursor).setText(0, clientCore.getGame().getIdea(h.getKey()).getShortName());					
+			heuristicsTable.getItem(cursor).setText(1, h.getValue().toString());
+			cursor++;
+		}
+		
+		/* on redeplace la scrollBar au même niveau */
+		heuristicsTable.getVerticalBar().setSelection(selection);
 	}
 	
 	/**
@@ -708,6 +725,7 @@ public class GuiBot extends Thread{
 					{
 						System.err.println(getName() + " error : erreur inconnue");
 						e.printStackTrace();
+						System.exit(-1);
 					}
 				}
 				

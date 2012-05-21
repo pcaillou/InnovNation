@@ -162,31 +162,38 @@ public class DelegatingBotCore extends ClientCore {
 							int tokensRemoved = 0;
 							
 							Set<Entry<Integer, Integer>> tokens = getCurrentIdeasTokens().entrySet();
+							ArrayList<Integer> alreadySeenIdeas = new ArrayList<Integer>();
 							
 							while (getRemainingTokens() < tokensToGive)
 							{
 								/* on recherche la plus mauvaise idee */
 								Integer worstIdea = -1;
-								System.out.println(" Il faut retirer des tokens sur d'autre idees : " + tokens);
 								for (Entry<Integer, Integer> e : tokens)
 								{
 									
-									if (e.getValue() > 0 && (worstIdea == -1 || (heuristicIdea(worstIdea) > heuristicIdea(e.getKey()))))
+									if (e.getValue() > 0 && !alreadySeenIdeas.contains(worstIdea) && (worstIdea == -1 || (heuristicIdea(worstIdea) > heuristicIdea(e.getKey()))))
 									{
-										System.out.println("Nouvelle plus mauvaise idee trouvee : " + e);
 										worstIdea = e.getKey();
 									}
 								}
 								
 								/* on retire les tokens */
-								int removed = Math.min(getCurrentIdeasTokens().get(worstIdea),tokensToGive-tokensRemoved);
-								tokensRemoved += removed;
-								createComment(worstIdea, -removed, CommentValence.NEUTRAL);
-								System.err.println(removed + " tokens retires");
+								if (worstIdea == 1)
+								{
+									System.err.println("Error : des tokens ont ete utilises mais aucune idee n'en contient pour ce bot");
+									return;
+								}
+								else
+								{
+									int removed = Math.min(getCurrentIdeasTokens().get(worstIdea),tokensToGive-tokensRemoved);
+									alreadySeenIdeas.add(worstIdea);
+									tokensRemoved += removed;
+									createComment(worstIdea, -removed, CommentValence.NEUTRAL);
+								}
 							}
 						}
+						createComment(id,tokensToGive,CommentValence.POSITIVE);
 					}
-					createComment(id,tokensToGive,CommentValence.POSITIVE);
 				}
 				else if (chancePositiveComments / rand < 0.8)
 				{
