@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
 import org.apache.log4j.Logger;
 
 import util.Pair;

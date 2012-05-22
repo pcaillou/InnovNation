@@ -4,12 +4,16 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 import data.CommentValence;
 import data.IComment;
 import data.IIdea;
+import data.IPlayer;
 
 import errors.AlreadyExistsException;
 import errors.TooLateException;
@@ -17,8 +21,10 @@ import events.GameObjectEvent;
 import events.IEventListener;
 import events.LinkEvent;
 import events.PlayerEvent;
+import functions.TypeScore;
 
-public class DelegatingBotCore extends ClientCore {
+public class DelegatingBotCore extends ClientCore // */
+{
 
 	public final static int BOT_BASE_SPEED = 2500;
 	public final static String BOT_AVATAR = "usertile11.jpg";
@@ -28,6 +34,8 @@ public class DelegatingBotCore extends ClientCore {
 	
 	private static Integer botCount = 1;
 	public static int ideaCount = 1;
+	
+	private static Semaphore semaphore = new Semaphore(1, true);
 
 	private String name;
 	private String avatar;
@@ -37,6 +45,8 @@ public class DelegatingBotCore extends ClientCore {
 	
 	private long timeCreation;
 	private long nextAction;
+	
+	private boolean usingSemaphore;
 	
 	private IEventListener listener;
 	
@@ -68,6 +78,8 @@ public class DelegatingBotCore extends ClientCore {
 		timeCreation = System.currentTimeMillis();
 		nextAction = getNextAction(timeCreation) ;
 		
+		usingSemaphore = false;
+		
 		name = BOT_NAME + " " + botCount;
 		avatar = BOT_AVATAR;
 		
@@ -81,17 +93,18 @@ public class DelegatingBotCore extends ClientCore {
 	 * @throws RemoteException 
 	 * @throws AlreadyExistsException
 	 * @throws TooLateException
+	 * @throws InterruptedException 
 	 */
-	public void refresh() throws AlreadyExistsException, TooLateException, RemoteException
+	public void refresh() throws AlreadyExistsException, TooLateException, RemoteException, InterruptedException
 	{
 		updateHeuristics();
 		long time = System.currentTimeMillis();
 		if (time > nextAction)
 		{
 			/* on calcule les chances d'obtenir une idee (entre 1 et 30) reduit par le nombre d'idees deja creees */
-			double nbIdeas = getGame().getAllIdeas().size()-1;
+			double nbIdeas = getAllIdeas().size()-1;
 			double nbPlayerIdeas = getNbIdeas();
-			double nbPlayers = getGame().getAllPlayers().size();
+			double nbPlayers = getAllPlayers().size();
 			double ideaCreationChance = (20 * (1-Math.sqrt((nbIdeas+nbPlayerIdeas) / ((nbPlayers) + nbIdeas+nbPlayerIdeas))));
 			/* un bot creatif va plus chercher a rajouter des idees */
 			ideaCreationChance = ideaCreationChance + 5 * creativity / 5 ;
@@ -134,58 +147,56 @@ public class DelegatingBotCore extends ClientCore {
 				/* on ajoute un commentaire */
 				int id = getBestIdeaForVote();
 				int tokensToGive = 0;
-				int tokensGiven = getCurrentIdeasTokens().get(id);
-				double tokensIdea = getGame().getIdea(id).getTotalBids();
+				int tokensGiven = getCurrentIdeasTokensL().get(id);
+				double tokensIdea = getIdea(id).getTotalBids();
 				
 				/* on choisit si le commentaire doit etre positif ou negatif */
-				double chancePositiveComments = 30f + 7f * adaptation * tokensIdea / (getGame().getAllPlayersIds().size()*getGame().getMaxTokensByPlayer());
+				double chancePositiveComments = 30f + 7f * adaptation * tokensIdea / (getAllPlayersIds().size()*getMaxTokensByPlayer());
 				
 				double rand = Math.random()*100;
-						
-				System.out.println("chances vote positif : " + chancePositiveComments);
-				
+										
 				if (chancePositiveComments >= rand)
 				{
-					/* on fait un commentaire positif */
-					
-					System.out.println("commentaire positif");
-					
+					/* on fait un commentaire positif */					
 					/* on donne un nombre de tokens variable */
-					tokensToGive = (int) ((Math.random()*getGame().getMaxTokensByPlayer()) - (getGame().getMaxTokensByPlayer()-getRemainingTokens()-tokensGiven)/2) - tokensGiven;
+					tokensToGive = (int) ((Math.random()*getMaxTokensByPlayer()) - (getMaxTokensByPlayer()-getRemainingTokensL()-tokensGiven)/2) - tokensGiven;
 					
 					/* si on a deja donne plus de tokens a cette idee, on ne donne aucun token */
 					if (tokensToGive > 0)
 					{
 						/* si on n'a pas assez de tokens, on en retire aux autres idees */
-						if (tokensToGive > getRemainingTokens())
+						if (tokensToGive > getRemainingTokensL())
 						{
 							int tokensRemoved = 0;
-							
-							Set<Entry<Integer, Integer>> tokens = getCurrentIdeasTokens().entrySet();
+							Set<Entry<Integer, Integer>> tokens = getCurrentIdeasTokensL().entrySet();
 							ArrayList<Integer> alreadySeenIdeas = new ArrayList<Integer>();
 							
-							while (getRemainingTokens() < tokensToGive)
+							while (getRemainingTokensL() < tokensToGive)
 							{
 								/* on recherche la plus mauvaise idee */
 								Integer worstIdea = -1;
 								for (Entry<Integer, Integer> e : tokens)
 								{
+									if (alreadySeenIdeas.contains(worstIdea) || e.getValue() <= 0)
+									{
+										continue;
+									}
 									
-									if (e.getValue() > 0 && !alreadySeenIdeas.contains(worstIdea) && (worstIdea == -1 || (heuristicIdea(worstIdea) > heuristicIdea(e.getKey()))))
+									if (worstIdea == -1 || heuristicIdea(worstIdea) > heuristicIdea(e.getKey()))
 									{
 										worstIdea = e.getKey();
 									}
 								}
 								
 								/* on retire les tokens */
-								if (worstIdea == 1)
+								if (worstIdea == -1)
 								{
 									System.err.println("Error : des tokens ont ete utilises mais aucune idee n'en contient pour ce bot");
 									return;
 								}
 								else
-								{
-									int removed = Math.min(getCurrentIdeasTokens().get(worstIdea),tokensToGive-tokensRemoved);
+								{ // TODO texte pour tout tout verifier quand on enleve des tokens quelque part
+									int removed = Math.min(getCurrentIdeasTokensL().get(worstIdea),tokensToGive-tokensRemoved);
 									alreadySeenIdeas.add(worstIdea);
 									tokensRemoved += removed;
 									createComment(worstIdea, -removed, CommentValence.NEUTRAL);
@@ -219,8 +230,9 @@ public class DelegatingBotCore extends ClientCore {
 	 * Donne l'id de la meilleur idee possible pour vote, chaque idee ayant beaucoup plus de chance d'apparaitre selon son heuristique
 	 * @return int : l'id de l'idee obtenue
 	 * @throws RemoteException 
+	 * @throws InterruptedException 
 	 */
-	public int getBestIdeaForVote() throws RemoteException
+	public int getBestIdeaForVote() throws RemoteException, InterruptedException
 	{
 		int id = 0;
 		long totalHeuristic = 0;
@@ -232,7 +244,7 @@ public class DelegatingBotCore extends ClientCore {
 		
 		/* on recupere une idee au hazard, les chances d'obtenir une idee sont augmentee si son heuristique est grande */
 		long rand = (int)(Math.random()*totalHeuristic);
-		for (IIdea i : getGame().getAllIdeas())
+		for (IIdea i : getAllIdeas())
 		{
 			long h = (long) Math.pow(lastHeuristics.get(i.getUniqueId()), 2);
 			if (rand < h)
@@ -250,8 +262,9 @@ public class DelegatingBotCore extends ClientCore {
 	 * Donne l'id de la meilleur idee possible pour une idee, chaque idee ayant plus de chance d'apparaitre selon son heuristique
 	 * @return int : l'id de l'idee obtenue
 	 * @throws RemoteException 
+	 * @throws InterruptedException 
 	 */
-	public int getBestIdeaForIdea() throws RemoteException
+	public int getBestIdeaForIdea() throws RemoteException, InterruptedException
 	{
 		int id = 0;
 		long totalHeuristic = 0;
@@ -263,7 +276,7 @@ public class DelegatingBotCore extends ClientCore {
 		
 		/* on recupere une idee au hazard, les chances d'obtenir une idee sont augmentee si son heuristique est grande */
 		long rand = (int)(Math.random()*totalHeuristic);
-		for (IIdea i : getGame().getAllIdeas())
+		for (IIdea i : getAllIdeas())
 		{
 			if (rand < lastHeuristics.get(i.getUniqueId()))
 			{
@@ -282,12 +295,13 @@ public class DelegatingBotCore extends ClientCore {
 	 * @param heuristics : heuristique des autres idees
 	 * @return int : l'heuristique calculee
 	 * @throws RemoteException 
+	 * @throws InterruptedException 
 	 */
-	public long heuristicIdea(int id) throws RemoteException
+	public long heuristicIdea(int id) throws RemoteException, InterruptedException
 	{
 		IIdea idea;
 		try {
-			idea = getGame().getIdea(id);
+			idea = getIdea(id);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 			return 0;
@@ -300,7 +314,7 @@ public class DelegatingBotCore extends ClientCore {
 		
 		/* on recupere les commentaires de l'idee, chaque commentaire etant valué par la persuasion de la source et l'adaptation du bot */
 		long commentValue = 0;
-		for (IComment c : getGame().getAllComments())
+		for (IComment c : getAllComments())
 		{
 			if (c.getIdea().getUniqueId() == id)
 			{
@@ -368,13 +382,14 @@ public class DelegatingBotCore extends ClientCore {
 	/**
 	 * Met a jour les heuristiques
 	 * @throws RemoteException
+	 * @throws InterruptedException 
 	 */
-	private void updateHeuristics() throws RemoteException
+	private void updateHeuristics() throws RemoteException, InterruptedException
 	{
 		lastHeuristics.clear();
 		ArrayList<IIdea> ideasTodo = new ArrayList<IIdea>();
 		
-		ideasTodo.add(getGame().getRootIdea());
+		ideasTodo.add(getRootIdea());
 		
 		/* on parcourt les idees en commencant par la racine puis en remontant dans les branches */
 		boolean newChilds = true;
@@ -392,7 +407,7 @@ public class DelegatingBotCore extends ClientCore {
 			/* on ajoute de nouveaux noeuds si on peut */
 			newChilds = false;
 			boolean addChild;
-			for (IIdea c : getGame().getAllIdeas())
+			for (IIdea c : getAllIdeas())
 			{
 				/* on ignore les idees qu'on a deja calcule */
 				if (lastHeuristics.containsKey(c.getUniqueId()))
@@ -561,52 +576,16 @@ public class DelegatingBotCore extends ClientCore {
 	{
 		return nbComments;
 	}
-	
-	/**
-	 * Cree une idee
-	 * @param name : nom de l'idee
-	 * @param description : description de l'idee
-	 * @param sources : id des idees source
-	 * @throws AlreadyExistsException
-	 * @throws TooLateException
-	 * @throws RemoteException
-	 */
-	public void createIdea(Collection<Integer> sources) throws AlreadyExistsException, TooLateException, RemoteException
-	{
-		Integer value = (int)(Math.random() * (IIdea.IDEA_MAX_VALUE*creativity/10));
-		System.out.println("ajout idee : " + getPlayerId() + ", " + "Idea " + ideaCount + ", this idea has a value of " + value +", " + new ArrayList<Integer>() + "," + sources );
-		getGame().addIdea(getPlayerId(),"Idea " + ideaCount, "this idea has a value of " + value, new ArrayList<Integer>(), sources);
-		ideaCount++;
-		nbIdeas++;
 
+	/**
+	 * Indique si le bot est actuellement en train d'utiliser un semaphore
+	 * @return
+	 */
+	public boolean isUsingBySemaphore()
+	{
+		return usingSemaphore;
 	}
 	
-	/**
-	 * Cree un commentaire
-	 * @param idea : idee cible du commentaire
-	 * @param description : description du commentaire
-	 * @param tokens : nombre de tokens ajoute
-	 * @param valence : valence du commentaire
-	 * @throws AlreadyExistsException
-	 * @throws TooLateException
-	 * @throws RemoteException
-	 */
-	public void createComment(Integer idea, int tokens, CommentValence valence) throws RemoteException
-	{
-		if (getRemainingTokens() < tokens)
-		{
-			System.err.println("Bot error : trying to use more than 10 tokens");
-		}
-		else
-		{
-			Integer value = (int)(Math.random() * (IComment.COMMENT_MAX_VALUE * creativity / 10 ));
-			getGame().commentIdea(getPlayerId(), idea, "this comment has a value of " + value, tokens, valence);
-			spendTokens(tokens);
-			nbComments++;
-		}
-
-	}	
-		
 	/**
 	 * Listener pour l'evenement player left
 	 * @param e
@@ -663,4 +642,178 @@ public class DelegatingBotCore extends ClientCore {
 		listener.endOfGame();
 	}
 
+	
+	/* liste des fonctions bloquante */
+	
+	/**
+	 * Le bot informe les autres qu'il rentre dans une partie "sensible", les autres bots attendront que celui ci unlock pour pouvoir lock à leurs tour
+	 * @throws InterruptedException 
+	 */
+	public void lock() throws InterruptedException
+	{
+		usingSemaphore = true;
+		semaphore.acquire();
+	}
+	
+	/**
+	 * Le bot informe les autres qu'il quitte une partie "sensible", les autres pourront maintenant lock à leurs tour
+	 */
+	public void unlock()
+	{
+		semaphore.release();
+		usingSemaphore = false;
+	}
+	
+	/**
+	 * Cree une idee
+	 * @param name : nom de l'idee
+	 * @param description : description de l'idee
+	 * @param sources : id des idees source
+	 * @throws AlreadyExistsException
+	 * @throws TooLateException
+	 * @throws RemoteException
+	 * @throws InterruptedException 
+	 */
+	public void createIdea(Collection<Integer> sources) throws AlreadyExistsException, TooLateException, RemoteException, InterruptedException
+	{
+		lock();
+		Integer value = (int)(Math.random() * (IIdea.IDEA_MAX_VALUE*creativity/10));
+		getGame().addIdea(getPlayerId(),"Idea " + ideaCount, "this idea has a value of " + value, new ArrayList<Integer>(), sources);
+		ideaCount++;
+		nbIdeas++;
+		unlock();
+
+	}
+	
+	/**
+	 * Cree un commentaire
+	 * @param idea : idee cible du commentaire
+	 * @param description : description du commentaire
+	 * @param tokens : nombre de tokens ajoute
+	 * @param valence : valence du commentaire
+	 * @throws AlreadyExistsException
+	 * @throws TooLateException
+	 * @throws RemoteException
+	 */
+	public void createComment(Integer idea, int tokens, CommentValence valence) throws RemoteException, InterruptedException
+	{
+		if (getRemainingTokensL() < tokens)
+		{
+			System.err.println("Bot error : trying to use more than 10 tokens");
+		}
+		else
+		{
+			lock();
+			Integer value = (int)(Math.random() * (IComment.COMMENT_MAX_VALUE * creativity / 10 ));
+			getGame().commentIdea(getPlayerId(), idea, "this comment has a value of " + value, tokens, valence);
+			spendTokens(tokens);
+			nbComments++;
+			unlock();
+		}
+	}	
+	
+	public double computePersuasion() throws RemoteException, InterruptedException
+	{
+		lock();
+		double ret = TypeScore.persuasion.calculer(getGame(), getPlayerId());
+		unlock();
+		return ret;
+	}
+	
+	public double computeRelevance() throws RemoteException, InterruptedException
+	{
+		lock();
+		double ret = TypeScore.pertinence.calculer(getGame(), getPlayerId());
+		unlock();
+		return ret;
+	}
+	
+	public double computeCreativity() throws RemoteException, InterruptedException
+	{
+		lock();
+		double ret = TypeScore.creativite.calculer(getGame(), getPlayerId());
+		unlock();
+		return ret;
+	}
+	
+	public double computeAdaptation() throws RemoteException, InterruptedException
+	{
+		lock();
+		double ret = TypeScore.adaptation.calculer(getGame(), getPlayerId());
+		unlock();
+		return ret;
+	}
+	
+	public LinkedList<IIdea> getAllIdeas() throws RemoteException, InterruptedException
+	{
+		lock();
+		LinkedList<IIdea> ret = getGame().getAllIdeas();
+		unlock();
+		return ret;
+	}
+	
+	public LinkedList<IPlayer> getAllPlayers() throws RemoteException, InterruptedException
+	{		
+		lock();
+		LinkedList<IPlayer> ret = getGame().getAllPlayers();
+		unlock();
+		return ret;
+	}
+	
+	public LinkedList<Integer> getAllPlayersIds() throws RemoteException, InterruptedException
+	{
+		lock();
+		LinkedList<Integer> ret = getGame().getAllPlayersIds();
+		unlock();
+		return ret;
+	}
+	
+	public int getMaxTokensByPlayer() throws RemoteException, InterruptedException
+	{
+		lock();
+		int ret = getGame().getMaxTokensByPlayer();
+		unlock();
+		return ret;
+	}
+	
+	public Map<Integer, Integer> getCurrentIdeasTokensL() throws InterruptedException
+	{
+		lock();
+		Map<Integer, Integer> ret = super.getCurrentIdeasTokens();
+		unlock();
+		return ret;
+	}
+	
+	public IIdea getIdea(Integer id) throws RemoteException, InterruptedException
+	{
+		lock();
+		IIdea ret = getGame().getIdea(id);
+		unlock();
+		return ret;
+	}
+	
+	public int getRemainingTokensL() throws InterruptedException
+	{
+		lock();
+		int ret = super.getRemainingTokens();
+		unlock();
+		return ret;
+	}
+	
+	public LinkedList<IComment> getAllComments() throws RemoteException, InterruptedException
+	{
+		lock();
+		LinkedList<IComment> ret = getGame().getAllComments();
+		unlock();
+		return ret;
+	}
+	
+	public IIdea getRootIdea() throws RemoteException, InterruptedException
+	{
+		lock();
+		IIdea ret = getGame().getRootIdea();
+		unlock();
+		return ret;
+	}
+	
 }

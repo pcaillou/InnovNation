@@ -39,7 +39,6 @@ import client.DelegatingBotCore;
 import errors.AlreadyExistsException;
 import errors.TooLateException;
 import events.IEventListener;
-import functions.TypeScore;
 
 
 // TODO gestion des parametres + ajouter creativite etc..
@@ -622,15 +621,16 @@ public class GuiBot extends Thread{
 		labelNbIdeas.setText(TXT_NBIDEAS + clientCore.getNbIdeas());
 		labelNbComments.setText(TXT_NBCOMMENTS + clientCore.getNbComments());
 		labelNbTokens.setText(TXT_TOKENS + clientCore.getRemainingTokens());
+		
 		try {
-			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(TypeScore.adaptation.calculer(clientCore.getGame(), clientCore.getPlayerId())));
-			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(TypeScore.creativite.calculer(clientCore.getGame(), clientCore.getPlayerId())));
-			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(TypeScore.pertinence.calculer(clientCore.getGame(), clientCore.getPlayerId())));
-			labelPersuation.setText(TXT_PERSUATION + String.valueOf(TypeScore.persuasion.calculer(clientCore.getGame(), clientCore.getPlayerId())));
+			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(clientCore.computeAdaptation()));
+			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(clientCore.computeCreativity()));
+			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(clientCore.computeRelevance()));
+			labelPersuation.setText(TXT_PERSUATION + String.valueOf(clientCore.computePersuasion()));
 			updateHeuristicTable();
 
 		} catch (Exception e) {
-			//System.err.println("Error bot : error while computing bot stats : " + e.getClass());
+			System.err.println("Error bot : error while computing bot stats");
 			//labelAdaptation.setText(TXT_ADAPTATION + "compute error");
 			//labelCreativity.setText(TXT_CREATIVITY + "compute error");
 			//labelRelevance.setText(TXT_RELEVANCE + "compute error");
@@ -705,12 +705,12 @@ public class GuiBot extends Thread{
 					catch (RemoteException e) 
 					{
 						System.err.println(getName() + " error : impossible de refresh (remote exception)");
-						e.printStackTrace();
+						//e.printStackTrace();
 					} 
 					catch (TooLateException e) 
 					{
 						System.err.println(getName() + " error : impossible de refresh (too late exception)");
-						e.printStackTrace();
+						//e.printStackTrace();
 					} 
 					catch (AlreadyExistsException e) 
 					{
@@ -721,11 +721,18 @@ public class GuiBot extends Thread{
 					{
 						System.err.println(getName() + " error : impossible de rajouter le commentaire (concurent modification exception)");
 					}
+					catch(InterruptedException e)
+					{
+						System.err.println(getName() + " error : probleme de semaphore lors du lock");
+					}
 					catch(Exception e)
 					{
 						System.err.println(getName() + " error : erreur inconnue");
 						e.printStackTrace();
-						System.exit(-1);
+					}
+					if (clientCore.isUsingBySemaphore())
+					{
+						clientCore.unlock();
 					}
 				}
 				
