@@ -35,6 +35,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+
+import util.RMIUtils;
 //import org.graphstream.ui.swingViewer.Viewer;
 
 import client.DelegatingClientCore;
@@ -42,6 +44,7 @@ import client.IClientCore.TreeExplorator;
 import client.gui.prefuse.ClientWhiteboardSWT;
 import client.gui.prefuse.GuiClientMode;
 import client.gui.prefuse.GuiServerMode;
+import data.Avatars;
 import data.IComment;
 import data.IIdea;
 import events.GameObjectEvent;
@@ -69,7 +72,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private GuiClientMode modeClient = GuiClientMode.DISCONNECTED;
 	private GuiServerMode modeServer = GuiServerMode.NO_SERVER;
 	
-	private ArrayList<GuiBot> botThreads;
+	private GuiBotManager botManager;
 	
 	
 	public static final boolean TEST_MODE = true;
@@ -107,8 +110,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	 */
 	private Integer playerId = null;
 	
-	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBot, itemAddTenBots, itemStartBots, itemPauseBots, 
-			itemRemoveBots;
+	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateBotGame, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBotManager;
 	
 	@SuppressWarnings("unused")
 	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
@@ -205,6 +207,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 		itemConnectAndJoin.setEnabled(modeClient == GuiClientMode.DISCONNECTED);
 		itemCreateJoinAndPlay.setEnabled(modeClient == GuiClientMode.DISCONNECTED && modeServer == GuiServerMode.NO_SERVER);
+		itemCreateBotGame.setEnabled(modeClient == GuiClientMode.DISCONNECTED && modeServer == GuiServerMode.NO_SERVER);
 		itemCreateJoin.setEnabled(modeClient == GuiClientMode.DISCONNECTED && modeServer == GuiServerMode.NO_SERVER);
 		
 		itemObserve.setEnabled(modeClient == GuiClientMode.DISCONNECTED);
@@ -216,11 +219,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		itemCreateServerLocal.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemCreateServer.setEnabled(modeServer == GuiServerMode.NO_SERVER);
 		itemShutdownServer.setEnabled(modeServer != GuiServerMode.NO_SERVER);
-		itemAddBot.setEnabled(modeServer != GuiServerMode.NO_SERVER);
-		itemAddTenBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
-		itemStartBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
-		itemPauseBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
-		itemRemoveBots.setEnabled(modeServer != GuiServerMode.NO_SERVER);
+		itemAddBotManager.setEnabled(modeServer != GuiServerMode.NO_SERVER);
 		
 		
 		itemCreateGame.setEnabled(modeServer != GuiServerMode.NO_SERVER);
@@ -272,6 +271,17 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 				itemCreateJoinAndPlay.setText ("&Créer une partie et jouer...\tCtrl+N");
 
 				itemCreateJoinAndPlay.setAccelerator (SWT.CTRL + 'N');
+			}
+			
+			{
+				itemCreateBotGame = new MenuItem (menuFile, SWT.PUSH);
+				itemCreateBotGame.addListener (SWT.Selection, new Listener() {
+					public void handleEvent (Event e) {
+						clickCreateBotGame();
+					}
+				});
+				itemCreateBotGame.setText ("Creer une partie rapide avec 30 bots...");
+
 			}
 			
 
@@ -375,59 +385,16 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 					
 				}
 				{
-					itemAddBot= new MenuItem (menuServer, SWT.PUSH);
-					itemAddBot.addListener (SWT.Selection, new Listener() {
+					itemAddBotManager= new MenuItem (menuServer, SWT.PUSH);
+					itemAddBotManager.addListener (SWT.Selection, new Listener() {
 						public void handleEvent (Event e) {
-							clickAddBot();
+							clickAddBotManager();
 						}
 					});
-					itemAddBot.setText ("Ajouter un bot...");
-					itemAddBot.setAccelerator (SWT.CTRL + 'B');
+					itemAddBotManager.setText ("Ouvrir le gestionaire de bots...");
+					itemAddBotManager.setAccelerator (SWT.CTRL + 'B');
 					
 					
-				}
-				{
-					itemAddTenBots = new MenuItem (menuServer, SWT.PUSH);
-					itemAddTenBots.addListener (SWT.Selection, new Listener() {
-						public void handleEvent (Event e) {
-							for (int i = 0 ; i < 10 ; i++)
-							{
-								clickAddBot();
-							}
-						}
-					});
-					itemAddTenBots.setText ("Ajouter 10 bots...");
-					
-					
-				}
-				{
-					itemStartBots= new MenuItem (menuServer, SWT.PUSH);
-					itemStartBots.addListener (SWT.Selection, new Listener() {
-						public void handleEvent (Event e) {
-							clickStartBots();
-						}
-					});
-					itemStartBots.setText ("Demarrer les bots...");
-					
-					
-				}
-				{
-					itemPauseBots= new MenuItem (menuServer, SWT.PUSH);
-					itemPauseBots.addListener (SWT.Selection, new Listener() {
-						public void handleEvent (Event e) {
-							clickPauseBots();
-						}
-					});
-					itemPauseBots.setText ("Stopper les bots...");
-				}
-				{
-					itemRemoveBots= new MenuItem (menuServer, SWT.PUSH);
-					itemRemoveBots.addListener (SWT.Selection, new Listener() {
-						public void handleEvent (Event e) {
-							clickRemoveBots();
-						}
-					});
-					itemRemoveBots.setText ("Supprimer les bots...");
 				}
 				{
 					itemCreateGame = new MenuItem (menuServer, SWT.PUSH);
@@ -553,7 +520,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		shell = new Shell (display, SWT.SHELL_TRIM);
 		shell.setText(TXT_WINDOW_TITLE);
 		
-		botThreads = new ArrayList<GuiBot>();
+		botManager = null;
 
 		//shell.setLayout(new GridLayout(2, false));
 		shell.setLayout(new GridLayout(1, false));
@@ -788,65 +755,22 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 
 	}
 
-	
 	/**
-	 * Cree un bot avec un GUI separe
+	 * Cree un bot manager avec un GUI separe s'il n'existe pas
 	 */
-	private void clickAddBot()
+	private void clickAddBotManager()
 	{
-		GuiBot bot = new GuiBot(clientWhiteboard, gameBindName, display, this);
-		
-		bot.init();
-		
-		try {
-			Integer id;
-			id = bot.getBotCore().getGame().addPlayer(bot.getBotCore().getName(), bot.getBotCore().getAvatar());
-			bot.getBotCore().setPlayerId(id);
+		if (botManager == null || !botManager.isAlive())
+		{
+			botManager = new GuiBotManager(clientWhiteboard, gameBindName, display, this);
 			
-		} catch (RemoteException e) {
-			System.err.println("Error while adding the bot to the game :");
-			e.printStackTrace();
+			botManager.init();
+			
+			botManager.start();
 		}
-		
-		bot.start();
-		
-		botThreads.add(bot);
-	}
-	
-	/**
-	 * Demarre tous les bots
-	 */
-	private void clickStartBots()
-	{
-		for (GuiBot t : botThreads)
-		{
-			t.startBot();
-		}
-	}
-	
-	/**
-	 * Stoppe tous les bots
-	 */
-	private void clickPauseBots()
-	{
-		for (GuiBot t : botThreads)
-		{
-			t.pauseBot();
-		}
-	}
-	
-	/**
-	 * Supprime tous les bots
-	 */
-	private void clickRemoveBots()
-	{
-		for (GuiBot t : botThreads)
-		{
-			t.close();
-		}
-		botThreads.clear();
-	}
 
+	}
+	
 	private void clickDisconnect() {
 		
 		clientCore.disconnectFromGame();
@@ -934,7 +858,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 		try {
 		
-
+			System.out.println("connexion a : " + toFetch);
 			connectToGame(toFetch);
 			
 		} catch (Exception e) {
@@ -981,6 +905,58 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 		clickJoin();
 		
+	}
+	
+	private void clickCreateBotGame()
+	{
+
+		String serverName = "Bot_game", serverTheme = "nice theme";
+		
+		clickCreateServerLocal();
+		
+		if (modeServer != GuiServerMode.SERVER_WITHOUT_GAME)
+		{
+			return;
+		}
+		
+		try {
+			System.out.println("create game : " + serverName + "," + serverTheme);
+			gameServer.createGame(serverName, serverTheme);
+		} catch (Exception e) {
+			displayError("Error while creating this game, sorry", e);
+		} 
+		
+		setServerMode(GuiServerMode.SERVER_WITH_GAME);
+		
+		if (modeServer != GuiServerMode.SERVER_WITH_GAME)
+		{
+			return;
+		}
+		
+		try {
+
+			System.out.println("connexion a : " + "rmi://"+RMIUtils.getLocalHost().getHostAddress()+"/GAME_testServer_"+serverName);
+			connectToGame("rmi://"+RMIUtils.getLocalHost().getHostAddress()+"/GAME_testServer_"+serverName);
+			
+		} catch (Exception e) {
+			displayError("Error while connecting to game, sorry", e);
+		} 
+		
+		if (modeClient != GuiClientMode.MONITOR)
+			return;
+		
+		try {
+			Integer id = clientCore.getGame().addPlayer("Observer", Avatars.getAvailableAvatars().get(0));
+			setPlayerId(id);
+			setClientMode(GuiClientMode.PLAYING);
+
+		} catch (Exception e) {
+			displayError("Error while adding this player, sorry", e);
+		} 
+		
+		clickAddBotManager();
+		
+		botManager.addBots(30);
 	}
 	
 	private void clickJoin() {
@@ -1135,6 +1111,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 		
 		try {
+			System.out.println("create game : " + gameName + "," + gameTheme);
 			gameServer.createGame(gameName, gameTheme);
 		} catch (Exception e) {
 			displayError("Error while creating this game, sorry", e);
@@ -1156,6 +1133,11 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 				display.sleep ();
 		}
 		display.dispose ();
+		
+		if (botManager != null)
+		{
+			botManager.close();
+		}
 
 	}
 

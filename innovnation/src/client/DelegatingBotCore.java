@@ -8,8 +8,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
+//import java.util.concurrent.Semaphore;
 
+import data.Avatars;
 import data.CommentValence;
 import data.IComment;
 import data.IIdea;
@@ -27,7 +28,6 @@ public class DelegatingBotCore extends ClientCore // */
 {
 
 	public final static int BOT_BASE_SPEED = 2500;
-	public final static String BOT_AVATAR = "usertile11.jpg";
 	public final static String BOT_NAME = "Wall-e ";
 	
 	public final static int PARAM_MAX_VALUE = 10;
@@ -35,13 +35,15 @@ public class DelegatingBotCore extends ClientCore // */
 	private static Integer botCount = 1;
 	public static int ideaCount = 1;
 	
-	private static Semaphore semaphore = new Semaphore(1, true);
+	//private static Semaphore semaphore = new Semaphore(1, true);
 
 	private String name;
 	private String avatar;
 	
 	private int nbIdeas;
 	private int nbComments;
+	
+	private boolean paused;
 	
 	private long timeCreation;
 	private long nextAction;
@@ -81,7 +83,8 @@ public class DelegatingBotCore extends ClientCore // */
 		usingSemaphore = false;
 		
 		name = BOT_NAME + " " + botCount;
-		avatar = BOT_AVATAR;
+		avatar = Avatars.getOneAvatarRandomly();
+		paused = true;
 		
 		botCount++;
 		
@@ -98,6 +101,12 @@ public class DelegatingBotCore extends ClientCore // */
 	public void refresh() throws AlreadyExistsException, TooLateException, RemoteException, InterruptedException
 	{
 		updateHeuristics();
+
+		if (paused)
+		{
+			return;
+		}
+		
 		long time = System.currentTimeMillis();
 		if (time > nextAction)
 		{
@@ -167,17 +176,34 @@ public class DelegatingBotCore extends ClientCore // */
 						/* si on n'a pas assez de tokens, on en retire aux autres idees */
 						if (tokensToGive > getRemainingTokensL())
 						{
-							int tokensRemoved = 0;
+							int tokensNeeded = tokensToGive - getRemainingTokensL();
 							Set<Entry<Integer, Integer>> tokens = getCurrentIdeasTokensL().entrySet();
 							ArrayList<Integer> alreadySeenIdeas = new ArrayList<Integer>();
 							
+							System.out.println("--------------------------------------------------------------");
+							System.out.println("Je dois trouver " + tokensToGive + " tokens et il m'en reste " + getRemainingTokensL());
+							System.out.print("Idees ou j'ai vote : ");
+							for (Entry<Integer, Integer> e : tokens)
+							{
+								if (e.getValue() > 0)
+								{
+									System.out.print("[" + e.getKey() + "," + e.getValue() + "] ");
+								}
+							}
+							System.out.println();
+							System.out.print("Idees ou j'ai deja retire des tokens : ");
+							for (Integer i : alreadySeenIdeas)
+							{
+								System.out.print("[" + i + "] ");
+							}
+							System.out.println();
 							while (getRemainingTokensL() < tokensToGive)
 							{
 								/* on recherche la plus mauvaise idee */
-								Integer worstIdea = -1;
+								int worstIdea = -1;
 								for (Entry<Integer, Integer> e : tokens)
 								{
-									if (alreadySeenIdeas.contains(worstIdea) || e.getValue() <= 0)
+									if (alreadySeenIdeas.contains(e.getKey()) || e.getValue() <= 0)
 									{
 										continue;
 									}
@@ -195,14 +221,17 @@ public class DelegatingBotCore extends ClientCore // */
 									return;
 								}
 								else
-								{ // TODO texte pour tout tout verifier quand on enleve des tokens quelque part
-									int removed = Math.min(getCurrentIdeasTokensL().get(worstIdea),tokensToGive-tokensRemoved);
+								{
+									int removed = Math.min(getCurrentIdeasTokensL().get(worstIdea),tokensNeeded);
 									alreadySeenIdeas.add(worstIdea);
-									tokensRemoved += removed;
+									tokensNeeded -= removed;
+									System.out.println("je recupere " + removed + " sur l'idee " + worstIdea);
 									createComment(worstIdea, -removed, CommentValence.NEUTRAL);
 								}
 							}
+							System.out.println("--------------------------------------------------------------");
 						}
+
 						createComment(id,tokensToGive,CommentValence.POSITIVE);
 					}
 				}
@@ -374,7 +403,7 @@ public class DelegatingBotCore extends ClientCore // */
 	/**
 	 * Reset le temps auquel le bot fera sa prochaine action
 	 */
-	public void resetNextAction()
+	private void resetNextAction()
 	{
 		nextAction = getNextAction(System.currentTimeMillis());
 	}
@@ -527,7 +556,7 @@ public class DelegatingBotCore extends ClientCore // */
 	 * Getter pour persuation
 	 * @return int
 	 */
-	public int getPersuation()
+	public int getPersuasion()
 	{
 		return persuation;
 	}
@@ -581,9 +610,31 @@ public class DelegatingBotCore extends ClientCore // */
 	 * Indique si le bot est actuellement en train d'utiliser un semaphore
 	 * @return
 	 */
-	public boolean isUsingBySemaphore()
+	public boolean isUsingSemaphore()
 	{
 		return usingSemaphore;
+	}
+	
+	/**
+	 * Indique si le bot est en pause ou non
+	 * @return
+	 */
+	public boolean isPaused()
+	{
+		return paused;
+	}
+	
+	/**
+	 * Met le bot en pause, ou le relance
+	 * @param _paused
+	 */
+	public void setPaused(boolean _paused)
+	{
+		paused = _paused;
+		if (!paused)
+		{
+			resetNextAction();
+		}
 	}
 	
 	/**
@@ -652,7 +703,7 @@ public class DelegatingBotCore extends ClientCore // */
 	public void lock() throws InterruptedException
 	{
 		usingSemaphore = true;
-		semaphore.acquire();
+		//semaphore.acquire();
 	}
 	
 	/**
@@ -660,7 +711,7 @@ public class DelegatingBotCore extends ClientCore // */
 	 */
 	public void unlock()
 	{
-		semaphore.release();
+		//semaphore.release();
 		usingSemaphore = false;
 	}
 	

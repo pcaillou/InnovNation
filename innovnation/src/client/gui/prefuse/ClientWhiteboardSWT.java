@@ -841,6 +841,7 @@ public final class ClientWhiteboardSWT
 		
 		Node node = playersIds2nodes.get(player.getUniqueId());
 		
+		
 		if (node == null) {
 			logger.debug("no node for player "+player+"; creating one");
 			

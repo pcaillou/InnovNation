@@ -1,12 +1,8 @@
 package client.gui;
 
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +10,8 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -36,9 +34,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
 import client.DelegatingBotCore;
-import errors.AlreadyExistsException;
-import errors.TooLateException;
-import events.IEventListener;
 
 
 // TODO gestion des parametres + ajouter creativite etc..
@@ -104,9 +99,8 @@ public class GuiBot extends Thread{
 	/* constantes des boutons */
 	private final static String TXT_UPDATE = "Appliquer parametres";
 	private final static String TXT_CANCEL = "Annuler parametres";
-	private final static String TXT_REMOVE = "Supprimer bot";
-	private final static String TXT_START = "Start bot";
-	private final static String TXT_PAUSE = "Pause bot";
+	private final static String TXT_START = "Demarrer bot";
+	private final static String TXT_PAUSE = "Stopper bot";
 		
 	private final static String FIELD_DEFAULT_TEXT = "                                                          ";
 	
@@ -117,7 +111,7 @@ public class GuiBot extends Thread{
 	private GuiEmbbedType embbedType;
 	
 	/* Client */
-	private final DelegatingBotCore clientCore;
+	private DelegatingBotCore clientCore;
 	
 	/* Liste des labels */
 	private Label labelHost;
@@ -139,12 +133,18 @@ public class GuiBot extends Thread{
 	private Combo textCreativity;
 	private Combo textRelevance;
 	private Combo textAdaptation;
-	private Combo textPersuation;
+	private Combo textPersuasion;
+	
+	/* liste des "bloqueurs" pour les combobox (pour empêcher leurs changement pendant qu'on les utilise)*/
+	private boolean focusReactivity;
+	private boolean focusCreativity;
+	private boolean focusRelevance;
+	private boolean focusAdaptation;
+	private boolean focusPersuasion;
 	
 	/* Liste des boutons */
 	private Button buttonCancel;
 	private Button buttonUpdate;
-	private Button buttonRemove;
 	private Button buttonPause;
 	
 	/* Runnable servant a refresh la fenetre */
@@ -156,9 +156,6 @@ public class GuiBot extends Thread{
 	/* Indique si des parametres ont ete modifies */
 	private boolean paramsChanged;
 	
-	/* indique si le bot est en pause ou non */
-	private boolean botPaused;
-	
 	/**
 	 * Cree le Gui du bot
 	 * @param IEventListener : le listener du bot
@@ -166,15 +163,14 @@ public class GuiBot extends Thread{
 	 * @param _display : displayeur
 	 * @param main : main listener
 	 */
-	public GuiBot(IEventListener listener, String host,  Display _display, IEventListener main) {
+	public GuiBot(DelegatingBotCore core, String host,  Display _display) {
 		
-		clientCore = new DelegatingBotCore(listener);
+		clientCore = core;
 		embbedType = GuiEmbbedType.STANDALONE;
 		compositeHost = null;
 		display = _display;
 		server = host;
 		paramsChanged = false;
-		botPaused = true;
 		initColors();
 
 		/* initialisation de la fonction refresh */
@@ -186,22 +182,6 @@ public class GuiBot extends Thread{
             }
          };
 		
-        /* on connecte le bot a la partie */
-		try {
-			clientCore.connectToGame(host);
-			clientCore.getGame().addListener(main);
-			
-		} catch (RuntimeException e) {
-			throw e;
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (NotBoundException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -231,7 +211,7 @@ public class GuiBot extends Thread{
 		buttonCancel.setEnabled(paramsChanged);
 		buttonUpdate.setEnabled(paramsChanged);
 		
-		if (botPaused)
+		if (clientCore.isPaused())
 		{
 			buttonPause.setText(TXT_START);
 		}
@@ -396,10 +376,21 @@ public class GuiBot extends Thread{
 				for (Integer i = 1 ; i <= 10 ; i++)textReactivity.add(i.toString());
 				textReactivity.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
+						System.out.println("event");
 						paramsChanged = true;
 						updateButtonsStates();
 					}
 				});
+				textReactivity.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusReactivity = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusReactivity = true;
+						
+					}
+				});
+				
 			}
 
 			/* on ajoute la ligne du parametre creativity */
@@ -421,6 +412,15 @@ public class GuiBot extends Thread{
 					public void handleEvent (Event e) {
 						paramsChanged = true;
 						updateButtonsStates();
+					}
+				});
+				textCreativity.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusCreativity = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusCreativity = true;
+						
 					}
 				});
 			}
@@ -446,6 +446,15 @@ public class GuiBot extends Thread{
 						updateButtonsStates();
 					}
 				});
+				textRelevance.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusRelevance = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusRelevance = true;
+						
+					}
+				});
 			}
 
 			/* on ajoute la ligne du parametre adaptation */
@@ -469,6 +478,15 @@ public class GuiBot extends Thread{
 						updateButtonsStates();
 					}
 				});
+				textAdaptation.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusAdaptation = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusAdaptation = true;
+						
+					}
+				});
 			}
 
 			/* on ajoute la ligne du parametre persuation */
@@ -484,12 +502,21 @@ public class GuiBot extends Thread{
 				labelPersuation.setToolTipText(TOOLTIP_PPERSUATION);
 				
 				/* on ajoute le champ */
-				textPersuation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textPersuation.add(i.toString());
-				textPersuation.addListener(SWT.Selection,new Listener() {
+				textPersuasion = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
+				for (Integer i = 1 ; i <= 10 ; i++)textPersuasion.add(i.toString());
+				textPersuasion.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
 						updateButtonsStates();
+					}
+				});
+				textPersuasion.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusPersuasion = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusPersuasion = true;
+						
 					}
 				});
 			}
@@ -578,19 +605,6 @@ public class GuiBot extends Thread{
 				}
 			});
 			
-			buttonRemove = new Button(compositeButtons, SWT.PUSH);
-			buttonRemove.setText(TXT_REMOVE);
-			buttonRemove.addSelectionListener(new SelectionListener() {
-
-				public void widgetSelected(SelectionEvent e) {
-					clickRemove();
-				}
-				
-				public void widgetDefaultSelected(SelectionEvent e) {
-					clickRemove();
-				}
-			});
-			
 		}
 		
 		
@@ -616,6 +630,16 @@ public class GuiBot extends Thread{
 	 */
 	private void refresh()
 	{
+		
+		/* on rafraichit les boutons */
+		updateButtonsStates();
+		
+		/* on rafraichit les paramètres si on ne les change pas */
+		if (!paramsChanged)
+		{
+			getParams();
+		}
+		
 		/* on raffraichit les labels */
 		labelUpTime.setText(TXT_UPTIME + clientCore.getUpTime()/1000 + " s");		
 		labelNbIdeas.setText(TXT_NBIDEAS + clientCore.getNbIdeas());
@@ -630,7 +654,7 @@ public class GuiBot extends Thread{
 			updateHeuristicTable();
 
 		} catch (Exception e) {
-			System.err.println("Error bot : error while computing bot stats");
+			System.err.println("Error bot : error while computing bot stats (" + e.getMessage() + ")");
 			//labelAdaptation.setText(TXT_ADAPTATION + "compute error");
 			//labelCreativity.setText(TXT_CREATIVITY + "compute error");
 			//labelRelevance.setText(TXT_RELEVANCE + "compute error");
@@ -694,47 +718,12 @@ public class GuiBot extends Thread{
 	public void run() {
 		if (embbedType == GuiEmbbedType.STANDALONE) {
 
-			while (!shell.isDisposed ()) {
-				
-				/* on raffraichit le bot */
-				if (!botPaused)
-				{
-					try {
-						clientCore.refresh();
-					} 
-					catch (RemoteException e) 
-					{
-						System.err.println(getName() + " error : impossible de refresh (remote exception)");
-						//e.printStackTrace();
-					} 
-					catch (TooLateException e) 
-					{
-						System.err.println(getName() + " error : impossible de refresh (too late exception)");
-						//e.printStackTrace();
-					} 
-					catch (AlreadyExistsException e) 
-					{
-						System.err.println(getName() + " error : impossible de refresh (already exists exception)");
-						DelegatingBotCore.ideaCount++;
-					} 
-					catch(ConcurrentModificationException e)
-					{
-						System.err.println(getName() + " error : impossible de rajouter le commentaire (concurent modification exception)");
-					}
-					catch(InterruptedException e)
-					{
-						System.err.println(getName() + " error : probleme de semaphore lors du lock");
-					}
-					catch(Exception e)
-					{
-						System.err.println(getName() + " error : erreur inconnue");
-						e.printStackTrace();
-					}
-					if (clientCore.isUsingBySemaphore())
-					{
-						clientCore.unlock();
-					}
-				}
+			if (!clientCore.isConnected())
+			{
+				System.out.println("bot deconnecte");
+			}
+			
+			while (!shell.isDisposed () && clientCore.isConnected()) {
 				
 				/* on raffraichir l'affichage */
 				Display.getDefault().asyncExec(refresh);
@@ -758,10 +747,6 @@ public class GuiBot extends Thread{
 	 * Ferme la fenetre du bot, et le deconnecte
 	 */
 	public void close() {
-				
-		/* on deconnecte le bot */
-		clientCore.disconnectFromGame();
-		
 		/* on ferme le shell */
 		if (shell != null && !shell.isDisposed()) {
 			shell.close();
@@ -774,9 +759,8 @@ public class GuiBot extends Thread{
 	 */
 	private void clickPause()
 	{
-		botPaused = !botPaused;
+		clientCore.setPaused(!clientCore.isPaused());
 		updateButtonsStates();
-		clientCore.resetNextAction();
 	}
 	
 	/** 
@@ -797,39 +781,6 @@ public class GuiBot extends Thread{
 		updateButtonsStates();
 	}
 	
-	/** 
-	 * Retire le bot du jeu et le supprime 
-	 */
-	private void clickRemove()
-	{
-		close();
-	}
-	
-	/**
-	 * Met le bot en marche si celui-ci etait en pause
-	 */
-	public void startBot()
-	{
-		if (botPaused)
-		{
-			botPaused = false;
-			updateButtonsStates();
-			clientCore.resetNextAction();
-		}
-	}
-	
-	/**
-	 * Met le bot en pause si celui-ci etait en marche
-	 */
-	public void pauseBot()
-	{
-		if (!botPaused)
-		{
-			botPaused = true;
-			updateButtonsStates();
-		}
-	}
-	
 	/**
 	 * Modifie les parametres du bot par ceux donne
 	 */
@@ -846,7 +797,7 @@ public class GuiBot extends Thread{
 		param = textAdaptation.getSelectionIndex()+1;
 		clientCore.setAdaptation(param);
 		
-		param = textPersuation.getSelectionIndex()+1;
+		param = textPersuasion.getSelectionIndex()+1;
 		clientCore.setPersuation(param);
 		
 		param = textRelevance.getSelectionIndex()+1;
@@ -860,20 +811,35 @@ public class GuiBot extends Thread{
 	{
 		int param;
 		
-		param = clientCore.getReactivity();
-		textReactivity.select(param-1);
-		
-		param = clientCore.getCreativity();
+		if (!focusReactivity)
+		{
+			param = clientCore.getReactivity();
+			textReactivity.select(param-1);
+		}
+
+		if (!focusCreativity)
+		{
+			param = clientCore.getCreativity();
 		textCreativity.select(param-1);
-		
-		param = clientCore.getAdaptation();
-		textAdaptation.select(param-1);
-		
-		param = clientCore.getPersuation();
-		textPersuation.select(param-1);
-		
-		param = clientCore.getRelevance();
-		textRelevance.select(param-1);
+		}
+
+		if (!focusAdaptation)
+		{
+			param = clientCore.getAdaptation();
+			textAdaptation.select(param-1);
+		}
+
+		if (!focusPersuasion)
+		{
+			param = clientCore.getPersuasion();
+			textPersuasion.select(param-1);
+		}
+
+		if (!focusRelevance)
+		{
+			param = clientCore.getRelevance();
+			textRelevance.select(param-1);
+		}
 	}
 	
 }
