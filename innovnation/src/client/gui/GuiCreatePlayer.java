@@ -43,7 +43,6 @@ import data.Avatars;
  */
 public class GuiCreatePlayer {
 	
-	@SuppressWarnings("unused")
 	private Logger logger = Logger.getLogger("client.gui.createPlayer");
 	
 	private Shell shell = null;

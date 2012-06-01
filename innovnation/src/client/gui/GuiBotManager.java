@@ -75,9 +75,12 @@ public class GuiBotManager extends Thread{
 	private final static int LOOK_MIN_WIDTH = 100;
 	private final static int LOOK_MIN_HEIGHT = 100;
 
+	public static boolean ALLOW_IDEA_CREATION = true;
+	
 	/* constantes de la description du bot */
-	private final static String TXT_BOT_CHOICE = "Bot :  ";
 	private final static String TXT_BOT_QUANTITY = "Nombre de bots :  ";
+	private final static String TXT_BOT_IDEAS = "Nombre d'idees :  ";
+	private final static String TXT_BOT_VOTES = "Nombre de commentaires :  ";
 	private final static String TXT_HOST = "Serveur :  ";
 	private final static String TXT_BOT = "Bot :\t\t";
 	private final static String TXT_UPTIME = "UpTime :\t";
@@ -89,8 +92,9 @@ public class GuiBotManager extends Thread{
 	private final static String TXT_PERSUATION = "Persuation :\t";  
 	private final static String TXT_RELEVANCE = "Pertinence :\t";   
 	
-
-	private final static String TOOLTIP_BOT_CHOICE = "Choix du bot a observer";
+	private final static String TOOLTIP_BOT_QUANTITY = "Nombre de bots actuellement controles par le manager";
+	private final static String TOOLTIP_BOT_IDEAS = "Nombre d'idees creees par les bots";
+	private final static String TOOLTIP_BOT_VOTES = "Nombre de votes effectues par les bots";
 	private final static String TOOLTIP_HOST = "Serveur de la partie";
 	private final static String TOOLTIP_BOT = "Nom du bot";
 	private final static String TOOLTIP_UPTIME = "Temps ecoule depuis la creation";
@@ -125,14 +129,17 @@ public class GuiBotManager extends Thread{
 	private final static String TXT_CANCEL = "Annuler parametres";
 	private final static String TXT_REMOVE = "Supprimer bot";
 	private final static String TXT_SPLIT = "Separer fenetre";
-	private final static String TXT_ADD = "Nouveau bot";
+	private final static String TXT_ADD = "Ajouter bot";
 	private final static String TXT_START = "Demarrer bot";
 	private final static String TXT_PAUSE = "Stopper bot";
 	private final static String TXT_START_ALL = "Demarrer tous";
 	private final static String TXT_PAUSE_ALL = "Stopper tous";
 	private final static String TXT_REMOVE_ALL = "Supprimer tous";
+	private final static String TXT_ALLOW_IDEA = "Autoriser idees";
+	private final static String TXT_FORBID_IDEA = "Interdire idees";
+	private final static String TXT_ADD_TEN = "Ajouter 10 bots";
 		
-	private final static String FIELD_DEFAULT_TEXT = "                                                                                       ";
+	private final static String FIELD_DEFAULT_TEXT = "                                                                                         ";
 	
 	private Color LOOK_COLOR_BACKGROUND_MAINSPACE = null;
 	private Color LOOK_COLOR_BACKGROUND_SUBSPACES = null;
@@ -154,8 +161,9 @@ public class GuiBotManager extends Thread{
 	private Label labelCreativity;
 	private Label labelRelevance;
 	private Label labelPersuation;
-	private Label labelBotChoice;
 	private Label labelBotQuantity;
+	private Label labelBotIdeas;
+	private Label labelBotVotes;
 	
 	/* tableau d'affichage des heuristiques */
 	private Table heuristicsTable;
@@ -180,6 +188,8 @@ public class GuiBotManager extends Thread{
 	private Button buttonUpdate;
 	private Button buttonRemove;
 	private Button buttonAdd;
+	private Button buttonAddTen;
+	private Button buttonAllowIdeas;
 	private Button buttonPause;
 	private Button buttonSplit;
 	private Button buttonPauseAll;
@@ -239,6 +249,15 @@ public class GuiBotManager extends Thread{
 		buttonCancel.setEnabled(paramsChanged);
 		buttonUpdate.setEnabled(paramsChanged);
 		
+		if (ALLOW_IDEA_CREATION)
+		{
+			buttonAllowIdeas.setText(TXT_FORBID_IDEA);
+		}
+		else
+		{
+			buttonAllowIdeas.setText(TXT_ALLOW_IDEA);
+		}
+		
 		if (selectedBot == -1)
 		{
 			buttonPause.setEnabled(false);
@@ -296,12 +315,44 @@ public class GuiBotManager extends Thread{
 			compositeBotChoice.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 			
 			labelBotQuantity = new Label(compositeBotChoice, SWT.PUSH);
-			labelBotQuantity.setText(TXT_BOT_QUANTITY + FIELD_DEFAULT_TEXT);
+			labelBotQuantity.setText(TXT_BOT_QUANTITY + FIELD_DEFAULT_TEXT.substring(70));
 			labelBotQuantity.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelBotQuantity.setToolTipText(TOOLTIP_BOT_CHOICE);
+			labelBotQuantity.setToolTipText(TOOLTIP_BOT_QUANTITY);
+			
+		}
+
+		/* partie nombre d'idees */
+		{
+			RowLayout layoutTop = new RowLayout(SWT.HORIZONTAL);
+			
+			Composite compositeBotChoice = new Composite(compositeHost, SWT.NONE);
+			compositeBotChoice.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			compositeBotChoice.setLayout(layoutTop);
+			compositeBotChoice.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+			
+			
+			labelBotIdeas = new Label(compositeBotChoice, SWT.PUSH);
+			labelBotIdeas.setText(TXT_BOT_IDEAS + FIELD_DEFAULT_TEXT.substring(70));
+			labelBotIdeas.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelBotIdeas.setToolTipText(TOOLTIP_BOT_IDEAS);
 			
 		}
 		
+		/* partie nombre de commentaires */
+		{
+			RowLayout layoutTop = new RowLayout(SWT.HORIZONTAL);
+			
+			Composite compositeBotChoice = new Composite(compositeHost, SWT.NONE);
+			compositeBotChoice.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			compositeBotChoice.setLayout(layoutTop);
+			compositeBotChoice.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+			
+			labelBotVotes = new Label(compositeBotChoice, SWT.PUSH);
+			labelBotVotes.setText(TXT_BOT_VOTES + FIELD_DEFAULT_TEXT.substring(70));
+			labelBotVotes.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelBotVotes.setToolTipText(TOOLTIP_BOT_VOTES);
+			
+		}
 		/* on ajoute les boutons globaux */
 		{
 
@@ -324,6 +375,64 @@ public class GuiBotManager extends Thread{
 					clickAddBot();
 				}
 			});
+
+			buttonAddTen = new Button(compositeButtons, SWT.PUSH);
+			buttonAddTen.setText(TXT_ADD_TEN);
+			buttonAddTen.addSelectionListener(new SelectionListener() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					for (int i = 0 ; i < 10 ; i++)
+					{
+						clickAddBot();
+					}
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+					for (int i = 0 ; i < 10 ; i++)
+					{
+						clickAddBot();
+					}
+				}
+			});
+			
+			buttonRemoveAll = new Button(compositeButtons, SWT.PUSH);
+			buttonRemoveAll.setText(TXT_REMOVE_ALL);
+			buttonRemoveAll.addSelectionListener(new SelectionListener() {
+
+				public void widgetSelected(SelectionEvent e) {
+					clickRemoveAll();
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+					clickRemoveAll();
+				}
+			});
+			
+		}
+		
+		/* on ajoute la suite des boutons globaux */
+		{
+
+			RowLayout layoutBottom = new RowLayout(SWT.HORIZONTAL);
+						
+			Composite compositeButtons = new Composite(compositeHost, SWT.NONE);
+			compositeButtons.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			compositeButtons.setLayout(layoutBottom);
+			compositeButtons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+
+			
+			buttonStartAll = new Button(compositeButtons, SWT.PUSH);
+			buttonStartAll.setText(TXT_START_ALL);
+			buttonStartAll.addSelectionListener(new SelectionListener() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					clickStartAll();
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+					clickStartAll();
+				}
+			});
 			
 			buttonPauseAll = new Button(compositeButtons, SWT.PUSH);
 			buttonPauseAll.setText(TXT_PAUSE_ALL);
@@ -337,17 +446,17 @@ public class GuiBotManager extends Thread{
 					clickPauseAll();
 				}
 			});
-			
-			buttonStartAll = new Button(compositeButtons, SWT.PUSH);
-			buttonStartAll.setText(TXT_START_ALL);
-			buttonStartAll.addSelectionListener(new SelectionListener() {
+
+			buttonAllowIdeas = new Button(compositeButtons, SWT.PUSH);
+			buttonAllowIdeas.setText(TXT_ALLOW_IDEA);
+			buttonAllowIdeas.addSelectionListener(new SelectionListener() {
 				
 				public void widgetSelected(SelectionEvent e) {
-					clickStartAll();
+					ALLOW_IDEA_CREATION = !ALLOW_IDEA_CREATION;
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
-					clickStartAll();
+					ALLOW_IDEA_CREATION = !ALLOW_IDEA_CREATION;
 				}
 			});
 			
@@ -374,12 +483,6 @@ public class GuiBotManager extends Thread{
 			compositeBotChoice.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
 			compositeBotChoice.setLayout(layoutTop);
 			compositeBotChoice.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-			
-			/* on ajoute la ligne description du serveur */
-			labelBotChoice = new Label(compositeBotChoice, SWT.PUSH);
-			labelBotChoice.setText(TXT_BOT_CHOICE);
-			labelBotChoice.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelBotChoice.setToolTipText(TOOLTIP_BOT_CHOICE);
 			
 			textBotChoice = new Combo(compositeBotChoice, SWT.PUSH);
 			for (DelegatingBotCore bot : bots)
@@ -796,6 +899,10 @@ public class GuiBotManager extends Thread{
 	 */
 	private void refresh()
 	{
+		labelBotQuantity.setText(TXT_BOT_QUANTITY + bots.size());
+		labelBotIdeas.setText(TXT_BOT_IDEAS + DelegatingBotCore.getIdeaCount());
+		labelBotVotes.setText(TXT_BOT_VOTES + DelegatingBotCore.getCommentCount());
+		
 		if (selectedBot == -1)
 		{
 			return;
@@ -815,7 +922,6 @@ public class GuiBotManager extends Thread{
 		labelNbIdeas.setText(TXT_NBIDEAS + bots.get(selectedBot).getNbIdeas());
 		labelNbComments.setText(TXT_NBCOMMENTS + bots.get(selectedBot).getNbComments());
 		labelNbTokens.setText(TXT_TOKENS + bots.get(selectedBot).getRemainingTokens());
-		labelBotQuantity.setText(TXT_BOT_QUANTITY + bots.size());
 		
 		try {
 			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(bots.get(selectedBot).computeAdaptation()));
@@ -928,44 +1034,49 @@ public class GuiBotManager extends Thread{
 
 			while (!shell.isDisposed ()) {
 				/* on raffraichit le bot */
-				for (DelegatingBotCore bot : bots)
+				try{
+					for (DelegatingBotCore bot : bots)
+					{
+						try {
+							bot.refresh();
+						} 
+						catch (RemoteException e) 
+						{
+							System.err.println(bot.getName() + " : impossible de refresh (remote exception)");
+							//e.printStackTrace();
+						} 
+						catch (TooLateException e) 
+						{
+							System.err.println(bot.getName() + " : impossible de refresh (too late exception)");
+							//e.printStackTrace();
+						} 
+						catch (AlreadyExistsException e) 
+						{
+							System.err.println(bot.getName() + " : impossible de refresh (already exists exception)");
+							DelegatingBotCore.ideaCount++;
+						} 
+						catch(ConcurrentModificationException e)
+						{
+							System.err.println(bot.getName() + " : impossible de rajouter le commentaire (concurent modification exception)");
+						}
+						catch(InterruptedException e)
+						{
+							System.err.println(bot.getName() + " : probleme de semaphore lors du lock");
+						}
+						catch(Exception e)
+						{
+							System.err.println(bot.getName() + " : erreur inconnue " + e.getClass().toString());
+							e.printStackTrace();
+						}
+						if (bot.isUsingSemaphore())
+						{
+							bot.unlock();
+						}
+					}
+				}
+				catch (ConcurrentModificationException e)
 				{
-					try {
-						bot.refresh();
-					} 
-					catch (RemoteException e) 
-					{
-						System.err.println(getName() + " error : impossible de refresh (remote exception)");
-						//e.printStackTrace();
-					} 
-					catch (TooLateException e) 
-					{
-						System.err.println(getName() + " error : impossible de refresh (too late exception)");
-						//e.printStackTrace();
-					} 
-					catch (AlreadyExistsException e) 
-					{
-						System.err.println(getName() + " error : impossible de refresh (already exists exception)");
-						DelegatingBotCore.ideaCount++;
-					} 
-					catch(ConcurrentModificationException e)
-					{
-						System.err.println(getName() + " error : impossible de rajouter le commentaire (concurent modification exception)");
-					}
-					catch(InterruptedException e)
-					{
-						System.err.println(getName() + " error : probleme de semaphore lors du lock");
-					}
-					catch(Exception e)
-					{
-						System.err.println(getName() + " error : erreur inconnue");
-						e.printStackTrace();
-						System.exit(0);
-					}
-					if (bot.isUsingSemaphore())
-					{
-						bot.unlock();
-					}
+					System.err.println("BotManager error : impossible de lister les bots " + e.getClass().toString());
 				}
 				
 				/* on raffraichir l'affichage */
@@ -974,13 +1085,10 @@ public class GuiBotManager extends Thread{
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					System.err.println(getName() + " error : sLeep failed");
+					System.err.println("BotManager error : impossible d'executer la fonction sleep");
 					e.printStackTrace();
 				}
 			}
-
-
-			System.out.println("fin boucle while");
 		}
 		
 		close();
@@ -1119,7 +1227,6 @@ public class GuiBotManager extends Thread{
 		bot.init();
 		bot.start();
 	}
-	
 	
 	/** 
 	 * Annule les modifications apportees aux parametres 
