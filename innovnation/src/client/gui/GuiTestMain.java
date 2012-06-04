@@ -74,7 +74,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	
 	private GuiBotManager botManager;
 	
-	
 	public static final boolean TEST_MODE = true;
 	
 	public static final int PERIOD_REFRESH_SCORES = 1000; // ms
@@ -280,7 +279,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 						clickCreateBotGame();
 					}
 				});
-				itemCreateBotGame.setText ("Creer une partie rapide avec 30 bots...");
+				itemCreateBotGame.setText ("Creer une partie rapide avec des bots...");
 
 			}
 			
@@ -955,8 +954,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		} 
 		
 		clickAddBotManager();
-		
-		botManager.addBots(30);
 	}
 	
 	private void clickJoin() {

@@ -38,6 +38,8 @@ public class DelegatingBotCore extends ClientCore
 	
 	public final static int PARAM_MAX_VALUE = 10;
 	
+	public static final double CHANCE_IDEA_CREATION_RATIO = 0.1;
+	
 	private static Integer botCount = 1;
 	public static int ideaCount = 0;
 	public static int commentCount = 0;
@@ -160,39 +162,26 @@ public class DelegatingBotCore extends ClientCore
 	 */
 	public int choseAction() throws RemoteException, InterruptedException
 	{
-		/* rajouter du dirichlet ici */
-		/* on calcule les chances d'obtenir une idee (entre 1 et 30) reduit par le nombre d'idees deja creees */
-		double nbIdeas = getAllIdeas().size()-1;
-		double nbPlayerIdeas = getNbIdeas();
-		double nbPlayers = getAllPlayers().size();
-		double ideaCreationChance = (20 * (1-Math.sqrt((nbIdeas+nbPlayerIdeas) / ((nbPlayers) + nbIdeas+nbPlayerIdeas))));
-		/* un bot creatif va plus chercher a rajouter des idees */
-		ideaCreationChance = ideaCreationChance + 5 * creativity / 5 ;
-		/* un bot qui s'adapte va plus chercher à commenter */
-		double commentCreationChance = 25 * adaptation / 5 + 25 * relevance / 5;
-		
-		
-		if (Math.random()*100 <= ideaCreationChance)
-		{ 
-			if (GuiBotManager.ALLOW_IDEA_CREATION)
-			{
-				return ACTION_IDEA;
-			}
-			else
-			{
-				return ACTION_VOTE;
-			}
-		}
-		else if (Math.random()*100 <= commentCreationChance)
+		if (!GuiBotManager.ALLOW_IDEA_CREATION)
 		{
 			return ACTION_VOTE;
 		}
+		
+		double discount = CHANCE_IDEA_CREATION_RATIO * Math.sqrt(getGame().getAllPlayers().size());
+		double strength = 0.5;
+		double time = ideaCount + commentCount;
+		
+		double newIdeaChance = (strength + getAllIdeas().size() * discount) / (time + strength);
+				
+		if (Math.random() <= newIdeaChance)
+		{ 
+			return ACTION_IDEA;
+		}
 		else
 		{
-			return ACTION_NOTHING;
+			return ACTION_VOTE;
 		}
 	}
-	
 	
 	/**
 	 * Choisi une idee et y fait heriter une autre
@@ -228,7 +217,6 @@ public class DelegatingBotCore extends ClientCore
 		/* on cree l'idee */
 		createIdea(sources);
 	}
-	
 	
 	/**
 	 * Choisi une idee et vote dessus
@@ -284,7 +272,6 @@ public class DelegatingBotCore extends ClientCore
 			
 		}
 	}
-	
 	
 	/**
 	 * Recupere le nombre de tokens indiques sur les idees votees (si cela est possible)
@@ -349,14 +336,14 @@ public class DelegatingBotCore extends ClientCore
 		
 		for (Entry<Integer, Long> h : lastHeuristics.entrySet())
 		{
-			totalHeuristic += h.getValue()*Math.sqrt(h.getValue());
+			totalHeuristic += Math.pow(h.getValue(),2);
 		}
 		
 		/* on recupere une idee au hazard, les chances d'obtenir une idee sont augmentee si son heuristique est grande */
 		long rand = (int)(Math.random()*totalHeuristic);
 		for (IIdea i : getAllIdeas())
 		{
-			long h = (long) (lastHeuristics.get(i.getUniqueId())*Math.sqrt(lastHeuristics.get(i.getUniqueId())));
+			long h = (long) Math.pow(lastHeuristics.get(i.getUniqueId()),2);
 			if (rand < h)
 			{
 				id = i.getUniqueId();
@@ -367,7 +354,6 @@ public class DelegatingBotCore extends ClientCore
 		
 		return id;
 	}
-	
 	
 	/**
 	 * Donne l'id de la meilleur idee possible pour une idee, chaque idee ayant plus de chance d'apparaitre selon son heuristique
@@ -380,26 +366,57 @@ public class DelegatingBotCore extends ClientCore
 		int id = 0;
 		long totalHeuristic = 0;
 		
+		/* vu qu'il n'y a aucun moyen de connaitre la distance avec la racine, on la calcule nous meme */
+		HashMap<Integer, Integer> rootLevel = new HashMap<Integer, Integer>();
+		ArrayList<Integer> ideas = new ArrayList<Integer>(),
+				       nextIdeas = new ArrayList<Integer>();
+		ideas.add(getRootIdea().getUniqueId());
+		
+		rootLevel.put(getRootIdea().getUniqueId(), 0);
+		
+		int level = 0;
+		while (ideas.size() > 0)
+		{
+			for (Integer i : ideas)
+			{
+				rootLevel.put(i, level);
+				for (Integer c : getIdea(i).getChildrenIds())
+				{
+					if (!rootLevel.containsKey(c))
+					{
+						nextIdeas.add(c);
+					}
+				}
+			}
+			
+			level++;
+			ideas = nextIdeas;
+			nextIdeas = new ArrayList<Integer>();
+
+		}
+		
+		
 		for (Entry<Integer, Long> h : lastHeuristics.entrySet())
 		{
-			totalHeuristic += h.getValue();
+			totalHeuristic += (long) (h.getValue() / ( 1 + rootLevel.get(h.getKey())));
 		}
 		
 		/* on recupere une idee au hazard, les chances d'obtenir une idee sont augmentee si son heuristique est grande */
 		long rand = (int)(Math.random()*totalHeuristic);
+		long ideaHeuristic = 0;
 		for (IIdea i : getAllIdeas())
 		{
-			if (rand < lastHeuristics.get(i.getUniqueId()))
+			ideaHeuristic = (long) (lastHeuristics.get(i.getUniqueId()) / ( 1 + rootLevel.get(i.getUniqueId())));
+			if (rand < ideaHeuristic)
 			{
 				id = i.getUniqueId();
 				break;
 			}
-			rand -= lastHeuristics.get(i.getUniqueId());
+			rand -= ideaHeuristic;
 		}
 		
 		return id;
 	}
-	
 	
 	/**
 	 * Calcule l'heuristique d'une idee
@@ -473,7 +490,6 @@ public class DelegatingBotCore extends ClientCore
 		return (long) (1+ total + parentsValue);
 	}
 	
-	
 	/**
 	 * Recupere le temps auquel le bot fera sa prochaine action (donne par System.currentTimeMillis())
 	 * @param time
@@ -481,9 +497,9 @@ public class DelegatingBotCore extends ClientCore
 	 */
  	private long getNextAction(long time)
 	{
-		return (long) (time + ((BOT_BASE_SPEED + (Math.random() * BOT_BASE_SPEED*49)) / reactivity));
+ 		/* plus le temps passe, moins le bot a d'idees */
+		return (long) (time + ((BOT_BASE_SPEED + (Math.random() * (BOT_BASE_SPEED*49 + BOT_BASE_SPEED*nbIdeas + BOT_BASE_SPEED*nbComments / 5))) / reactivity));
 	}
-	
 	
  	/**
 	 * Reset le temps auquel le bot fera sa prochaine action
@@ -492,7 +508,6 @@ public class DelegatingBotCore extends ClientCore
 	{
 		nextAction = getNextAction(System.currentTimeMillis());
 	}
-	
 	
 	/**
 	 * Met a jour les heuristiques
@@ -548,7 +563,6 @@ public class DelegatingBotCore extends ClientCore
 		}
 	}
 	
-	
 	/**
 	 * Retourne l'heuristique du bot
 	 * @return HashMap<Integer,Long>
@@ -557,7 +571,6 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return lastHeuristics;
 	}
-	
 	
 	/**
 	 * Setter pour reactivity
@@ -568,7 +581,6 @@ public class DelegatingBotCore extends ClientCore
 		reactivity = _reactivity;
 	}
 	
-	
 	/**
 	 * Getter pour reactivity
 	 * @return int
@@ -577,7 +589,6 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return reactivity;
 	}
-	
 	
 	/**
 	 * Setter pour creativity
@@ -588,7 +599,6 @@ public class DelegatingBotCore extends ClientCore
 		creativity = _creativity;
 	}
 	
-	
 	/**
 	 * Getter pour creativity
 	 * @return int
@@ -597,7 +607,6 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return creativity;
 	}
-	
 	
 	/**
 	 * Setter pour relevance
@@ -608,7 +617,6 @@ public class DelegatingBotCore extends ClientCore
 		relevance = _relevance;
 	}
 	
-	
 	/**
 	 * Getter pour relevance
 	 * @return int
@@ -617,7 +625,6 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return relevance;
 	}
-	
 	
 	/**
 	 * Setter pour adaptation
@@ -628,7 +635,6 @@ public class DelegatingBotCore extends ClientCore
 		adaptation = _adaptation;
 	}
 	
-	
 	/**
 	 * Getter pour adaptation
 	 * @return int
@@ -637,7 +643,6 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return adaptation;
 	}
-	
 	
 	/**
 	 * Setter pour persuation
@@ -648,7 +653,6 @@ public class DelegatingBotCore extends ClientCore
 		persuation = _persuation;
 	}
 	
-	
 	/**
 	 * Getter pour persuation
 	 * @return int
@@ -657,7 +661,6 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return persuation;
 	}
-	
 	
 	/**
 	 * Retourne l'uptime du bot
@@ -668,7 +671,6 @@ public class DelegatingBotCore extends ClientCore
 		return System.currentTimeMillis() - timeCreation;
 	}
 	
-	
 	/**
 	 * Retourne le nom du bot
 	 * @return String
@@ -678,7 +680,6 @@ public class DelegatingBotCore extends ClientCore
 		return name;
 	}
 	
-	
 	/**
 	 * Retourne l'avatar du bot
 	 * @return String
@@ -687,8 +688,7 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return avatar;
 	}
-	
-	
+
 	/**
 	 * Retourne le nombre d'idees du bot
 	 * @return int
@@ -697,8 +697,7 @@ public class DelegatingBotCore extends ClientCore
 	{
 		return nbIdeas;
 	}
-	
-	
+
 	/**
 	 * Retourne le nombre de commentaires du bot
 	 * @return int
