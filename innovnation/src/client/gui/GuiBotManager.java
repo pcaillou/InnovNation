@@ -81,7 +81,7 @@ public class GuiBotManager extends Thread{
 	private final static String TXT_BOT_QUANTITY = "Nombre de bots :  ";
 	private final static String TXT_BOT_IDEAS = "Nombre d'idees :  ";
 	private final static String TXT_BOT_VOTES = "Nombre de commentaires :  ";
-	private final static String TXT_HOST = "Serveur :  ";
+	private final static String TXT_ROLE = "Role : \t\t";
 	private final static String TXT_BOT = "Bot :\t\t";
 	private final static String TXT_UPTIME = "UpTime :\t";
 	private final static String TXT_NBIDEAS = "Idees :\t\t";
@@ -95,7 +95,7 @@ public class GuiBotManager extends Thread{
 	private final static String TOOLTIP_BOT_QUANTITY = "Nombre de bots actuellement controles par le manager";
 	private final static String TOOLTIP_BOT_IDEAS = "Nombre d'idees creees par les bots";
 	private final static String TOOLTIP_BOT_VOTES = "Nombre de votes effectues par les bots";
-	private final static String TOOLTIP_HOST = "Serveur de la partie";
+	private final static String TOOLTIP_ROLE = "Serveur de la partie";
 	private final static String TOOLTIP_BOT = "Nom du bot";
 	private final static String TOOLTIP_UPTIME = "Temps ecoule depuis la creation";
 	private final static String TOOLTIP_NBIDEAS = "Nombre d'idees crees";
@@ -107,14 +107,13 @@ public class GuiBotManager extends Thread{
 	private final static String TOOLTIP_RELEVANCE = "Taux de pertinence calcule"; 
 	
 	/* constantes des parametres */
-	private final static String TEXT_REACTIVITY = "Reactivite :\t";
+	private final static String TEXT_ROLE = "Role :\t\t";
 	private final static String TEXT_CREATIVITY = "Creativite :\t";
 	private final static String TEXT_RELEVANCE =  "Pertinence :\t";
 	private final static String TEXT_ADAPTATION = "Adaptation :\t";
 	private final static String TEXT_PERSUATION = "Persuation :\t";
 
-	private final static String TOOLTIP_REACTIVITY = "Rapidite avec laquelle le bot agira et reagira\n"
-													+"1 : lent - 10 : rapide";
+	private final static String TOOLTIP_PROLE = "Role predefinis du bot";
 	private final static String TOOLTIP_PCREATIVITY = "Taux de creativite des idees\n"
 			+"1 : peu creatif - 10 : tres creatif";
 	private final static String TOOLTIP_PRELEVANCE = "Taux de pertinence des idees et commentaires\n"
@@ -151,12 +150,13 @@ public class GuiBotManager extends Thread{
 	TabFolder tab;
 	
 	/* Liste des labels */
-	private Label labelHost;
+	private Label labelDRole;
 	private Label labelName;
 	private Label labelUpTime;
 	private Label labelNbIdeas;
 	private Label labelNbComments;
 	private Label labelNbTokens;
+	private Label labelRole;
 	private Label labelAdaptation;
 	private Label labelCreativity;
 	private Label labelRelevance;
@@ -169,15 +169,15 @@ public class GuiBotManager extends Thread{
 	private Table heuristicsTable;
 	
 	/* list des textbox */
-	private Combo textReactivity;
+	private Combo textRole;
 	private Combo textCreativity;
 	private Combo textRelevance;
 	private Combo textAdaptation;
-	private Combo textPersuation;
+	private Combo textPersuasion;
 	private Combo textBotChoice;
 	
 	/* liste des "bloqueurs" pour les combobox (pour empêcher leurs changement pendant qu'on les utilise)*/
-	private boolean focusReactivity;
+	private boolean focusRole;
 	private boolean focusCreativity;
 	private boolean focusRelevance;
 	private boolean focusAdaptation;
@@ -496,334 +496,7 @@ public class GuiBotManager extends Thread{
 			});
 		}	
 		
-		/* partie onglets */
-		tab = new TabFolder(compositeHost, SWT.NONE);
-		TabItem itemStatus = new TabItem (tab, SWT.NONE);
-		itemStatus.setText ("Status");
-		TabItem itemParams = new TabItem (tab, SWT.NONE);
-		itemParams.setText ("Parametres");
-		TabItem itemHeuristics = new TabItem (tab, SWT.NONE);
-		itemHeuristics.setText ("Heuristiques");
-		
-		/* partie description du bot */
-		{
-			/* on cree le layout */
-			GridLayout layoutDescr = new GridLayout(1, false);
-			Composite compositeDescr = new Composite(tab,  SWT.NONE);
-			itemStatus.setControl(compositeDescr);
-			compositeDescr.setBackground(LOOK_COLOR_BACKGROUND_MAINSPACE);
-			compositeDescr.setLayout(layoutDescr);
-			compositeDescr.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
-			
-			/* on ajoute la ligne description du serveur */
-			labelHost = new Label(compositeDescr, SWT.READ_ONLY);
-			labelHost.setText(TXT_HOST + FIELD_DEFAULT_TEXT);
-			labelHost.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelHost.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelHost.setToolTipText(TOOLTIP_HOST);
-			
-			/* on ajoute le nom du bot */
-			labelName = new Label(compositeDescr, SWT.READ_ONLY);
-			labelName.setText(TXT_BOT + FIELD_DEFAULT_TEXT);
-			labelName.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelName.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelName.setToolTipText(TOOLTIP_BOT);
-			
-			/* on ajoute l'uptime du bot */
-			labelUpTime = new Label(compositeDescr, SWT.READ_ONLY);
-			labelUpTime.setText(TXT_UPTIME + FIELD_DEFAULT_TEXT);
-			labelUpTime.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelUpTime.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelUpTime.setToolTipText(TOOLTIP_UPTIME);
-			
-			/* on ajoute le nombre d'idees crees */
-			labelNbIdeas = new Label(compositeDescr, SWT.READ_ONLY);
-			labelNbIdeas.setText(TXT_NBIDEAS + FIELD_DEFAULT_TEXT);
-			labelNbIdeas.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelNbIdeas.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelNbIdeas.setToolTipText(TOOLTIP_NBIDEAS);
-			
-			/* on ajoute le nombre de commentaires crees */
-			labelNbComments = new Label(compositeDescr, SWT.READ_ONLY);
-			labelNbComments.setText(TXT_NBCOMMENTS + FIELD_DEFAULT_TEXT);
-			labelNbComments.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelNbComments.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelNbComments.setToolTipText(TOOLTIP_NBCOMMENTS);
-			
-			/* on ajoute le nombre de tokens restant */
-			labelNbTokens = new Label(compositeDescr, SWT.READ_ONLY);
-			labelNbTokens.setText(TXT_TOKENS + FIELD_DEFAULT_TEXT);
-			labelNbTokens.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelNbTokens.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelNbTokens.setToolTipText(TOOLTIP_TOKENS);
-			
-			/* on ajoute la creativite */
-			labelCreativity = new Label(compositeDescr, SWT.READ_ONLY);
-			labelCreativity.setText(TXT_CREATIVITY + FIELD_DEFAULT_TEXT);
-			labelCreativity.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelCreativity.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelCreativity.setToolTipText(TOOLTIP_CREATIVITY);
-			
-			/* on ajoute l'adaptation */
-			labelAdaptation = new Label(compositeDescr, SWT.READ_ONLY);
-			labelAdaptation.setText(TXT_ADAPTATION + FIELD_DEFAULT_TEXT);
-			labelAdaptation.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelAdaptation.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelAdaptation.setToolTipText(TOOLTIP_ADAPTATION);
-			
-			/* on ajoute pertinence */
-			labelRelevance = new Label(compositeDescr, SWT.READ_ONLY);
-			labelRelevance.setText(TXT_RELEVANCE + FIELD_DEFAULT_TEXT);
-			labelRelevance.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelRelevance.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelRelevance.setToolTipText(TOOLTIP_RELEVANCE);
-			
-			/* on ajoute la persuation */
-			labelPersuation = new Label(compositeDescr, SWT.READ_ONLY);
-			labelPersuation.setText(TXT_PERSUATION + FIELD_DEFAULT_TEXT);
-			labelPersuation.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelPersuation.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelPersuation.setToolTipText(TOOLTIP_PERSUATION);
-		}
-		
-		/* partie parametres */
-		Label 	labelReactivity,
-				labelCreativity,
-				labelRelevance,
-				labelAdaptation,
-				labelPersuation;
-		{
-			/* on cree le layout */
-			GridLayout layoutParams = new GridLayout(1, false);
-			Composite compositeParams = new Composite(tab, SWT.NONE);
-			itemParams.setControl(compositeParams);
-			compositeParams.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			compositeParams.setLayout(layoutParams);
-			compositeParams.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
-
-			/* on cree le layout des lignes */
-			RowLayout layoutRow = new RowLayout(SWT.HORIZONTAL);
-
-			/* on ajoute la ligne du parametre reactivity */
-			{
-				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
-				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-				rowExemple.setLayout(layoutRow);
-				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-				
-				/* on ajoute le label */
-				labelReactivity = new Label(rowExemple, SWT.READ_ONLY);
-				labelReactivity.setText(TEXT_REACTIVITY);
-				labelReactivity.setToolTipText(TOOLTIP_REACTIVITY);
-				
-				/* on ajoute le champ */
-				textReactivity = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textReactivity.add(i.toString());
-				textReactivity.addListener(SWT.Selection,new Listener() {
-					public void handleEvent (Event e) {
-						paramsChanged = true;
-						updateButtonsStates();
-					}
-				});
-				textReactivity.addFocusListener(new FocusListener() {
-					public void focusLost(FocusEvent arg0) {
-						focusReactivity = false;
-					}
-					public void focusGained(FocusEvent arg0) {
-						focusReactivity = true;
-						
-					}
-				});
-			}
-
-			/* on ajoute la ligne du parametre creativity */
-			{
-				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
-				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-				rowExemple.setLayout(layoutRow);
-				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-				
-				/* on ajoute le label */
-				labelCreativity = new Label(rowExemple, SWT.READ_ONLY);
-				labelCreativity.setText(TEXT_CREATIVITY);
-				labelCreativity.setToolTipText(TOOLTIP_PCREATIVITY);
-				
-				/* on ajoute le champ */
-				textCreativity = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textCreativity.add(i.toString());
-				textCreativity.addListener(SWT.Selection,new Listener() {
-					public void handleEvent (Event e) {
-						paramsChanged = true;
-						updateButtonsStates();
-					}
-				});
-				textCreativity.addFocusListener(new FocusListener() {
-					public void focusLost(FocusEvent arg0) {
-						focusCreativity = false;
-					}
-					public void focusGained(FocusEvent arg0) {
-						focusCreativity = true;
-						
-					}
-				});
-			}
-
-			/* on ajoute la ligne du parametre relevance */
-			{
-				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
-				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-				rowExemple.setLayout(layoutRow);
-				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-				
-				/* on ajoute le label */
-				labelRelevance = new Label(rowExemple, SWT.READ_ONLY);
-				labelRelevance.setText(TEXT_RELEVANCE);
-				labelRelevance.setToolTipText(TOOLTIP_PRELEVANCE);
-				
-				/* on ajoute le champ */
-				textRelevance = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textRelevance.add(i.toString());
-				textRelevance.addListener(SWT.Selection,new Listener() {
-					public void handleEvent (Event e) {
-						paramsChanged = true;
-						updateButtonsStates();
-					}
-				});
-				textRelevance.addFocusListener(new FocusListener() {
-					public void focusLost(FocusEvent arg0) {
-						focusRelevance = false;
-					}
-					public void focusGained(FocusEvent arg0) {
-						focusRelevance = true;
-						
-					}
-				});
-			}
-
-			/* on ajoute la ligne du parametre adaptation */
-			{
-				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
-				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-				rowExemple.setLayout(layoutRow);
-				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-				
-				/* on ajoute le label */
-				labelAdaptation = new Label(rowExemple, SWT.READ_ONLY);
-				labelAdaptation.setText(TEXT_ADAPTATION);
-				labelAdaptation.setToolTipText(TOOLTIP_PADAPTATION);
-				
-				/* on ajoute le champ */
-				textAdaptation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textAdaptation.add(i.toString());
-				textAdaptation.addListener(SWT.Selection,new Listener() {
-					public void handleEvent (Event e) {
-						paramsChanged = true;
-						updateButtonsStates();
-					}
-				});
-				textAdaptation.addFocusListener(new FocusListener() {
-					public void focusLost(FocusEvent arg0) {
-						focusAdaptation = false;
-					}
-					public void focusGained(FocusEvent arg0) {
-						focusAdaptation = true;
-						
-					}
-				});
-			}
-
-			/* on ajoute la ligne du parametre persuation */
-			{
-				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
-				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-				rowExemple.setLayout(layoutRow);
-				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-				
-				/* on ajoute le label */
-				labelPersuation = new Label(rowExemple, SWT.READ_ONLY);
-				labelPersuation.setText(TEXT_PERSUATION);
-				labelPersuation.setToolTipText(TOOLTIP_PPERSUATION);
-				
-				/* on ajoute le champ */
-				textPersuation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textPersuation.add(i.toString());
-				textPersuation.addListener(SWT.Selection,new Listener() {
-					public void handleEvent (Event e) {
-						paramsChanged = true;
-						updateButtonsStates();
-					}
-				});
-				textPersuation.addFocusListener(new FocusListener() {
-					public void focusLost(FocusEvent arg0) {
-						focusPersuasion = false;
-					}
-					public void focusGained(FocusEvent arg0) {
-						focusPersuasion = true;
-						
-					}
-				});
-			}
-			
-			/* on ajoute les boutons update et cancel */
-			{
-				Composite rowButton = new Composite(compositeParams, SWT.NONE);
-				rowButton.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-				rowButton.setLayout(layoutRow);
-				rowButton.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-				
-				buttonUpdate = new Button(rowButton, SWT.PUSH);
-				buttonUpdate.setText(TXT_UPDATE);
-				buttonUpdate.addSelectionListener(new SelectionListener() {
-					
-					public void widgetSelected(SelectionEvent e) {
-						clickUpdate();
-					}
-					
-					public void widgetDefaultSelected(SelectionEvent e) {
-						clickUpdate();
-					}
-				});
-				
-				buttonCancel = new Button(rowButton, SWT.PUSH);
-				buttonCancel.setText(TXT_CANCEL);
-				buttonCancel.addSelectionListener(new SelectionListener() {
-			
-					public void widgetSelected(SelectionEvent e) {
-						clickCancel();
-					}
-					
-					public void widgetDefaultSelected(SelectionEvent e) {
-						clickCancel();
-					}
-				});
-			}
-		}
-		
-		{
-
-			/* on cree le layout */
-			GridLayout layoutHeuristics = new GridLayout(1, false);
-			Composite compositeHeuristics = new Composite(tab, SWT.NONE);
-			itemHeuristics.setControl(compositeHeuristics);
-			compositeHeuristics.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			compositeHeuristics.setLayout(layoutHeuristics);
-			compositeHeuristics.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
-			
-			heuristicsTable = new Table(compositeHeuristics, SWT.NONE);
-			GridData gdGames = new GridData(
-					GridData.FILL_HORIZONTAL | 
-					GridData.FILL_VERTICAL | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL);
-			heuristicsTable.setLayoutData(gdGames);
-			heuristicsTable.setHeaderVisible (true);
-			heuristicsTable.setLinesVisible (true);
-			
-			TableColumn column = new TableColumn (heuristicsTable, SWT.NONE);
-			column.setText("Idee");
-			column.setWidth(75);
-			column = new TableColumn (heuristicsTable, SWT.NONE);
-			column.setText("Heuristique");
-			column.setWidth(225);
-		}
+		addBotMenu(compositeHost);
 		
 		/* on ajoute les boutons */
 		{
@@ -895,6 +568,367 @@ public class GuiBotManager extends Thread{
 	}
 	
 	/**
+	 * Ajoute les onglets du menu du bot
+	 * @param compositeHost
+	 */
+	public void addBotMenu(Composite compositeHost)
+	{
+		/* partie onglets */
+		tab = new TabFolder(compositeHost, SWT.NONE);
+		TabItem itemStatus = new TabItem (tab, SWT.NONE);
+		itemStatus.setText ("Status");
+		TabItem itemParams = new TabItem (tab, SWT.NONE);
+		itemParams.setText ("Parametres");
+		TabItem itemHeuristics = new TabItem (tab, SWT.NONE);
+		itemHeuristics.setText ("Heuristiques");
+		
+		/* partie description du bot */
+		{
+			/* on cree le layout */
+			GridLayout layoutDescr = new GridLayout(1, false);
+			Composite compositeDescr = new Composite(tab,  SWT.NONE);
+			itemStatus.setControl(compositeDescr);
+			compositeDescr.setBackground(LOOK_COLOR_BACKGROUND_MAINSPACE);
+			compositeDescr.setLayout(layoutDescr);
+			compositeDescr.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
+			
+			
+			/* on ajoute le nom du bot */
+			labelName = new Label(compositeDescr, SWT.READ_ONLY);
+			labelName.setText(TXT_BOT +  FIELD_DEFAULT_TEXT);
+			labelName.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelName.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelName.setToolTipText(TOOLTIP_BOT);
+			
+			/* on ajoute la ligne description du serveur */
+			labelDRole = new Label(compositeDescr, SWT.READ_ONLY);
+			labelDRole.setText(TXT_ROLE + FIELD_DEFAULT_TEXT);
+			labelDRole.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelDRole.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelDRole.setToolTipText(TOOLTIP_ROLE);
+			
+			/* on ajoute l'uptime du bot */
+			labelUpTime = new Label(compositeDescr, SWT.READ_ONLY);
+			labelUpTime.setText(TXT_UPTIME + FIELD_DEFAULT_TEXT);
+			labelUpTime.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelUpTime.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelUpTime.setToolTipText(TOOLTIP_UPTIME);
+			
+			/* on ajoute le nombre d'idees crees */
+			labelNbIdeas = new Label(compositeDescr, SWT.READ_ONLY);
+			labelNbIdeas.setText(TXT_NBIDEAS + FIELD_DEFAULT_TEXT);
+			labelNbIdeas.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelNbIdeas.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelNbIdeas.setToolTipText(TOOLTIP_NBIDEAS);
+			
+			/* on ajoute le nombre de commentaires crees */
+			labelNbComments = new Label(compositeDescr, SWT.READ_ONLY);
+			labelNbComments.setText(TXT_NBCOMMENTS + FIELD_DEFAULT_TEXT);
+			labelNbComments.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelNbComments.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelNbComments.setToolTipText(TOOLTIP_NBCOMMENTS);
+			
+			/* on ajoute le nombre de tokens restant */
+			labelNbTokens = new Label(compositeDescr, SWT.READ_ONLY);
+			labelNbTokens.setText(TXT_TOKENS + FIELD_DEFAULT_TEXT);
+			labelNbTokens.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelNbTokens.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelNbTokens.setToolTipText(TOOLTIP_TOKENS);
+			
+			/* on ajoute la creativite */
+			labelCreativity = new Label(compositeDescr, SWT.READ_ONLY);
+			labelCreativity.setText(TXT_CREATIVITY + FIELD_DEFAULT_TEXT);
+			labelCreativity.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelCreativity.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelCreativity.setToolTipText(TOOLTIP_CREATIVITY);
+			
+			/* on ajoute l'adaptation */
+			labelAdaptation = new Label(compositeDescr, SWT.READ_ONLY);
+			labelAdaptation.setText(TXT_ADAPTATION + FIELD_DEFAULT_TEXT);
+			labelAdaptation.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelAdaptation.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelAdaptation.setToolTipText(TOOLTIP_ADAPTATION);
+			
+			/* on ajoute pertinence */
+			labelRelevance = new Label(compositeDescr, SWT.READ_ONLY);
+			labelRelevance.setText(TXT_RELEVANCE + FIELD_DEFAULT_TEXT);
+			labelRelevance.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelRelevance.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelRelevance.setToolTipText(TOOLTIP_RELEVANCE);
+			
+			/* on ajoute la persuation */
+			labelPersuation = new Label(compositeDescr, SWT.READ_ONLY);
+			labelPersuation.setText(TXT_PERSUATION + FIELD_DEFAULT_TEXT);
+			labelPersuation.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelPersuation.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelPersuation.setToolTipText(TOOLTIP_PERSUATION);
+		}
+		
+		/* partie parametres */
+		Label 	labelCreativity,
+				labelRelevance,
+				labelAdaptation,
+				labelPersuation;
+		{
+
+			/* on cree le layout */
+			GridLayout layoutParams = new GridLayout(1, false);
+			Composite compositeParams = new Composite(tab, SWT.NONE);
+			itemParams.setControl(compositeParams);
+			compositeParams.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			compositeParams.setLayout(layoutParams);
+			compositeParams.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
+
+			/* on cree le layout des lignes */
+			RowLayout layoutRow = new RowLayout(SWT.HORIZONTAL);
+
+			/* on ajoute la ligne du choix du role */
+			{
+				Composite rowRole = new Composite(compositeParams, SWT.NONE);
+				rowRole.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+				rowRole.setLayout(layoutRow);
+				rowRole.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+				
+				/* on ajoute le label */
+				labelRole = new Label(rowRole, SWT.READ_ONLY);
+				labelRole.setText(TEXT_ROLE);
+				labelRole.setToolTipText(TOOLTIP_PROLE);
+				
+				/* on ajoute le champ */
+				textRole = new Combo(rowRole, SWT.BORDER | SWT.READ_ONLY);
+				textRole.setItems(DelegatingBotCore.roles);
+				textRole.select(0);
+				textRole.addListener(SWT.Selection,new Listener() {
+					public void handleEvent (Event e) {
+						paramsChanged = true;
+						if (textRole.getSelectionIndex() == 0)
+						{
+							// aucun changement
+						}
+						else if (textRole.getSelectionIndex() == 1)
+						{
+							textPersuasion.select((int) (Math.random()*10));
+							textCreativity.select((int) (Math.random()*10));
+							textAdaptation.select((int) (Math.random()*10));
+							textRelevance.select((int) (Math.random()*10));
+						}
+						else
+						{
+							textCreativity.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][0]-1);
+							textRelevance.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][1]-1);
+							textAdaptation.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][2]-1);
+							textPersuasion.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][3]-1);
+						}
+						
+						updateButtonsStates();
+					}
+				});
+				textRole.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusRole = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusRole = true;
+						
+					}
+				});
+			}
+			
+			/* on ajoute la ligne du parametre creativity */
+			{
+				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
+				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+				rowExemple.setLayout(layoutRow);
+				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+				
+				/* on ajoute le label */
+				labelCreativity = new Label(rowExemple, SWT.READ_ONLY);
+				labelCreativity.setText(TEXT_CREATIVITY);
+				labelCreativity.setToolTipText(TOOLTIP_PCREATIVITY);
+				
+				/* on ajoute le champ */
+				textCreativity = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
+				for (Integer i = 1 ; i <= 10 ; i++)textCreativity.add(i.toString());
+				textCreativity.addListener(SWT.Selection,new Listener() {
+					public void handleEvent (Event e) {
+						paramsChanged = true;
+						textRole.select(0);
+						updateButtonsStates();
+					}
+				});
+				textCreativity.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusCreativity = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusCreativity = true;
+						
+					}
+				});
+			}
+
+			/* on ajoute la ligne du parametre relevance */
+			{
+				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
+				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+				rowExemple.setLayout(layoutRow);
+				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+				
+				/* on ajoute le label */
+				labelRelevance = new Label(rowExemple, SWT.READ_ONLY);
+				labelRelevance.setText(TEXT_RELEVANCE);
+				labelRelevance.setToolTipText(TOOLTIP_PRELEVANCE);
+				
+				/* on ajoute le champ */
+				textRelevance = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
+				for (Integer i = 1 ; i <= 10 ; i++)textRelevance.add(i.toString());
+				textRelevance.addListener(SWT.Selection,new Listener() {
+					public void handleEvent (Event e) {
+						paramsChanged = true;
+						textRole.select(0);
+						updateButtonsStates();
+					}
+				});
+				textRelevance.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusRelevance = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusRelevance = true;
+						
+					}
+				});
+			}
+
+			/* on ajoute la ligne du parametre adaptation */
+			{
+				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
+				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+				rowExemple.setLayout(layoutRow);
+				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+				
+				/* on ajoute le label */
+				labelAdaptation = new Label(rowExemple, SWT.READ_ONLY);
+				labelAdaptation.setText(TEXT_ADAPTATION);
+				labelAdaptation.setToolTipText(TOOLTIP_PADAPTATION);
+				
+				/* on ajoute le champ */
+				textAdaptation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
+				for (Integer i = 1 ; i <= 10 ; i++)textAdaptation.add(i.toString());
+				textAdaptation.addListener(SWT.Selection,new Listener() {
+					public void handleEvent (Event e) {
+						paramsChanged = true;
+						textRole.select(0);
+						updateButtonsStates();
+					}
+				});
+				textAdaptation.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusAdaptation = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusAdaptation = true;
+						
+					}
+				});
+			}
+
+			/* on ajoute la ligne du parametre persuation */
+			{
+				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
+				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+				rowExemple.setLayout(layoutRow);
+				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+				
+				/* on ajoute le label */
+				labelPersuation = new Label(rowExemple, SWT.READ_ONLY);
+				labelPersuation.setText(TEXT_PERSUATION);
+				labelPersuation.setToolTipText(TOOLTIP_PPERSUATION);
+				
+				/* on ajoute le champ */
+				textPersuasion = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
+				for (Integer i = 1 ; i <= 10 ; i++)textPersuasion.add(i.toString());
+				textPersuasion.addListener(SWT.Selection,new Listener() {
+					public void handleEvent (Event e) {
+						paramsChanged = true;
+						textRole.select(0);
+						updateButtonsStates();
+					}
+				});
+				textPersuasion.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusPersuasion = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusPersuasion = true;
+						
+					}
+				});
+			}
+			
+			/* on ajoute les boutons update et cancel */
+			{
+				Composite rowButton = new Composite(compositeParams, SWT.NONE);
+				rowButton.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+				rowButton.setLayout(layoutRow);
+				rowButton.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+				
+				buttonUpdate = new Button(rowButton, SWT.PUSH);
+				buttonUpdate.setText(TXT_UPDATE);
+				buttonUpdate.addSelectionListener(new SelectionListener() {
+					
+					public void widgetSelected(SelectionEvent e) {
+						clickUpdate();
+					}
+					
+					public void widgetDefaultSelected(SelectionEvent e) {
+						clickUpdate();
+					}
+				});
+				
+				buttonCancel = new Button(rowButton, SWT.PUSH);
+				buttonCancel.setText(TXT_CANCEL);
+				buttonCancel.addSelectionListener(new SelectionListener() {
+			
+					public void widgetSelected(SelectionEvent e) {
+						clickCancel();
+					}
+					
+					public void widgetDefaultSelected(SelectionEvent e) {
+						clickCancel();
+					}
+				});
+			}
+		}
+		
+		{
+
+			/* on cree le layout */
+			GridLayout layoutHeuristics = new GridLayout(1, false);
+			Composite compositeHeuristics = new Composite(tab, SWT.NONE);
+			itemHeuristics.setControl(compositeHeuristics);
+			compositeHeuristics.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			compositeHeuristics.setLayout(layoutHeuristics);
+			compositeHeuristics.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
+			
+			heuristicsTable = new Table(compositeHeuristics, SWT.NONE);
+			GridData gdGames = new GridData(
+					GridData.FILL_HORIZONTAL | 
+					GridData.FILL_VERTICAL | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL);
+			heuristicsTable.setLayoutData(gdGames);
+			heuristicsTable.setHeaderVisible (true);
+			heuristicsTable.setLinesVisible (true);
+			
+			TableColumn column = new TableColumn (heuristicsTable, SWT.NONE);
+			column.setText("Idee");
+			column.setWidth(75);
+			column = new TableColumn (heuristicsTable, SWT.NONE);
+			column.setText("Heuristique");
+			column.setWidth(225);
+		}
+	}
+	
+	/**
 	 * Rafraichit les informations a l'ecran
 	 */
 	private void refresh()
@@ -918,16 +952,18 @@ public class GuiBotManager extends Thread{
 		}
 		
 		/* on raffraichit les labels */
+		labelDRole.setText(TXT_ROLE + DelegatingBotCore.roles[bots.get(selectedBot).getRole()]);
 		labelUpTime.setText(TXT_UPTIME + bots.get(selectedBot).getUpTime()/1000 + " s");		
 		labelNbIdeas.setText(TXT_NBIDEAS + bots.get(selectedBot).getNbIdeas());
 		labelNbComments.setText(TXT_NBCOMMENTS + bots.get(selectedBot).getNbComments());
 		labelNbTokens.setText(TXT_TOKENS + bots.get(selectedBot).getRemainingTokens());
 		
-		try {
-			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(bots.get(selectedBot).computeAdaptation()));
-			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(bots.get(selectedBot).computeCreativity()));
-			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(bots.get(selectedBot).computeRelevance()));
-			labelPersuation.setText(TXT_PERSUATION + String.valueOf(bots.get(selectedBot).computePersuasion()));
+		try 
+		{
+			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(bots.get(selectedBot).computeAdaptation()) + " (" + bots.get(selectedBot).computeAdaptationRank() + "/" + bots.get(selectedBot).getAllPlayersIds().size() + ")");
+			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(bots.get(selectedBot).computeCreativity()) + " (" + bots.get(selectedBot).computeCreativityRank() + "/" + bots.get(selectedBot).getAllPlayersIds().size() + ")");
+			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(bots.get(selectedBot).computeRelevance()) + " (" + bots.get(selectedBot).computeRelevanceRank() + "/" + bots.get(selectedBot).getAllPlayersIds().size() + ")");
+			labelPersuation.setText(TXT_PERSUATION + String.valueOf(bots.get(selectedBot).computePersuasion()) + " (" + bots.get(selectedBot).computePersuasionRank() + "/" + bots.get(selectedBot).getAllPlayersIds().size() + ")");
 			updateHeuristicTable();
 
 		} catch (Exception e) {
@@ -998,7 +1034,7 @@ public class GuiBotManager extends Thread{
 		if (textBotChoice.getItemCount() == 0)
 		{
 			labelName.setText(TXT_BOT);	
-			labelHost.setText(TXT_HOST);	
+			labelDRole.setText(TXT_ROLE);	
 			labelUpTime.setText(TXT_UPTIME + 0 + " s");		
 			labelNbIdeas.setText(TXT_NBIDEAS + 0);
 			labelNbComments.setText(TXT_NBCOMMENTS + 0);
@@ -1021,7 +1057,6 @@ public class GuiBotManager extends Thread{
 			tab.setEnabled(true);
 			selectedBot = textBotChoice.getSelectionIndex();
 			labelName.setText(TXT_BOT + bots.get(selectedBot).getName());	
-			labelHost.setText(TXT_HOST + server);
 		}
 		updateButtonsStates();
 	}
@@ -1292,8 +1327,8 @@ public class GuiBotManager extends Thread{
 	{
 		int param;
 		
-		param = textReactivity.getSelectionIndex()+1;
-		bots.get(selectedBot).setReactivity(param);
+		param = textRole.getSelectionIndex();
+		bots.get(selectedBot).setRole(param);
 		
 		param = textCreativity.getSelectionIndex()+1;
 		bots.get(selectedBot).setCreativity(param);
@@ -1301,7 +1336,7 @@ public class GuiBotManager extends Thread{
 		param = textAdaptation.getSelectionIndex()+1;
 		bots.get(selectedBot).setAdaptation(param);
 		
-		param = textPersuation.getSelectionIndex()+1;
+		param = textPersuasion.getSelectionIndex()+1;
 		bots.get(selectedBot).setPersuation(param);
 		
 		param = textRelevance.getSelectionIndex()+1;
@@ -1315,26 +1350,26 @@ public class GuiBotManager extends Thread{
 	{
 		if (selectedBot == -1)
 		{
-			textReactivity.select(0);
+			textRole.select(0);
 			textCreativity.select(0);
 			textAdaptation.select(0);
-			textPersuation.select(0);
+			textPersuasion.select(0);
 			textRelevance.select(0);
 		}
 		else
 		{
 			int param;
-			
-			if (!focusReactivity)
+
+			if (!focusRole)
 			{
-				param = bots.get(selectedBot).getReactivity();
-				textReactivity.select(param-1);
+				param = bots.get(selectedBot).getRole();
+				textRole.select(param);
 			}
 
 			if (!focusCreativity)
 			{
 				param = bots.get(selectedBot).getCreativity();
-			textCreativity.select(param-1);
+				textCreativity.select(param-1);
 			}
 
 			if (!focusAdaptation)
@@ -1346,7 +1381,7 @@ public class GuiBotManager extends Thread{
 			if (!focusPersuasion)
 			{
 				param = bots.get(selectedBot).getPersuasion();
-				textPersuation.select(param-1);
+				textPersuasion.select(param-1);
 			}
 
 			if (!focusRelevance)

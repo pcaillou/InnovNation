@@ -55,7 +55,7 @@ public class GuiBot extends Thread{
 	private final static int LOOK_MIN_HEIGHT = 100;
 
 	/* constantes de la description du bot */
-	private final static String TXT_HOST = "Serveur :  ";
+	private final static String TXT_ROLE = "Role :\t\t";
 	private final static String TXT_BOT = "Bot :\t\t";
 	private final static String TXT_UPTIME = "UpTime :\t";
 	private final static String TXT_NBIDEAS = "Idees :\t\t";
@@ -67,7 +67,7 @@ public class GuiBot extends Thread{
 	private final static String TXT_RELEVANCE = "Pertinence :\t";   
 	
 	
-	private final static String TOOLTIP_HOST = "Serveur de la partie";
+	private final static String TOOLTIP_ROLE = "Role du bot";
 	private final static String TOOLTIP_BOT = "Nom du bot";
 	private final static String TOOLTIP_UPTIME = "Temps ecoule depuis la creation";
 	private final static String TOOLTIP_NBIDEAS = "Nombre d'idees crees";
@@ -79,14 +79,13 @@ public class GuiBot extends Thread{
 	private final static String TOOLTIP_RELEVANCE = "Taux de pertinence calcule"; 
 	
 	/* constantes des parametres */
-	private final static String TEXT_REACTIVITY = "Reactivite :\t";
+	private final static String TEXT_ROLE = "Role :\t\t";
 	private final static String TEXT_CREATIVITY = "Creativite :\t";
 	private final static String TEXT_RELEVANCE =  "Pertinence :\t";
 	private final static String TEXT_ADAPTATION = "Adaptation :\t";
 	private final static String TEXT_PERSUATION = "Persuation :\t";
 
-	private final static String TOOLTIP_REACTIVITY = "Rapidite avec laquelle le bot agira et reagira\n"
-													+"1 : lent - 10 : rapide";
+	private final static String TOOLTIP_PROLE = "Role predefinis du bot";
 	private final static String TOOLTIP_PCREATIVITY = "Taux de creativite des idees\n"
 			+"1 : peu creatif - 10 : tres creatif";
 	private final static String TOOLTIP_PRELEVANCE = "Taux de pertinence des idees et commentaires\n"
@@ -104,8 +103,8 @@ public class GuiBot extends Thread{
 		
 	private final static String FIELD_DEFAULT_TEXT = "                                                          ";
 	
-	private Color LOOK_COLOR_BACKGROUND_MAINSPACE = null;
-	private Color LOOK_COLOR_BACKGROUND_SUBSPACES = null;
+	private static Color LOOK_COLOR_BACKGROUND_MAINSPACE = null;
+	private static Color LOOK_COLOR_BACKGROUND_SUBSPACES = null;
 	
 	/* EmbbedType des composants */
 	private GuiEmbbedType embbedType;
@@ -114,12 +113,13 @@ public class GuiBot extends Thread{
 	private DelegatingBotCore clientCore;
 	
 	/* Liste des labels */
-	private Label labelHost;
+	private Label labelDRole;
 	private Label labelName;
 	private Label labelUpTime;
 	private Label labelNbIdeas;
 	private Label labelNbComments;
 	private Label labelNbTokens;
+	private Label labelRole;
 	private Label labelAdaptation;
 	private Label labelCreativity;
 	private Label labelRelevance;
@@ -129,14 +129,14 @@ public class GuiBot extends Thread{
 	private Table heuristicsTable;
 	
 	/* list des textbox */
-	private Combo textReactivity;
+	private Combo textRole;
 	private Combo textCreativity;
 	private Combo textRelevance;
 	private Combo textAdaptation;
 	private Combo textPersuasion;
 	
 	/* liste des "bloqueurs" pour les combobox (pour empêcher leurs changement pendant qu'on les utilise)*/
-	private boolean focusReactivity;
+	private boolean focusRole;
 	private boolean focusCreativity;
 	private boolean focusRelevance;
 	private boolean focusAdaptation;
@@ -149,9 +149,6 @@ public class GuiBot extends Thread{
 	
 	/* Runnable servant a refresh la fenetre */
 	private Runnable refresh;
-	
-	/* Adresse du serveur */
-	private String server = null;
 	
 	/* Indique si des parametres ont ete modifies */
 	private boolean paramsChanged;
@@ -169,7 +166,6 @@ public class GuiBot extends Thread{
 		embbedType = GuiEmbbedType.STANDALONE;
 		compositeHost = null;
 		display = _display;
-		server = host;
 		paramsChanged = false;
 		initColors();
 
@@ -222,34 +218,11 @@ public class GuiBot extends Thread{
 	}
 	
 	/**
-	 * Initialise la fenetre du bot
+	 * Ajoute les informations du bots sous forme d'onglets
+	 * @param compositeHost
 	 */
-	public void init() {
-
-		if (embbedType == GuiEmbbedType.STANDALONE) {
-
-			shell = new Shell (display, SWT.SHELL_TRIM);
-			shell.setText (clientCore.getName());
-			shell.setSize (LOOK_MIN_WIDTH, LOOK_MIN_HEIGHT);
-			shell.setLayout(new FillLayout());
-	
-			compositeHost = new Composite(shell, SWT.NONE);
-		}
-
-	
-		// manage the layout of the host composite
-		{
-			GridLayout layoutHost = new GridLayout(1, true);
-			layoutHost.horizontalSpacing = SWT.FILL;
-			
-			compositeHost.setLayout(layoutHost);
-			
-			compositeHost.setBackground(LOOK_COLOR_BACKGROUND_MAINSPACE);
-			
-			
-		}
-		
-		
+	public void addBotMenu(Composite compositeHost)
+	{
 		/* partie onglets */
 		TabFolder tab = new TabFolder(compositeHost, SWT.NONE);
 		TabItem itemStatus = new TabItem (tab, SWT.NONE);
@@ -269,19 +242,19 @@ public class GuiBot extends Thread{
 			compositeDescr.setLayout(layoutDescr);
 			compositeDescr.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL));
 			
-			/* on ajoute la ligne description du serveur */
-			labelHost = new Label(compositeDescr, SWT.READ_ONLY);
-			labelHost.setText(TXT_HOST + server);
-			labelHost.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-			labelHost.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
-			labelHost.setToolTipText(TOOLTIP_HOST);
-			
 			/* on ajoute le nom du bot */
 			labelName = new Label(compositeDescr, SWT.READ_ONLY);
-			labelName.setText(TXT_BOT + clientCore.getName());
+			labelName.setText(TXT_BOT +  clientCore.getName());
 			labelName.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
 			labelName.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
 			labelName.setToolTipText(TOOLTIP_BOT);
+			
+			/* on ajoute la ligne du role du bot */
+			labelDRole = new Label(compositeDescr, SWT.READ_ONLY);
+			labelDRole.setText(TXT_ROLE + FIELD_DEFAULT_TEXT);
+			labelDRole.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+			labelDRole.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			labelDRole.setToolTipText(TOOLTIP_ROLE);
 			
 			/* on ajoute l'uptime du bot */
 			labelUpTime = new Label(compositeDescr, SWT.READ_ONLY);
@@ -341,8 +314,7 @@ public class GuiBot extends Thread{
 		}
 		
 		/* partie parametres */
-		Label 	labelReactivity,
-				labelCreativity,
+		Label 	labelCreativity,
 				labelRelevance,
 				labelAdaptation,
 				labelPersuation;
@@ -359,40 +331,58 @@ public class GuiBot extends Thread{
 			/* on cree le layout des lignes */
 			RowLayout layoutRow = new RowLayout(SWT.HORIZONTAL);
 
-			/* on ajoute la ligne du parametre reactivity */
+			/* on ajoute la ligne du choix du role */
 			{
-				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
-				rowExemple.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
-				rowExemple.setLayout(layoutRow);
-				rowExemple.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+				Composite rowRole = new Composite(compositeParams, SWT.NONE);
+				rowRole.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
+				rowRole.setLayout(layoutRow);
+				rowRole.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
 				
 				/* on ajoute le label */
-				labelReactivity = new Label(rowExemple, SWT.READ_ONLY);
-				labelReactivity.setText(TEXT_REACTIVITY);
-				labelReactivity.setToolTipText(TOOLTIP_REACTIVITY);
+				labelRole = new Label(rowRole, SWT.READ_ONLY);
+				labelRole.setText(TEXT_ROLE);
+				labelRole.setToolTipText(TOOLTIP_PROLE);
 				
 				/* on ajoute le champ */
-				textReactivity = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textReactivity.add(i.toString());
-				textReactivity.addListener(SWT.Selection,new Listener() {
+				textRole = new Combo(rowRole, SWT.BORDER | SWT.READ_ONLY);
+				textRole.setItems(DelegatingBotCore.roles);
+				textRole.select(0);
+				textRole.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
-						System.out.println("event");
 						paramsChanged = true;
+						if (textRole.getSelectionIndex() == 0)
+						{
+							// aucun changement
+						}
+						else if (textRole.getSelectionIndex() == 1)
+						{
+							textPersuasion.select((int) (Math.random()*10));
+							textCreativity.select((int) (Math.random()*10));
+							textAdaptation.select((int) (Math.random()*10));
+							textRelevance.select((int) (Math.random()*10));
+						}
+						else
+						{
+							textCreativity.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][0]-1);
+							textRelevance.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][1]-1);
+							textAdaptation.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][2]-1);
+							textPersuasion.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][3]-1);
+						}
+						
 						updateButtonsStates();
 					}
 				});
-				textReactivity.addFocusListener(new FocusListener() {
+				textRole.addFocusListener(new FocusListener() {
 					public void focusLost(FocusEvent arg0) {
-						focusReactivity = false;
+						focusRole = false;
 					}
 					public void focusGained(FocusEvent arg0) {
-						focusReactivity = true;
+						focusRole = true;
 						
 					}
 				});
-				
 			}
-
+			
 			/* on ajoute la ligne du parametre creativity */
 			{
 				Composite rowExemple = new Composite(compositeParams, SWT.NONE);
@@ -411,6 +401,7 @@ public class GuiBot extends Thread{
 				textCreativity.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
+						textRole.select(0);
 						updateButtonsStates();
 					}
 				});
@@ -443,6 +434,7 @@ public class GuiBot extends Thread{
 				textRelevance.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
+						textRole.select(0);
 						updateButtonsStates();
 					}
 				});
@@ -475,6 +467,7 @@ public class GuiBot extends Thread{
 				textAdaptation.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
+						textRole.select(0);
 						updateButtonsStates();
 					}
 				});
@@ -507,6 +500,7 @@ public class GuiBot extends Thread{
 				textPersuasion.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
+						textRole.select(0);
 						updateButtonsStates();
 					}
 				});
@@ -581,6 +575,38 @@ public class GuiBot extends Thread{
 			column.setText("Heuristique");
 			column.setWidth(225);
 		}
+	}
+	
+	/**
+	 * Initialise la fenetre du bot
+	 */
+	public void init() {
+
+		if (embbedType == GuiEmbbedType.STANDALONE) {
+
+			shell = new Shell (display, SWT.SHELL_TRIM);
+			shell.setText (clientCore.getName());
+			shell.setSize (LOOK_MIN_WIDTH, LOOK_MIN_HEIGHT);
+			shell.setLayout(new FillLayout());
+	
+			compositeHost = new Composite(shell, SWT.NONE);
+		}
+
+	
+		// manage the layout of the host composite
+		{
+			GridLayout layoutHost = new GridLayout(1, true);
+			layoutHost.horizontalSpacing = SWT.FILL;
+			
+			compositeHost.setLayout(layoutHost);
+			
+			compositeHost.setBackground(LOOK_COLOR_BACKGROUND_MAINSPACE);
+			
+			
+		}
+		
+		/* on ajoute les infos du bot */
+		addBotMenu(compositeHost);
 		
 		/* on ajoute les boutons */
 		{
@@ -641,16 +667,17 @@ public class GuiBot extends Thread{
 		}
 		
 		/* on raffraichit les labels */
+		labelDRole.setText(TXT_ROLE + DelegatingBotCore.roles[clientCore.getRole()]);
 		labelUpTime.setText(TXT_UPTIME + clientCore.getUpTime()/1000 + " s");		
 		labelNbIdeas.setText(TXT_NBIDEAS + clientCore.getNbIdeas());
 		labelNbComments.setText(TXT_NBCOMMENTS + clientCore.getNbComments());
 		labelNbTokens.setText(TXT_TOKENS + clientCore.getRemainingTokens());
 		
 		try {
-			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(clientCore.computeAdaptation()));
-			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(clientCore.computeCreativity()));
-			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(clientCore.computeRelevance()));
-			labelPersuation.setText(TXT_PERSUATION + String.valueOf(clientCore.computePersuasion()));
+			labelAdaptation.setText(TXT_ADAPTATION + String.valueOf(clientCore.computeAdaptation()) + " (" + clientCore.computeAdaptationRank() + "/" + clientCore.getAllPlayersIds().size() + ")");
+			labelCreativity.setText(TXT_CREATIVITY + String.valueOf(clientCore.computeCreativity()) + " (" + clientCore.computeCreativityRank() + "/" + clientCore.getAllPlayersIds().size() + ")");
+			labelRelevance.setText(TXT_RELEVANCE + String.valueOf(clientCore.computeRelevance()) + " (" + clientCore.computeRelevanceRank() + "/" + clientCore.getAllPlayersIds().size() + ")");
+			labelPersuation.setText(TXT_PERSUATION + String.valueOf(clientCore.computePersuasion()) + " (" + clientCore.computePersuasionRank() + "/" + clientCore.getAllPlayersIds().size() + ")");
 			updateHeuristicTable();
 
 		} catch (Exception e) {
@@ -788,8 +815,8 @@ public class GuiBot extends Thread{
 	{
 		int param;
 		
-		param = textReactivity.getSelectionIndex()+1;
-		clientCore.setReactivity(param);
+		param = textRole.getSelectionIndex();
+		clientCore.setRole(param);
 		
 		param = textCreativity.getSelectionIndex()+1;
 		clientCore.setCreativity(param);
@@ -810,11 +837,11 @@ public class GuiBot extends Thread{
 	private void getParams()
 	{
 		int param;
-		
-		if (!focusReactivity)
+
+		if (!focusRole)
 		{
-			param = clientCore.getReactivity();
-			textReactivity.select(param-1);
+			param = clientCore.getRole();
+			textRole.select(param);
 		}
 
 		if (!focusCreativity)
