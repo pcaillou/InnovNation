@@ -80,6 +80,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 
 	private static ArrayList<String> TXT_TOOLTIP_HIGH_SCORE;	
 	
+	public static String lastGameName = null;
+	
 	/**
 	 * Only relevant if mode != DISCONNECTED.
 	 */	
@@ -805,6 +807,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		if (gameServer == null) {
 			try {
 				gameServer = new GameServer(GameServer.SERVER_NAME);
+				lastGameName = GuiCreateGame.GAME_NAME;
 				
 				setServerMode(GuiServerMode.SERVER_WITHOUT_GAME);
 			} catch (Exception e) {
@@ -835,6 +838,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 			try {
 				gameServer = new GameServer(GameServer.SERVER_NAME, serverHost);
 				
+				lastGameName = GuiCreateGame.GAME_NAME;
+				
 				setServerMode(GuiServerMode.SERVER_WITHOUT_GAME);
 			} catch (Exception e) {
 				displayError("Error while creating the server, sorry", e);
@@ -856,8 +861,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 			return;	// user cancelled
 		
 		try {
-		
-			System.out.println("connexion a : " + toFetch);
 			connectToGame(toFetch);
 			
 		} catch (Exception e) {
@@ -919,8 +922,8 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		}
 		
 		try {
-			System.out.println("create game : " + serverName + "," + serverTheme);
 			gameServer.createGame(serverName, serverTheme);
+			lastGameName = serverName;
 		} catch (Exception e) {
 			displayError("Error while creating this game, sorry", e);
 		} 
@@ -933,8 +936,6 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		}
 		
 		try {
-
-			System.out.println("connexion a : " + "rmi://"+RMIUtils.getLocalHost().getHostAddress()+"/GAME_testServer_"+serverName);
 			connectToGame("rmi://"+RMIUtils.getLocalHost().getHostAddress()+"/GAME_testServer_"+serverName);
 			
 		} catch (Exception e) {

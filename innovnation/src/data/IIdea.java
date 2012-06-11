@@ -68,6 +68,19 @@ extends IGameObject {
 	 * @param v
 	 */
 	public void setIdeaValue(int v);
+
+	
+	/**
+	 * Retourne l'opinion d'une idee (servant au bot pour savoir si une idee est bonne ou non)
+	 * @return int[]
+	 */
+	public int[] getIdeaOpinion();
+	
+	/**
+	 * Met a jour l'opinion d'une idee (servant au bot pour savoir si une idee est bonne ou non)
+	 * @param o
+	 */
+	public void setIdeaOpinion(int[] o);
 	
 	public void betChanged(int nbTokens, IPlayer p, IGame g) throws RemoteException ;
 	

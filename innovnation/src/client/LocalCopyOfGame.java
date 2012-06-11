@@ -89,7 +89,15 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 	throws AlreadyExistsException, TooLateException, RemoteException {
 		return distantGame.addIdea(playerId, ideaName, ideaDesc, itemsIds, parentIdeasIds);
 	}
-
+	
+	public int addBotIdea(int authorId, String ideaName, String ideaDesc,
+			Collection<Integer> itemsIds, Collection<Integer> ideasIds,
+			int _value, int[] _opinion) throws AlreadyExistsException,
+			TooLateException, RemoteException {
+		// TODO Auto-generated method stub
+		return distantGame.addBotIdea(authorId, ideaName, ideaDesc, itemsIds, ideasIds,_value,_opinion);
+	} 
+	
 	@Override
 	public void makeIdeaParentOf(int authorId, int parentId,
 			Collection<Integer> ideasIds)
@@ -108,6 +116,12 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 	public int commentIdea(int playerId, int ideaId, String text, int tokens, CommentValence valence)
 			throws RemoteException {
 		return distantGame.commentIdea(playerId, ideaId, text, tokens, valence);
+
+	}
+
+	public int commentBotIdea(int playerId, int ideaId, String text, int tokens, CommentValence valence, int _value)
+			throws RemoteException {
+		return distantGame.commentBotIdea(playerId, ideaId, text, tokens, valence, _value);
 
 	}
 
@@ -481,6 +495,5 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 	}
 
 
-	
 	
 }

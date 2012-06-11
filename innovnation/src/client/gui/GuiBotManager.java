@@ -924,7 +924,10 @@ public class GuiBotManager extends Thread{
 			column.setWidth(75);
 			column = new TableColumn (heuristicsTable, SWT.NONE);
 			column.setText("Heuristique");
-			column.setWidth(225);
+			column.setWidth(175);
+			column = new TableColumn (heuristicsTable, SWT.NONE);
+			column.setText("Opinion");
+			column.setWidth(100);
 		}
 	}
 	
@@ -973,6 +976,11 @@ public class GuiBotManager extends Thread{
 			//labelRelevance.setText(TXT_RELEVANCE + "compute error");
 			//labelPersuation.setText(TXT_PERSUATION + "compute error");
 		}
+
+		if (bots.get(selectedBot).isUsingSemaphore())
+		{
+			bots.get(selectedBot).unlock();
+		}
 	}
 	
 	/**
@@ -983,6 +991,7 @@ public class GuiBotManager extends Thread{
 	{
 		int selection = heuristicsTable.getVerticalBar().getSelection();
 		HashMap<Integer,Long> heuristics = bots.get(selectedBot).getHeuristics();
+		HashMap<Integer,Double> opinions = bots.get(selectedBot).getOpinions();
 		
 		/* on trie la map pour obtenir les idees ayant les plus hautes valeurs en haut */
 		List<Integer> mapKeys = new ArrayList<Integer>(heuristics.keySet());
@@ -1018,6 +1027,15 @@ public class GuiBotManager extends Thread{
 		{
 			heuristicsTable.getItem(cursor).setText(0, bots.get(selectedBot).getGame().getIdea(h.getKey()).getShortName());					
 			heuristicsTable.getItem(cursor).setText(1, h.getValue().toString());
+			heuristicsTable.getItem(cursor).setText(2, opinions.get(h.getKey()).toString());
+			if (bots.get(selectedBot).getGame().getIdea(h.getKey()).getPlayerId() == bots.get(selectedBot).getPlayerId())
+			{
+				heuristicsTable.getItem(cursor).setBackground(new Color(Display.getCurrent(), 64,64,255));
+			}
+			else
+			{
+				heuristicsTable.getItem(cursor).setBackground(new Color(Display.getCurrent(),(int) (255*(1-opinions.get(h.getKey()))),(int) (255 * opinions.get(h.getKey())),0));
+			}
 			cursor++;
 		}
 		

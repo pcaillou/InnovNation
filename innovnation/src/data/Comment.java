@@ -66,6 +66,29 @@ public class Comment extends GameObject implements IComment {
 		Comment.indexCount++;		
 	}
 	
+	/**
+	 * Constructeur de Comment pour bot
+	 * @param authorId
+	 * @param commented
+	 * @param shortName
+	 * @param text
+	 * @param valence
+	 * @param tokens
+	 */
+	public Comment(int authorId, int commented, String shortName, String text, CommentValence valence, int tokens, int _value) {
+		super(authorId, shortName);
+		this.commented=commented;
+		this.valence=valence;
+		this.text=text;
+		this.tokens = tokens;
+		value = _value;
+		
+		/* on cree un nouvel index pour l'idee */
+		index = indexCount;
+		Comment.indexCount++;		
+	}
+	
+	
 	public void setIdea(IIdea _idea)
 	{
 		idea = _idea;

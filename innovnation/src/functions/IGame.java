@@ -146,6 +146,27 @@ public interface IGame extends IListenable, Remote, Serializable {
 	) throws AlreadyExistsException, TooLateException, RemoteException;
 	
 	/**
+	 * @param authorId the id of the author
+	 * @param ideaName the name of the new idea
+	 * @param itemsIds a collection of item ids to be made of
+	 * @param ideasIds a collection of idea ids to be parented with
+	 * @param value value of the idea
+	 * @param opinion of the idea
+	 * @return
+	 * @throws AlreadyExistsException if this idea is already existing
+	 * @throws TooLateException 
+	 * @throws RemoteException whe network is a problem
+	 */
+	int addBotIdea(int authorId,
+			String ideaName,
+			String ideaDesc,
+			Collection<Integer> itemsIds,
+			Collection<Integer> ideasIds,
+			int _value,
+			int[] opinion
+	) throws AlreadyExistsException, TooLateException, RemoteException;
+	
+	/**
 	 * Make an Idea parent of some others
 	 * @param authorId the id of the author
 	 * @param parentId the name of the affected idea
@@ -185,6 +206,19 @@ public interface IGame extends IListenable, Remote, Serializable {
 	int commentIdea(int playerId, int ideaId, String text) throws RemoteException;
 
 	int commentIdea(int playerId, int ideaId, String text, int tokens, CommentValence val) throws RemoteException;
+	
+	/**
+	 * Ajout de commentaire pour bot
+	 * @param playerId
+	 * @param ideaId
+	 * @param text
+	 * @param tokens
+	 * @param val
+	 * @param value : valeur de l'idee
+	 * @return
+	 * @throws RemoteException
+	 */
+	int commentBotIdea(int playerId, int ideaId, String text, int tokens, CommentValence val, int value) throws RemoteException;
 
 	/**
 	 * @param playerId

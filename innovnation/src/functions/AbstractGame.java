@@ -217,6 +217,28 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 		return id;
 	}
 
+	protected final int injectIdea(int playerId, String ideaName, String desc, Collection<Integer> itemsIds, Collection<Integer> parentIdeasIds, int _value, int[] _opinion)
+	throws AlreadyExistsException{
+		validateAsIdea(playerId, ideaName, itemsIds, parentIdeasIds);
+		
+		IIdea idea = new Idea(playerId, ideaName, desc, ideas, itemsIds,_value,_opinion); 
+
+		int id = idea.getUniqueId();
+		ideas.createNode(id, idea);
+
+		for(Integer parent : parentIdeasIds){
+			ideas.makeDepend(id, parent);
+			idea.addParentIndex(ideas.get(parent).getIndex());
+		}
+		if ( (id != rootIdeaId) && (parentIdeasIds.isEmpty()) ) {
+			// if no parent provided, but this idea is not a root idea, then automatically add the root idea as parent
+			ideas.makeDepend(id, rootIdeaId);
+		}
+		
+		ideaComments.put(id, new DefaultMutableTreeNode(idea));
+		return id;
+	}
+	
 	/**
 	 * injects an idea in this Game, but do not fire an event;
 	 * @param idea the idea to inject
@@ -299,6 +321,53 @@ public abstract class AbstractGame extends UnicastRemoteObject implements IGame{
 			(tokens==0)?CommentValence.NEUTRAL : 
 				(tokens>0)? CommentValence.POSITIVE : CommentValence.NEGATIVE;*/
 		IComment comment = new Comment(playerId, ideaId, shortText, text, valence, tokens); 
+
+		comment.setIndexSource(ideas.get((Integer)ideaId).getIndex());
+		comment.setIdea(ideas.get((Integer)ideaId));
+		
+		int id = comment.getUniqueId();
+		
+		DefaultMutableTreeNode node = new DefaultMutableTreeNode(comment);
+		ideaComments.get(ideaId).add(node);
+		fastCommentLookup.put(id, node);
+
+		try {
+			manageTokensForCreatedComment(comment);
+		} catch (RemoteException e) {
+			logger.debug("remote exception on token management for comment "+comment);
+		}
+		
+		return id;
+	}
+	
+	/**
+	 * Ajout de commentaire pour un bot
+	 * @param playerId
+	 * @param ideaId
+	 * @param text
+	 * @param tokens
+	 * @param valence
+	 * @return
+	 * @throws AlreadyExistsException
+	 */
+	protected final int injectIdeaComment(int playerId, int ideaId, String text, int tokens, CommentValence valence, int _value)
+	throws AlreadyExistsException{
+		
+		/* test choix id idea par index */
+		
+		validateAsIdeaComment(playerId, ideaId, text);
+		
+		String shortText = new StringBuilder("on ")
+				.append(ideas.get(ideaId).getShortName())
+				.append(" (by ")
+				.append(players.get(playerId).getShortName())
+				.append(')')
+				.toString();
+		
+		/*		CommentValence valence =
+			(tokens==0)?CommentValence.NEUTRAL : 
+				(tokens>0)? CommentValence.POSITIVE : CommentValence.NEGATIVE;*/
+		IComment comment = new Comment(playerId, ideaId, shortText, text, valence, tokens, _value); 
 
 		comment.setIndexSource(ideas.get((Integer)ideaId).getIndex());
 		comment.setIdea(ideas.get((Integer)ideaId));

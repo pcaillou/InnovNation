@@ -573,7 +573,10 @@ public class GuiBot extends Thread{
 			column.setWidth(75);
 			column = new TableColumn (heuristicsTable, SWT.NONE);
 			column.setText("Heuristique");
-			column.setWidth(225);
+			column.setWidth(175);
+			column = new TableColumn (heuristicsTable, SWT.NONE);
+			column.setText("Opinion");
+			column.setWidth(100);
 		}
 	}
 	
@@ -697,6 +700,7 @@ public class GuiBot extends Thread{
 	{
 		int selection = heuristicsTable.getVerticalBar().getSelection();
 		HashMap<Integer,Long> heuristics = clientCore.getHeuristics();
+		HashMap<Integer,Double> opinions = clientCore.getOpinions();
 		
 		/* on trie la map pour obtenir les idees ayant les plus hautes valeurs en haut */
 		List<Integer> mapKeys = new ArrayList<Integer>(heuristics.keySet());
@@ -732,6 +736,16 @@ public class GuiBot extends Thread{
 		{
 			heuristicsTable.getItem(cursor).setText(0, clientCore.getGame().getIdea(h.getKey()).getShortName());					
 			heuristicsTable.getItem(cursor).setText(1, h.getValue().toString());
+			heuristicsTable.getItem(cursor).setText(2, opinions.get(h.getKey()).toString());
+			heuristicsTable.getItem(cursor).setBackground(new Color(Display.getCurrent(), 128,128,128));
+			if (clientCore.getGame().getIdea(h.getKey()).getPlayerId() == clientCore.getPlayerId())
+			{
+				heuristicsTable.getItem(cursor).setBackground(new Color(Display.getCurrent(), 64,64,255));
+			}
+			else
+			{
+				heuristicsTable.getItem(cursor).setBackground(new Color(Display.getCurrent(),(int) (255*(1-opinions.get(h.getKey()))),(int) (255 * opinions.get(h.getKey())),0));
+			}
 			cursor++;
 		}
 		

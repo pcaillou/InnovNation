@@ -165,6 +165,34 @@ public class Game extends AbstractGame implements IServerSideGame {
 		return id;
 	}
 
+	public int addBotIdea(int authorId, String ideaName, String ideaDesc,
+			Collection<Integer> itemsIds, Collection<Integer> ideasIds,
+			int _value, int[] _opinion) throws AlreadyExistsException,
+			TooLateException, RemoteException {
+
+		/* on cree l'idee */
+		int id = injectIdea(authorId, ideaName, ideaDesc, itemsIds, ideasIds,_value,_opinion);
+
+		/* on ajoute aux logs du jeu l'ajout de l'idee */
+		ideaLPs.put(id, new IdeaLogPack(this, getIdea(id), getNow()));
+		
+		/* on joute aux logs statistique l'ajout de l'idee */
+		try {
+			log(authorId, LogType.idea, id, 
+				new StringBuilder(getIdea(id).toString())
+					.append(" by ")
+					.append(getPlayer(authorId).toString())
+					.toString()
+			);
+		} catch (IOException e) {
+			//TODO what shall I do?
+		}
+		
+		/* on lance un evenement indiquant la creation de l'idee */
+		fireIdeaCreatedEvent(authorId, id);
+		return id;
+	}
+	
 	/* (non-Javadoc)
 	 * @see functions.IGame#makeIdeaParentOf(int, int, java.util.Collection)
 	 */
@@ -239,6 +267,26 @@ public class Game extends AbstractGame implements IServerSideGame {
 		return id;
 	}
 	
+	public int commentBotIdea(int playerId, int ideaId, String text,
+			int tokens, CommentValence val, int value) throws RemoteException {
+		int id = injectIdeaComment(playerId, ideaId, text, tokens, val, value);
+
+		commentLPs.put(id, new CommentLogPack(this, getComment(id), getNow()));
+		try {
+			log(playerId, (tokens==0)?LogType.comment:LogType.vote, id, 
+				new StringBuilder(getComment(id).toString())
+					.append(" by ")
+					.append(getPlayer(playerId).toString())
+					.toString()
+			);
+		} catch (IOException e) {
+			//TODO what shall I do?
+		}
+		
+		fireCommentCreatedEvent(playerId, id);
+		return id;
+	}
+
 	
 	/* (non-Javadoc)
 	 * @see functions.IGame#commentItem(int, int, java.lang.String)
@@ -250,6 +298,8 @@ public class Game extends AbstractGame implements IServerSideGame {
 		return 0;
 	}
 
+	
+	
 	/* (non-Javadoc)
 	 * @see functions.IGame#answerComment(int, int, java.lang.String)
 	 */
@@ -598,6 +648,9 @@ public class Game extends AbstractGame implements IServerSideGame {
 		//mettre à jour les données de temps
 		playerLPs.get(playerId).noticeAction(now);
 	}
-	
-	
+
+
+
+
+
 }

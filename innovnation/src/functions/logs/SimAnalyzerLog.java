@@ -14,7 +14,7 @@ import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
 import org.ujmp.core.exceptions.MatrixException;
 
-import client.gui.GuiCreateGame;
+import client.gui.GuiTestMain;
 import functions.Game;
 
 public class SimAnalyzerLog {
@@ -28,7 +28,14 @@ public class SimAnalyzerLog {
 	public static void generateSimAnalyzerLog()
 	{
 		/* on recharge le fichier pour le transformer en log pour SimAnalyzer */
-        File fileSource = new File(GuiCreateGame.GAME_NAME + ".csv");
+        File fileSource = new File(GuiTestMain.lastGameName + ".csv");
+        
+        if (GuiTestMain.lastGameName == null)
+        {
+        	System.out.println("no game found in this process, nothing generated");
+        	return;
+        }
+        System.out.println("import de " + GuiTestMain.lastGameName + ".csv");
         
         Matrix matrix;
         
@@ -177,7 +184,7 @@ public class SimAnalyzerLog {
 			}
 		
 			/* on sauvegarde la matrice dans un fichier */
-			String line,filename = GuiCreateGame.GAME_NAME + "_logp_symLog.csv";
+			String line,filename = GuiTestMain.lastGameName + "_logp_symLog.csv";
 			try
 			{
 				FileWriter fw = new FileWriter(filename, false);
@@ -335,7 +342,7 @@ public class SimAnalyzerLog {
 			}
 			
 			/* on sauvegarde la matrice dans un fichier */
-			String line,filename = GuiCreateGame.GAME_NAME + "_logi_symLog.csv";
+			String line,filename = GuiTestMain.lastGameName + "_logi_symLog.csv";
 			try
 			{
 				FileWriter fw = new FileWriter(filename, false);

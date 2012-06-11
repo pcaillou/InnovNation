@@ -35,12 +35,14 @@ public class DelegatingBotCore extends ClientCore
 	public final static int ACTION_VOTE = 0;
 	public final static int ACTION_IDEA = 1;
 	public final static int ACTION_NOTHING = 2;
+	public final static int TOTAL_OPINION = 10;
 	
 	public static final String[] roles = {"Custom","Random","Persuasif","Creatif","Adaptatif","Pertinent"};
 	public static final int[][] rolesParams = 
 		{{-1,-1,-1,-1},{-1,-1,-1,-1},{3,3,3,10},{10,3,3,3},{3,3,10,3},{3,10,3,3}};
-	public final static int BOT_BASE_SPEED = 2500;
+	public final static int BOT_BASE_SPEED = 10000;
 	public final static String BOT_NAME = "Wall-e ";
+	
 	
 	public final static int PARAM_MAX_VALUE = 10;
 	
@@ -67,7 +69,11 @@ public class DelegatingBotCore extends ClientCore
 	
 	private IEventListener listener;
 	
+	/* valeur calculée de la valeur d'une idee */
 	private HashMap<Integer, Long> lastHeuristics;
+	/* opinion personnelle d'une idee */
+	private HashMap<Integer, Double> ideasOpinion; 
+	public int[] opinion;
 	
 	/* liste des parametres */
 	private int role;		/* role choisis dans la liste des roles */
@@ -75,6 +81,20 @@ public class DelegatingBotCore extends ClientCore
 	private int relevance;  /* capacite a suivre les bonnes idees */
 	private int adaptation; /* capacite a suivre les autres commentaires */
 	private int persuation; /* capacite a convaincre les autres de suivre ses commentaires */
+	
+	public static double computeOpinionsSimilarity(int[] op1, int[] op2)
+	{
+		double result = 0;
+		for (int i = 0 ; i < TOTAL_OPINION ; i++)
+		{
+			if (op1[i] == op2[i])
+			{
+				result++;
+			}
+		}
+		result /= TOTAL_OPINION;
+		return result;
+	}
 	
 	/**
 	 * Cree un bot avec le listener fourni
@@ -85,6 +105,7 @@ public class DelegatingBotCore extends ClientCore
 		if(ui==null) throw new NullPointerException();
 		listener = ui;
 		lastHeuristics = new HashMap<Integer, Long>();
+		ideasOpinion = new HashMap<Integer, Double>();
 		
 		timeCreation = System.currentTimeMillis();
 		nextAction = getNextAction(timeCreation) ;
@@ -105,6 +126,13 @@ public class DelegatingBotCore extends ClientCore
 		adaptation = rolesParams[role][2];
 		persuation = rolesParams[role][3];
 		
+		/* on cree l'opinion du bot */
+		opinion = new int[TOTAL_OPINION];
+		for (int i = 0 ; i < TOTAL_OPINION ; i++)
+		{
+			opinion[i] = (int) (Math.random()*2);
+			
+		}
 		//TypeScore.adaptation.calculer(g, playerId)
 	}
 
@@ -202,14 +230,6 @@ public class DelegatingBotCore extends ClientCore
 		
 		/* on calcule le nombre d'idees source */
 		Integer nbSources = 1;
-		/*if (Math.random()*100 <= 95)
-		{
-			nbSources = 1;
-		}
-		else
-		{
-			nbSources = 2;
-		}*/
 		
 		/* on recupere les idees sources */
 		Collection<Integer> sources = new ArrayList<Integer>();
@@ -257,12 +277,12 @@ public class DelegatingBotCore extends ClientCore
 				int worst = 0;
 				for (int i = 0 ; i < bests.size() ; i++)
 				{
-					if (lastHeuristics.get(bests.get(worst)) > lastHeuristics.get(bests.get(i)))
+					if (lastHeuristics.get(bests.get(worst))*ideasOpinion.get(bests.get(worst)) > lastHeuristics.get(bests.get(i))*ideasOpinion.get(bests.get(i)))
 					{
 						worst = i;
 					}
 				}
-				if (lastHeuristics.get(bests.get(worst)) < s.getValue())
+				if (lastHeuristics.get(bests.get(worst))*ideasOpinion.get(bests.get(worst)) < s.getValue()*ideasOpinion.get(s.getKey()))
 				{
 					bests.remove(worst);
 					bests.add(s.getKey());
@@ -272,14 +292,14 @@ public class DelegatingBotCore extends ClientCore
 		
 		for (Integer i : bests)
 		{
-			heuristicSum += lastHeuristics.get(i);
+			heuristicSum += lastHeuristics.get(i)*ideasOpinion.get(i);
 		}
 		
 		/* on calcune le nombre de tokens que doit avoir une idee */
 		for (Integer i : bests)
 		{
 			tokensMap.put(i, 
-					(int) Math.min(((10 * relevance * lastHeuristics.get(i) / heuristicSum) + (10 * adaptation * tokensIdea / getGame().getAllPlayers().size())) / (relevance + adaptation),10));
+					(int) Math.min(((10 * relevance * lastHeuristics.get(i)*ideasOpinion.get(i) / heuristicSum) + (10 * adaptation * tokensIdea / getGame().getAllPlayers().size())) / (relevance + adaptation),10));
 		}
 		
 		/* on calcule le nombre de tokens necessaire a l'idee */
@@ -312,13 +332,18 @@ public class DelegatingBotCore extends ClientCore
 		}
 		else if (tokensToGive == 0)
 		{
-			/* on fait un commentaire neutre */
-			createComment(id, 0, CommentValence.NEUTRAL);
+			/* on fait un commentaire neutre ou negatif selon l'opinion */
+			if (ideasOpinion.get(id) <= Math.random())
+			{
+				createComment(id, 0, CommentValence.NEGATIVE);
+			}
+			else
+			{
+				createComment(id, 0, CommentValence.NEUTRAL);
+			}
 		}
 		else
 		{
-			/* on fait un commentaire negatif */
-			
 			/* on retire une partie des tokens donnes */
 			createComment(id,tokensToGive,CommentValence.NEGATIVE);
 			
@@ -370,7 +395,7 @@ public class DelegatingBotCore extends ClientCore
 				int removed = Math.min(getCurrentIdeasTokensL().get(worstIdea),tokensCount);
 				alreadySeenIdeas.add(worstIdea);
 				tokensCount -= removed;
-				createComment(worstIdea, -removed, CommentValence.NEUTRAL);
+				createComment(worstIdea, -removed, CommentValence.NEGATIVE);
 			}
 		}
 	}
@@ -489,11 +514,24 @@ public class DelegatingBotCore extends ClientCore
 			return 0;
 		}
 		
+		/* si le bot n'a aucune opinion, on en cree une */
+		if (!ideasOpinion.containsKey(id))
+		{
+			if (getIdea(id).getPlayerId() == getPlayerId())
+			{
+				ideasOpinion.put(id,1d);
+			}
+			else
+			{
+				ideasOpinion.put(id,computeOpinionsSimilarity(opinion,getIdea(id).getIdeaOpinion()));
+			}
+		}
+		
 		long time = System.currentTimeMillis();
 		double timeElapsed = time - idea.getCreationDate();
 		
 		/* on recupere la valeur d'une idee, multipliee par la pertinence du bot (pour qu'il la repere plus facilement) */
-		long ideaValue = (long) (idea.getIdeaValue() * relevance * (1-(timeElapsed / (BOT_BASE_SPEED*6 + timeElapsed))));
+		long ideaValue = (long) (idea.getIdeaValue() * relevance );//* (1-(timeElapsed / (BOT_BASE_SPEED*30 + timeElapsed))));
 		
 		/* on recupere les commentaires de l'idee, chaque commentaire etant valué par la persuasion de la source et l'adaptation du bot */
 		long commentValue = 0;
@@ -509,7 +547,7 @@ public class DelegatingBotCore extends ClientCore
 				}
 				else if (c.getValence() == CommentValence.NEGATIVE)
 				{
-					actualCommentValue *= -1;
+					actualCommentValue *= -2;
 				}
 				commentValue += actualCommentValue;
 
@@ -624,6 +662,15 @@ public class DelegatingBotCore extends ClientCore
 	public HashMap<Integer,Long> getHeuristics()
 	{
 		return lastHeuristics;
+	}
+	
+	/**
+	 * Retourne les opinions sur toutes les idees
+	 * @return HashMap<Integer,Double>
+	 */
+	public HashMap<Integer,Double> getOpinions()
+	{
+		return ideasOpinion;
 	}
 	
 	/**
@@ -886,7 +933,14 @@ public class DelegatingBotCore extends ClientCore
 		lock();		
 		ideaCount++;
 		Integer value = (int) ((creativity-1) * IIdea.IDEA_MAX_VALUE / 10 + (Math.random() * (IIdea.IDEA_MAX_VALUE/10)));
-		getGame().addIdea(getPlayerId(),"Idea " + ideaCount, "this idea has a value of " + value, new ArrayList<Integer>(), sources);
+		int[] newOpinion = opinion.clone();
+		for (int i =  (int) Math.sqrt(TOTAL_OPINION) ; i >= 1 ; i--)
+		{
+			newOpinion[i] = newOpinion[i]==1?0:1;
+		}	
+		
+		getGame().addBotIdea(getPlayerId(),"Idea " + ideaCount, "this idea has a value of " + value, new ArrayList<Integer>(), sources, value, newOpinion);
+
 		nbIdeas++;
 		unlock();
 
@@ -912,8 +966,9 @@ public class DelegatingBotCore extends ClientCore
 		{
 			lock();
 			commentCount++;
-			Integer value = (int)(Math.random() * (IComment.COMMENT_MAX_VALUE * (creativity*creativity) / 10 ));
-			getGame().commentIdea(getPlayerId(), idea, "value of " + value, tokens, valence);
+			Integer value = (int) ((persuation-1) * IComment.COMMENT_MAX_VALUE / 10 + (Math.random() * (IComment.COMMENT_MAX_VALUE/10)));
+			getGame().commentBotIdea(getPlayerId(), idea, "value of " + value, tokens, valence, value);
+			//getGame().getComment(id).setCommentValue(value);
 			spendTokens(tokens);
 			nbComments++;
 			unlock();

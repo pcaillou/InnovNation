@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import org.apache.log4j.Logger;
 
 import util.graph.Dag;
+import client.DelegatingBotCore;
 import client.LocalCopyOfGame;
 import functions.IGame;
 
@@ -40,6 +41,8 @@ public final class Idea extends GameObject implements IIdea {
 	private int value;
 	
 	private ArrayList<Integer> parentsIndexs;
+	
+	private int[] opinion;
 	
 	LinkedList<Integer> items = null;
 
@@ -70,12 +73,43 @@ public final class Idea extends GameObject implements IIdea {
 		else this.items = new LinkedList<Integer>(itemsIds);
 		this.graphIdeas = graphIdeas;
 		this.desc = createIdeaDescWithReturn(desc);
-		value =(int)(Math.random() * IIdea.IDEA_MAX_VALUE);
 		
 		/* on cree un nouvel index pour l'idee */
 		parentsIndexs = new ArrayList<Integer>();
 		index = indexCount;
 		Idea.indexCount++;
+		
+		/* on ajoute une opinion au hazard pour les bots */
+		opinion = new int[DelegatingBotCore.TOTAL_OPINION];
+		for (int i = 0 ; i < DelegatingBotCore.TOTAL_OPINION ; i++)
+		{
+			opinion[i] = (int) (Math.random()*2);
+			
+		}
+		/* on ajoute une valeur a l'idee pour les bots */
+		value =(int)(Math.random() * IIdea.IDEA_MAX_VALUE);
+	}
+	
+	/**
+	 * Constructeur d'Idea pour bot
+	 * @param descInit
+	 * @return
+	 */
+	public Idea(int authorId, String name, String desc, Dag<Integer, IIdea> graphIdeas, Collection<Integer> itemsIds, int _value, int[] _opinion) {
+		super(authorId, name);
+		if(graphIdeas==null) throw new NullPointerException("new Idea can't have a null graph");
+		if(itemsIds==null) this.items = new LinkedList<Integer>();
+		else this.items = new LinkedList<Integer>(itemsIds);
+		this.graphIdeas = graphIdeas;
+		this.desc = createIdeaDescWithReturn(desc);
+		
+		/* on cree un nouvel index pour l'idee */
+		parentsIndexs = new ArrayList<Integer>();
+		index = indexCount;
+		Idea.indexCount++;
+		
+		opinion = _opinion;
+		value = _value;
 	}
 	
 	private String createIdeaDescWithReturn(String descInit) {
@@ -385,5 +419,15 @@ public final class Idea extends GameObject implements IIdea {
 	
 	public void setIdeaValue(int v) {
 		value = v;
+	}
+
+	public int[] getIdeaOpinion()
+	{
+		return opinion;
+	}
+	
+	public void setIdeaOpinion(int[] o)
+	{
+		opinion = o;
 	}
 }
