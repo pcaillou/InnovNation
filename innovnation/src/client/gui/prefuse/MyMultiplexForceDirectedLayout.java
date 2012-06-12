@@ -69,7 +69,7 @@ public final class MyMultiplexForceDirectedLayout extends ForceDirectedLayout {
 		{
 			float val=type.edgeSpringLength;
 			int nbf=e.getSourceNode().getDegree()+e.getTargetNode().getDegree();
-			val=(float)(val*Math.min(MAXCOEFLENGTH,(1.0+nbf*this.COEFLENGTH)));
+			val=(float)(val*Math.min(MAXCOEFLENGTH,(1.0+nbf*COEFLENGTH)));
 			return val;
 		}
 		

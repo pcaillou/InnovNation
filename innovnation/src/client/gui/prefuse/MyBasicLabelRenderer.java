@@ -15,7 +15,7 @@ import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 import java.rmi.RemoteException;
 
-import javax.swing.ImageIcon;
+//import javax.swing.ImageIcon;
 
 import prefuse.Constants;
 import prefuse.render.AbstractShapeRenderer;
