@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
-import org.graphstream.graph.Edge;
-import org.graphstream.ui.swingViewer.Viewer;
-
 import data.IComment;
 import data.IIdea;
 import data.IItem;
@@ -26,49 +23,14 @@ public class GraphLogPack implements LogPack {
 	private static GraphInnovNation graph;
 	
 
-	private Collection<String> nbVotesList;
-	private Collection<String> weightVotesList;
-	private Collection<String> persuasionList;
 	private Collection<String> innovNationList;
-	private HashMap<Integer,Collection<String>> logPNbVotes;
-	private HashMap<Integer,Collection<String>> logPWeightVotes;
-	private HashMap<Integer,Collection<String>> logPPersuasion;	
 	private Collection<String> logPInnovNation;
 	private Collection<String> logIInnovNation;
 
-	
-	public static Viewer getInnovGraphViewer()
-	{
-		try {
-			return graph.displayGraph();
-		} catch (GraphInnovNationException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	public static Viewer getVoteGraphViewer()
-	{
-		return graph.getNbVoteGraph().displayGraph(Long.MAX_VALUE);
-	}
-	public static Viewer getWeightVoteGraphViewer()
-	{
-		return graph.getWeightVoteGraph().displayGraph(Long.MAX_VALUE);
-	}
-	public static Viewer getPersuasionGraphViewer()
-	{
-		return graph.getPersuasionGraph().displayGraph(Long.MAX_VALUE);
-	}
-	
 	public GraphLogPack(Game _game)
 	{
 		game = _game;
-		nbVotesList = new ArrayList<String>();
-		weightVotesList = new ArrayList<String>();
-		persuasionList = new ArrayList<String>();
 		innovNationList = new ArrayList<String>();
-		logPNbVotes = new HashMap<Integer, Collection<String>>();
-		logPWeightVotes = new HashMap<Integer, Collection<String>>();
-		logPPersuasion = new HashMap<Integer, Collection<String>>();
 		logPInnovNation = new ArrayList<String>();
 		logIInnovNation = new ArrayList<String>();
 		try {
@@ -114,12 +76,12 @@ public class GraphLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		StringBuilder sb = new StringBuilder("nbVoteGraph;weightVoteGraph;persuasionGraph;InnovNationGraph;");
+		StringBuilder sb = new StringBuilder("InnovNationGraph;");
 		return sb.toString(); 
 	}
 
 	static public String zeros() {
-		StringBuilder sb = new StringBuilder("[];[];[];[];");
+		StringBuilder sb = new StringBuilder("[];");
 		return sb.toString(); 
 	}
 
@@ -127,66 +89,14 @@ public class GraphLogPack implements LogPack {
 		StringBuilder sb = new StringBuilder();
 
 		/* nouvelles liste de log des sous graphes */
-		Collection<String> newNbVotesList = graph.getNbVoteGraph().toStringArray();
-		Collection<String> newWeightVotesList = graph.getWeightVoteGraph().toStringArray();
-		Collection<String> newPersuasionList = graph.getPersuasionGraph().toStringArray();
 		Collection<String> newInnovNationList = graph.toStringArray();
-		
-		/* listes contenant la difference entre les nouvelles logs et les anciennes */
-		Collection<String> diffNbVotesList = new ArrayList<String>();
-		Collection<String> diffWeightVotesList = new ArrayList<String>();
-		Collection<String> diffPersuasionList = new ArrayList<String>();
 		Collection<String> diffInnovNationList = new ArrayList<String>();
 		
-		diffNbVotesList.addAll(newNbVotesList);
-		diffNbVotesList.removeAll(nbVotesList);
-		diffWeightVotesList.addAll(newWeightVotesList);
-		diffWeightVotesList.removeAll(weightVotesList);
-		diffPersuasionList.addAll(newPersuasionList);
-		diffPersuasionList.removeAll(persuasionList);
 		diffInnovNationList.addAll(newInnovNationList);
 		diffInnovNationList.removeAll(innovNationList);
 		
-		nbVotesList = newNbVotesList;
-		weightVotesList = newWeightVotesList;
-		persuasionList = newPersuasionList;
 		innovNationList = newInnovNationList;
-		
-		/* on ajoute les nouvelles logs du graphe nbVotes */
 		String list = "";
-		for (String s : diffNbVotesList)
-		{
-			if (list.length() > 0)
-			{
-				list += DynamicGraph.SEPARATOR;
-			}
-			list += s;
-		}
-		sb.append(DynamicGraph.LEFT_BRACE).append(list).append(DynamicGraph.RIGHT_BRACE).append(';');
-
-		/* on ajoute les nouvelles logs du graphe weightVotes */
-		list = "";
-		for (String s : diffWeightVotesList)
-		{
-			if (list.length() > 0)
-			{
-				list += DynamicGraph.SEPARATOR;
-			}
-			list += s;
-		}
-		sb.append(DynamicGraph.LEFT_BRACE).append(list).append(DynamicGraph.RIGHT_BRACE).append(';');
-
-		/* on ajoute les nouvelles logs du graphe persuasion */
-		list = "";
-		for (String s : diffPersuasionList)
-		{
-			if (list.length() > 0)
-			{
-				list += DynamicGraph.SEPARATOR;
-			}
-			list += s;
-		}
-		sb.append(DynamicGraph.LEFT_BRACE).append(list).append(DynamicGraph.RIGHT_BRACE).append(';');
 
 		/* on ajoute les nouvelles logs du graphe innovNation */
 		list = "";
@@ -206,103 +116,22 @@ public class GraphLogPack implements LogPack {
 	public HashMap<Integer,String> getLogpLogs(int time) throws IOException
 	{
 		HashMap<Integer,String> result = new HashMap<Integer,String>();
-		HashMap<Integer,Collection<String>> newLogPNbVotes = new HashMap<Integer,Collection<String>>();
-		HashMap<Integer,Collection<String>> newLogPWeightVotes = new HashMap<Integer,Collection<String>>();
-		HashMap<Integer,Collection<String>> newLogPPersuasions = new HashMap<Integer,Collection<String>>();
 		Collection<String> newLogPInnovNation = new ArrayList<String>();
 		
 		/* on genere les nouvelles logPList */
 		GraphInnovNation graph2 = graph.clone();
-		graph2.divideTime(SimAnalyzerLog.SYM_LOGP_STEP);
 		
-		DynamicGraph gNbVotes = graph2.getNbVoteGraph();
-		DynamicGraph gWeightVotes = graph2.getWeightVoteGraph();
-		DynamicGraph gPersuasion = graph2.getPersuasionGraph();
 		GraphInnovNation gInnovNation = graph2.clone();
 
-		Collection<String> edges;
-		boolean innovGraphAdded = false;
-		for(Integer p : game.getAllPlayersIds())
-		{
-			/* on recupere la liste des arcs + declaration node pour le joueur p sur le graphe nbVotes */
-			edges = new ArrayList<String>();
-			
-			edges.add(gNbVotes.nodeToString(gNbVotes.getNode(p.toString())));
-			
-			for (Edge e : gNbVotes.getNode(p.toString()).getEachLeavingEdge())
-			{
-				edges.add(gNbVotes.edgeToString(e));
-			}
-			
-			newLogPNbVotes.put(p, edges);
-
-			/* on recupere la liste des arcs + declaration node pour le joueur p sur le graphe weightVotes */
-			edges = new ArrayList<String>();
-			
-			edges.add(gWeightVotes.nodeToString(gWeightVotes.getNode(p.toString())));
-			
-			for (Edge e : gWeightVotes.getNode(p.toString()).getEachLeavingEdge())
-			{
-				edges.add(gWeightVotes.edgeToString(e));
-			}
-			
-			newLogPWeightVotes.put(p, edges);
-
-			/* on recupere la liste des arcs + declaration node pour le joueur p sur le graphe persuasion */
-			edges = new ArrayList<String>();
-			
-			edges.add(gPersuasion.nodeToString(gPersuasion.getNode(p.toString())));
-			
-			for (Edge e : gPersuasion.getNode(p.toString()).getEachLeavingEdge())
-			{
-				edges.add(gPersuasion.edgeToString(e));
-			}
-			
-			newLogPPersuasions.put(p, edges);
-			
-			
-			if(!innovGraphAdded)
-			{
-				newLogPInnovNation = gInnovNation.toStringArray();
-				innovGraphAdded = true;
-			}
-		}
+		newLogPInnovNation = gInnovNation.toStringArray();
 
 		/* on calcule la difference pour chaque logP et on l'ajoute au resultat */
 		Collection<String> difference = new ArrayList<String>();
-		innovGraphAdded = false;
+		boolean innovGraphAdded = false;
 		for(Integer p : game.getAllPlayersIds())
 		{
 			result.put(p,"");
 			
-			if (!logPNbVotes.containsKey(p))
-			{
-				logPNbVotes.put(p,new ArrayList<String>());
-			}
-			difference.addAll(newLogPNbVotes.get(p));
-			difference.removeAll(logPNbVotes.get(p));
-			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
-			difference.clear();
-			
-			if (!logPWeightVotes.containsKey(p))
-			{
-				logPWeightVotes.put(p,new ArrayList<String>());
-			}
-			difference.addAll(newLogPWeightVotes.get(p));
-			difference.removeAll(logPWeightVotes.get(p));
-			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
-			difference.clear();
-			
-			if (!logPPersuasion.containsKey(p))
-			{
-				logPPersuasion.put(p,new ArrayList<String>());
-			}
-			difference.addAll(newLogPPersuasions.get(p));
-			difference.removeAll(logPPersuasion.get(p));
-			result.put(p, result.get(p) + DynamicGraph.tabToString(difference) + ";");
-			difference.clear();
-
-
 			if(!innovGraphAdded)
 			{
 				difference.addAll(newLogPInnovNation);
@@ -316,13 +145,6 @@ public class GraphLogPack implements LogPack {
 				result.put(p, result.get(p) + GraphInnovNation.tabToString(new ArrayList<String>())+ ";");
 			}
 		}
-		
-		logPNbVotes.clear();
-		logPNbVotes.putAll(newLogPNbVotes);
-		logPWeightVotes.clear();
-		logPWeightVotes.putAll(newLogPWeightVotes);
-		logPPersuasion.clear();
-		logPPersuasion.putAll(newLogPPersuasions);
 		logPInnovNation.clear();
 		logPInnovNation.addAll(newLogPInnovNation);
 		
@@ -337,40 +159,29 @@ public class GraphLogPack implements LogPack {
 		
 		/* on genere les nouvelles logIList */
 		GraphInnovNation graph2 = graph.clone();
-		graph2.divideTime(SimAnalyzerLog.SYM_LOGP_STEP);
 		
 		GraphInnovNation gInnovNation = graph2.clone();
 
 		//Collection<String> edges;
-		boolean innovGraphAdded = false;
-		for(@SuppressWarnings("unused") IIdea i : game.getAllIdeas())
-		{
-			if(!innovGraphAdded)
-			{
-				newLogIInnovNation = gInnovNation.toStringArray();
-				innovGraphAdded = true;
-			}
-		}
+		newLogIInnovNation = gInnovNation.toStringArray();
 
 		/* on calcule la difference pour chaque logP et on l'ajoute au resultat */
 		Collection<String> difference = new ArrayList<String>();
-		innovGraphAdded = false;
+		boolean innovGraphAdded = false;
 		for(IIdea i : game.getAllIdeas())
 		{
-			/* les 3 premiers graphes sont pour player, on les saute */
-			result.put(i.getUniqueId(),"[];[];[];");
 
 			if(!innovGraphAdded)
 			{
 				difference.addAll(newLogIInnovNation);
 				difference.removeAll(logIInnovNation);
-				result.put(i.getUniqueId(), result.get(i.getUniqueId()) + GraphInnovNation.tabToString(difference) + ";");
+				result.put(i.getUniqueId(), GraphInnovNation.tabToString(difference) + ";");
 				difference.clear();
 				innovGraphAdded = true;
 			}
 			else
 			{
-				result.put(i.getUniqueId(), result.get(i.getUniqueId()) + GraphInnovNation.tabToString(new ArrayList<String>())+ ";");
+				result.put(i.getUniqueId(), GraphInnovNation.tabToString(new ArrayList<String>())+ ";");
 			}
 		}
 		

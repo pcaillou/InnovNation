@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.graphstream.graph.Edge;
+import org.graphstream.graph.IdAlreadyInUseException;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.swingViewer.Viewer;
@@ -377,13 +378,21 @@ public class GraphInnovNation extends MultiGraph{
 		e.addAttribute("ui.class","has_idea");
 		e.addAttribute("ui.label",IDEA_HAS_LABEL);
 		e.addAttribute(TIME_ADD, timeAdd);
-		
+
 		for (String idIdea : ideaSourceIds)
 		{
-			e = addEdge(idIdea + " from " + ideaId, ideaId, idIdea, true);
-			e.addAttribute("ui.class","fromidea");
-			e.addAttribute("ui.label",IDEA_FROM_LABEL);
-			e.addAttribute(TIME_ADD, timeAdd);
+			try
+			{
+				e = addEdge(idIdea + " from " + ideaId, ideaId, idIdea, true);
+				e.addAttribute("ui.class","fromidea");
+				e.addAttribute("ui.label",IDEA_FROM_LABEL);
+				e.addAttribute(TIME_ADD, timeAdd);
+			}
+			catch(IdAlreadyInUseException ex)
+			{
+				System.err.println("Error : impossible to add edge : " + idIdea + " from " + ideaId);
+			}
+
 		}
 		lastEventTime = Math.max(lastEventTime, timeAdd);
 	}
@@ -800,7 +809,7 @@ public class GraphInnovNation extends MultiGraph{
      * Retourne le graphe de persuasion ou chaque arc indique le nombre de points de persuation que donne chaque joueur a un autre
      * @return DynamicGraph
      */
-    public DynamicGraph getPersuasionGraph()
+    public DynamicGraph getPersuationGraph()
     {
 		DynamicGraph g = new DynamicGraph();
 		
@@ -989,19 +998,26 @@ public class GraphInnovNation extends MultiGraph{
     }
     
     /**
-     * Retourne un GraphGeneric ou chaque branche contient le nombre de vote de chaque joueur envers un autre joueur (pour une de ses idees)
-     * @return GraphGeneric des votes
+     * Retourne le graphe des tokens ou chaque branche contient les tokens donnes a chaque idee
+     * @return DynamicGraph
      */
-    public DynamicGraph getNbVoteGraph()
+    public DynamicGraph getTokenGraph()
     {
     	DynamicGraph g = new DynamicGraph();
-    	Node player,target;
+    	Node player;
     	
     	/* on ajoute les joueurs */
     	for (Integer p : players)
     	{
     		g.addNode((String)getNode(p).getAttribute("ID"));
     	}
+    	
+    	/* on ajoute les idees */
+    	for (Integer p : ideas)
+    	{
+    		g.addNode("i"+(String)getNode(p).getAttribute("ID"));
+    	}
+    	
     	/* on ajoute la racine */
     	g.addNode("root");
     	
@@ -1028,129 +1044,62 @@ public class GraphInnovNation extends MultiGraph{
         		sortedVoteList.add(index, v);
     		}
     		
+    		/* pour chaque arc, on rajoute au graphe ceux ajoutant des tokens */
     		for (Edge e : sortedVoteList)
     		{
-    			if (e.getAttribute(VOTE_NOTE) != null)
+    			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST);
+    			//{timeAdd,vote,valence}
+    			
+    			if (hist == null)
     			{
-    				/* on a un arc vote, on l'ajoute au graphe */
-    				
-    				target = getNode((String)e.getOpposite(player).getAttribute(PLAYER_SOURCE));
-    				
-    				/* on augmente le poids de l'arc ou on le cree s'il n'existe pas */
-    				
-    				long timeAdd = (Long)e.getAttribute(TIME_ADD);
-    				Node nSource = g.getNode((String)player.getAttribute("ID")),
-    					 nTarget;
-    				int weight = 0;
-    				
-        			if (target == null)
-        			{
-        				nTarget = g.getNode("root");
-        			}
-        			else
-        			{
-        				nTarget = g.getNode((String)target.getAttribute("ID"));
-        			}
-        			
-        			/* on ajoute l'arc de base puis ceux de l'historique */        			
-        			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST); 
-        			
-        			for (long[] h : hist)
-        			{
-        				weight ++;
-        				timeAdd = h[0];
-        	    		g.insertEdge(nSource.getId(),nTarget.getId(), weight, timeAdd, Long.MAX_VALUE);
-        			}
+    				continue;
+    			}
+    			
+    			Node n = e.getOpposite(player);
+    			
+    			for (long[] h : hist)
+    			{
+    				if (h[1] != 0)
+    				{
+    					g.insertEdge((String)player.getAttribute("ID"), "i"+(String)n.getAttribute("ID"), (int)h[1], h[0],Long.MAX_VALUE);
+    				}
     			}
     		}
-    		
     	}
     	
     	return g;
     }
     
     /**
-     * Retourne un GraphGeneric ou chaque branche contient la somme des votes de chaque joueur envers un autre joueur (pour une de ses idees)
-     * @return GraphGeneric des votes
+     * Retourne un graphe d'idees
+     * @return DynamicGraph
      */
-    public DynamicGraph getWeightVoteGraph()
+    public DynamicGraph getIdeaGraph()
     {
     	DynamicGraph g = new DynamicGraph();
-    	Node player,target;
+    	Node idea;
     	
-    	/* on ajoute les joueurs */
-    	for (Integer p : players)
+    	/* on ajoute les idees */
+    	for (Integer p : ideas)
     	{
     		g.addNode((String)getNode(p).getAttribute("ID"));
     	}
-    	/* on ajoute la racine */
-    	g.addNode("root");
     	
-    	for (Integer p : players)
+    	for (Integer p : ideas)
     	{
-    		player = getNode(p);
+    		idea = getNode(p);
     		
-    		/* on recupere la liste des arcs sortant puis on les trie par date d'ajout */
-    		Collection<Edge> voteList = player.getLeavingEdgeSet();
-    		ArrayList<Edge> sortedVoteList = new ArrayList<Edge>();
-    		
-    		for (Edge v : voteList)
+    		/* on recupere la liste des sources depuis les arcs sortant puis on cree les liens*/
+    		for (Edge e : idea.getLeavingEdgeSet())
     		{
-    			
-    			int index = 0;
-    			long time = v.getAttribute(TIME_ADD);
-    			
-    			for (index = 0 ; index < sortedVoteList.size(); index++)
-    			{
-    				if (time < (Long)sortedVoteList.get(index).getAttribute(TIME_ADD))
-    				{
-    					break;
-    				}
-    			}
-        		sortedVoteList.add(index, v);
-    		}
-    		
-    		for (Edge e : sortedVoteList)
-    		{
-    			if (e.getAttribute(VOTE_NOTE) != null)
-    			{
-    				/* on a un arc vote, on l'ajoute au graphe */
-    				target = getNode((String)e.getOpposite(player).getAttribute(PLAYER_SOURCE));
-
-    				
-    				/* on augmente le poids de l'arc ou on le cree s'il n'existe pas */
-    				
-    				long timeAdd = (Long)e.getAttribute(TIME_ADD);
-    				Node nSource = g.getNode((String)player.getAttribute("ID")),
-    					 nTarget;
-    				int weight = 0;
-    				
-        			if (target == null)
-        			{
-        				nTarget = g.getNode("root");
-        			}
-        			else
-        			{
-        				nTarget = g.getNode((String)target.getAttribute("ID"));
-        			}
-        			
-        			/* on ajoute l'arc de base puis ceux de l'historique */
-        			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST); 
-        			
-        			for (long[] h : hist)
-        			{
-        				weight += h[1];
-        				timeAdd = h[0];
-        	    		g.insertEdge(nSource.getId(),nTarget.getId(), weight, timeAdd, Long.MAX_VALUE);
-        			}
-    			
-    			}
+    			g.addEdge((String)idea.getAttribute("ID"), (String)e.getOpposite(idea).getAttribute("ID"), 1, (Long)e.getAttribute(TIME_ADD), Long.MAX_VALUE);
     		}
     	}
     	
     	return g;
     }
 
+    
     /* fonctions d'export / import en chaine */
     
 	/**
@@ -1321,11 +1270,14 @@ public class GraphInnovNation extends MultiGraph{
 	 * @param timeEndDefault : temps de suppression par defaut si non specifie (ou egal au temps de creation si la valeur lui est inférieure)
 	 * @param insert : vrai si les donnes doivent etre inserees, faux si elles doivent etre ajoutees (voir fonction addEdge et insertEdge)
 	 */
-	@SuppressWarnings("unchecked")
 	public void loadFromString(String source)
 	{
+		if (source == null)
+		{
+			return;
+		}
 		ArrayList<String> chaines = stringToTab(source);
-				
+		
 		for(String s : chaines)
 		{
 			if (s.length() == 0)
@@ -1337,84 +1289,145 @@ public class GraphInnovNation extends MultiGraph{
 			Node n;
 			Edge e;
 			ArrayList<String> hist;
-			ArrayList<long[]> attHist;
 			String node0, node1;
-			switch(Integer.valueOf(graphContent.get(0)))
+			try
 			{
-				case TYPE_NODE_IDEA :
-					n = addNode(PREFIX_IDEA + graphContent.get(1));
-					ideas.add(n.getIndex());
-					n.addAttribute("ui.class","idea");
-					n.addAttribute("ui.label",PREFIX_IDEA + graphContent.get(1));
-					n.addAttribute("layout.force", 0);
-					n.addAttribute("ID", graphContent.get(1));
-					n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
-					ArrayList<String> sources = stringToTab((String)graphContent.get(3));
-					for (int i = 0 ; i < sources.size(); i++)
-					{
-						sources.set(i, PREFIX_IDEA + sources.get(i));
-					}
-					n.addAttribute(IDEA_SOURCE,sources);
-					n.addAttribute(PLAYER_SOURCE, PREFIX_PLAYER + (String)graphContent.get(4));
-					break;
-				case TYPE_NODE_PLAYER :
-					n = addNode(PREFIX_PLAYER + graphContent.get(1));
-					players.add(n.getIndex());
-					n.addAttribute("ID", graphContent.get(1));
-					n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
-					n.addAttribute("ui.class","player");
-					n.addAttribute("ui.label",PREFIX_PLAYER + graphContent.get(1));
-					break;
-				case TYPE_NODE_ROOT :
-					n = addNode(PREFIX_IDEA + graphContent.get(1));
-					root = n.getIndex();
-					n.addAttribute("ID", graphContent.get(1));
-					n.addAttribute("ui.class","root_idea");
-					n.addAttribute("layout.force", 100);
-					n.addAttribute("ui.label",PREFIX_IDEA + graphContent.get(1));
-					n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
-					//n.addAttribute(IDEA_SOURCE, graphContent.get(3));
-					//n.addAttribute(PLAYER_SOURCE, graphContent.get(4));
-					break;
-				case TYPE_EDGE_IDEA_PARENT :
-					node0 = PREFIX_IDEA + graphContent.get(1);
-					node1 = PREFIX_IDEA + graphContent.get(2);
-					e = addEdge(node0 + " from " + node1, node0, node1);
-					e.addAttribute("ui.class","fromidea");
-					e.addAttribute("ui.label",IDEA_FROM_LABEL);
-					e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
-					break;
-				case TYPE_EDGE_IDEA_SOURCE :
-					node0 = PREFIX_PLAYER + graphContent.get(1);
-					node1 = PREFIX_IDEA + graphContent.get(2);
-					e = addEdge(node0 + " has idea " + node1, node0, node1);
-					e.addAttribute("ui.class","has_idea");
-					e.addAttribute("ui.label",IDEA_HAS_LABEL);
-					e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
-					break;
-				case TYPE_EDGE_VOTE :
-					node0 = PREFIX_PLAYER + graphContent.get(1);
-					node1 = PREFIX_IDEA + graphContent.get(2);
-					e = addEdge(PREFIX_VOTE + graphContent.get(5), node0, node1);
-					votes.add(e.getIndex());
-					e.addAttribute("ID", graphContent.get(5));
-					e.addAttribute("ui.class","vote");
-					e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
-					e.addAttribute(VOTE_NOTE, Integer.valueOf(graphContent.get(4)));
-					e.addAttribute(IDEA_TARGET, PREFIX_IDEA + graphContent.get(6));
-					e.addAttribute(PLAYER_SOURCE, PREFIX_PLAYER + graphContent.get(7));
-					e.addAttribute(VOTE_HIST, new ArrayList<long[]>());
-					attHist = (ArrayList<long[]>)e.getAttribute(VOTE_HIST);
-					hist = stringToTab(graphContent.get(8));
-					for (String h : hist)
-					{
-						ArrayList<String> tabh = stringToTab(h);
-						attHist.add(new long[]{Long.valueOf(tabh.get(0)),Long.valueOf(tabh.get(1)),Long.valueOf(tabh.get(2))});
-					}
-					
-					break;
-				default :
-					break;
+				switch(Integer.valueOf(graphContent.get(0)))
+				{
+					case TYPE_NODE_IDEA :
+						if (getNode(PREFIX_IDEA + graphContent.get(1)) != null)
+						{
+							break;
+						}
+						n = addNode(PREFIX_IDEA + graphContent.get(1));
+						ideas.add(n.getIndex());
+						n.addAttribute("ui.class","idea");
+						n.addAttribute("ui.label",PREFIX_IDEA + graphContent.get(1));
+						n.addAttribute("layout.force", 0);
+						n.addAttribute("ID", graphContent.get(1));
+						n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
+						ArrayList<String> sources = stringToTab((String)graphContent.get(3));
+						for (int i = 0 ; i < sources.size(); i++)
+						{
+							sources.set(i, PREFIX_IDEA + sources.get(i));
+						}
+						n.addAttribute(IDEA_SOURCE,sources);
+						n.addAttribute(PLAYER_SOURCE, PREFIX_PLAYER + (String)graphContent.get(4));
+						break;
+					case TYPE_NODE_PLAYER :
+						if (getNode(PREFIX_PLAYER + graphContent.get(1)) != null)
+						{
+							break;
+						}
+						n = addNode(PREFIX_PLAYER + graphContent.get(1));
+						players.add(n.getIndex());
+						n.addAttribute("ID", graphContent.get(1));
+						n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
+						n.addAttribute("ui.class","player");
+						n.addAttribute("ui.label",PREFIX_PLAYER + graphContent.get(1));
+						break;
+					case TYPE_NODE_ROOT :
+						if (getNode(PREFIX_IDEA + graphContent.get(1)) != null)
+						{
+							break;
+						}
+						n = addNode(PREFIX_IDEA + graphContent.get(1));
+						root = n.getIndex();
+						n.addAttribute("ID", graphContent.get(1));
+						n.addAttribute("ui.class","root_idea");
+						n.addAttribute("layout.force", 100);
+						n.addAttribute("ui.label",PREFIX_IDEA + graphContent.get(1));
+						n.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(2)));
+						//n.addAttribute(IDEA_SOURCE, graphContent.get(3));
+						//n.addAttribute(PLAYER_SOURCE, graphContent.get(4));
+						break;
+					case TYPE_EDGE_IDEA_PARENT :
+						node0 = PREFIX_IDEA + graphContent.get(1);
+						node1 = PREFIX_IDEA + graphContent.get(2);
+						if (getEdge(node0 + " from " + node1) != null)
+						{
+							break;
+						}
+						e = addEdge(node0 + " from " + node1, node0, node1);
+						e.addAttribute("ui.class","fromidea");
+						e.addAttribute("ui.label",IDEA_FROM_LABEL);
+						e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
+						break;
+					case TYPE_EDGE_IDEA_SOURCE :
+						node0 = PREFIX_PLAYER + graphContent.get(1);
+						node1 = PREFIX_IDEA + graphContent.get(2);
+						if (getEdge(node0 + " has idea " + node1) != null)
+						{
+							break;
+						}
+						e = addEdge(node0 + " has idea " + node1, node0, node1);
+						e.addAttribute("ui.class","has_idea");
+						e.addAttribute("ui.label",IDEA_HAS_LABEL);
+						e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
+						break;
+					case TYPE_EDGE_VOTE :
+						node0 = PREFIX_PLAYER + graphContent.get(1);
+						node1 = PREFIX_IDEA + graphContent.get(2);
+						ArrayList<long[]> attHist;
+						if (getEdge(PREFIX_VOTE + graphContent.get(5)) != null)
+						{
+							break;
+						}
+						e = addEdge(PREFIX_VOTE + graphContent.get(5), node0, node1);
+						votes.add(e.getIndex());
+						e.addAttribute("ID", graphContent.get(5));
+						e.addAttribute("ui.class","vote");
+						e.addAttribute(TIME_ADD, Long.valueOf(graphContent.get(3)));
+						e.addAttribute(VOTE_NOTE, Integer.valueOf(graphContent.get(4)));
+						e.addAttribute(IDEA_TARGET, PREFIX_IDEA + graphContent.get(6));
+						e.addAttribute(PLAYER_SOURCE, PREFIX_PLAYER + graphContent.get(7));
+						e.addAttribute(VOTE_HIST, new ArrayList<long[]>());
+						attHist = e.getAttribute(VOTE_HIST);
+						hist = stringToTab(graphContent.get(8));
+						for (String h : hist)
+						{
+							ArrayList<String> tabh = stringToTab(h);
+							attHist.add(new long[]{Long.valueOf(tabh.get(0)),Long.valueOf(tabh.get(1)),Long.valueOf(tabh.get(2))});
+						}						
+						String label = "vote ";
+						if (attHist.get(attHist.size()-1)[2] == -1)
+						{
+							label += "NEG ";
+						}
+						else if (attHist.get(attHist.size()-1)[2] == 1)
+						{
+							label += "POS ";
+						}
+						else if (attHist.get(attHist.size()-1)[2] == 0)
+						{
+							label += "NEU ";
+						}
+						
+						long totalVote = 0;
+						for (long[] h : attHist)
+						{
+							totalVote += h[1];
+						}
+						
+						if (totalVote > 0)
+						{
+							label += "+" + totalVote;
+						}
+						else if (totalVote < 0)
+						{
+							label += + totalVote;
+						}
+						e.addAttribute("ui.label",label);
+						break;
+					default :
+						break;
+				}
+			}
+			catch (IdAlreadyInUseException ex)
+			{
+				System.err.println("Warning : ID already in use");
+				ex.printStackTrace();
+				System.exit(-1);
 			}
 		}
 	}

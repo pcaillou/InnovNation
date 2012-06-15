@@ -47,6 +47,8 @@ public class DynamicGraph{
 	
 	Integer autoGenerateEdgedId;
 	
+	public boolean directed = true;
+	
 	protected MultiGraph graph;
 	
 	/**
@@ -92,10 +94,6 @@ public class DynamicGraph{
 		Integer level = 0;
 		String buffer = "";
 		ArrayList<String> result = new ArrayList<String>();
-		if (tab.length() < 2)
-		{
-			return result;
-		}
 		tab = tab.substring(1, tab.length()-1);
 		
 		/* on parcourt la chaine pour recuperer toutes les cellules */
@@ -642,7 +640,7 @@ public class DynamicGraph{
 		{
 			autoGenerateEdgedId++;
 		}
-		Edge e = graph.addEdge("Arrow" + String.valueOf(autoGenerateEdgedId), source, target,true);
+		Edge e = graph.addEdge("Arrow" + String.valueOf(autoGenerateEdgedId), source, target,directed);
 		e.addAttribute(POIDS, poids);
 		e.addAttribute(TIME_CREATION, timeAdd);
 		e.addAttribute(TIME_SUPPRESSION, timeDel);

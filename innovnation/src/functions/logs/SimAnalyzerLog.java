@@ -1,21 +1,6 @@
 package functions.logs;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
-import org.ujmp.core.calculation.Calculation.Ret;
-import org.ujmp.core.enums.FileFormat;
-import org.ujmp.core.enums.ValueType;
-import org.ujmp.core.exceptions.MatrixException;
-
 import client.gui.GuiTestMain;
-import functions.Game;
 
 public class SimAnalyzerLog {
 
@@ -27,8 +12,25 @@ public class SimAnalyzerLog {
 	 */
 	public static void generateSimAnalyzerLog()
 	{
+		System.out.println("Generation des logs logi et logp depuis les logs de InnovNation...");
+
+		if (GuiTestMain.lastGameName == null)
+		{
+			System.out.println("Aucune log de partie generee pendant l'execution du programme, abandon.");
+			return;
+		}
+		LogTransformation logs = new LogTransformation(GuiTestMain.lastGameName + ".csv");
+		
+		logs.removeCorruptedColumns();
+		
+		logs.generateLogs(GuiTestMain.lastGameName + "_logp.csv", "logp",
+				LogTransformation.GRAPH_PERSUATION|
+				LogTransformation.GRAPH_TOKENS);
+		logs.generateLogs(GuiTestMain.lastGameName + "_logi.csv", "logi",
+				LogTransformation.GRAPH_IDEAS);
+		
 		/* on recharge le fichier pour le transformer en log pour SimAnalyzer */
-        File fileSource = new File(GuiTestMain.lastGameName + ".csv");
+		/*File fileSource = new File(GuiTestMain.lastGameName + ".csv");
         
         if (GuiTestMain.lastGameName == null)
         {
@@ -57,7 +59,7 @@ public class SimAnalyzerLog {
 			matrix.setColumnLabel(column, matrix.getAsString(0,column));
 		}
 		
-		/* on recupere les logP par groupe de pas de temps pour regenerer les logs */
+		/* on recupere les logP par groupe de pas de temps pour regenerer les logs *//*
 		{
 			long cursor = 1;
 			int tempsMin = 0;
@@ -70,7 +72,7 @@ public class SimAnalyzerLog {
 			long columnAbstract = matrix.getColumnForLabel("abstract");
 			Collection<Long> buffer = new ArrayList<Long>();
 			
-			/* on cree la matrice resultat */
+			/* on cree la matrice resultat *//*
 			Matrix result = MatrixFactory.zeros(ValueType.STRING, 1, matrix.getColumnCount());
 			for (long column = matrix.getColumnCount()-1 ; column >= 2 ; column--)
 			{
@@ -79,7 +81,7 @@ public class SimAnalyzerLog {
 			result.setAsString("min", 0,0);
 			result.setAsString("id", 0,1);
 			
-			/* on recupere la liste des colomnes graphes (cas special) */
+			/* on recupere la liste des colomnes graphes (cas special) *//*
 			ArrayList<String> graphNames = GraphLogPack.getGraphList();
 			ArrayList<Long> graphColumns = new ArrayList<Long>();
 			for (String s : graphNames)
@@ -87,16 +89,16 @@ public class SimAnalyzerLog {
 				graphColumns.add(matrix.getColumnForLabel(s)); 
 			}
 			
-			/* on lit la matrice de haut en bas, et on stocke chaque pas de temps dans une seule ligne */
+			/* on lit la matrice de haut en bas, et on stocke chaque pas de temps dans une seule ligne *//*
 			while(cursor <= matrix.getRowCount() || buffer.size() > 0)
 			{
-				/* si on depasse le pas, ou qu'on est au dernier buffer, on ajoute le buffer au resultat */
+				/* si on depasse le pas, ou qu'on est au dernier buffer, on ajoute le buffer au resultat *//*
 				while((buffer.size() > 0 && cursor >= matrix.getRowCount()) || tempsMax <= matrix.getAsInt(cursor,columnTime))
 				{
-					/* si on n'a rien trouve, on passe directement au pas suivant */
+					/* si on n'a rien trouve, on passe directement au pas suivant *//*
 					if (buffer.size() > 0)
 					{
-						/* on recuepre la liste des joueurs */
+						/* on recuepre la liste des joueurs *//*
 						ArrayList<Integer> idList = new ArrayList<Integer>();
 						
 						for (Long p : buffer)
@@ -113,7 +115,7 @@ public class SimAnalyzerLog {
 						{
 							long row = idList.indexOf(matrix.getAsInt(b,columnId));
 							
-							/* on remplace un a un les valeurs, avec comme cas special les valeurs de graphe */
+							/* on remplace un a un les valeurs, avec comme cas special les valeurs de graphe *//*
 							for (long column = matrix.getColumnCount()-1 ; column >= 0 ; column--)
 							{
 								if (graphColumns.contains(column))
@@ -138,14 +140,14 @@ public class SimAnalyzerLog {
 							}
 						}
 						
-						/* on change la colonne time pour que celle ci se synchronise sur le pas */
+						/* on change la colonne time pour que celle ci se synchronise sur le pas *//*
 						for (long row = tmp.getRowCount()-1 ; row >= 0 ; row--)
 						{
 							tmp.setAsInt(numPas, row,columnTime);
 						}
 						
 						/* on modifie les 2 premieres colonnes pour rajouter min et id
-						 *  et la colonne abstract car elle provoque des erreurs dans symAnalizer */
+						 *  et la colonne abstract car elle provoque des erreurs dans symAnalizer *//*
 						for (long row = tmp.getRowCount()-1 ; row >= 0 ; row--)
 						{
 							tmp.setAsString(String.valueOf(numPas), row,0);
@@ -153,7 +155,7 @@ public class SimAnalyzerLog {
 							tmp.setAsString("0", row,columnAbstract);
 						}
 						
-						/* on ajoute la matrice tmp au resultat */
+						/* on ajoute la matrice tmp au resultat *//*
 						Matrix n2 = result.appendVertically(tmp);	
 						result=n2.subMatrix(Ret.NEW, 0, 0, n2.getRowCount()-1, n2.getColumnCount()-1);
 						for(long column =0; column<matrix.getColumnCount(); column++ ){
@@ -164,7 +166,7 @@ public class SimAnalyzerLog {
 					}
 					
 					
-					/* on initialise pour la partie suivante */
+					/* on initialise pour la partie suivante *//*
 					buffer.clear();
 					numPas++;
 					tempsMax += tempsPas;
@@ -173,7 +175,7 @@ public class SimAnalyzerLog {
 				
 				if (cursor < matrix.getRowCount())
 				{
-					/* on ajoute la ligne logp a la liste du pas */
+					/* on ajoute la ligne logp a la liste du pas *//*
 					if (matrix.getAsString(cursor,columnType).equals("logp"))
 					{
 						buffer.add(cursor);
@@ -183,14 +185,14 @@ public class SimAnalyzerLog {
 				cursor++;
 			}
 		
-			/* on sauvegarde la matrice dans un fichier */
+			/* on sauvegarde la matrice dans un fichier *//*
 			String line,filename = GuiTestMain.lastGameName + "_logp_symLog.csv";
 			try
 			{
 				FileWriter fw = new FileWriter(filename, false);
 				BufferedWriter output = new BufferedWriter(fw);
 				
-				/* on parcourt chaque ligne qu'on ajoute au fichier */
+				/* on parcourt chaque ligne qu'on ajoute au fichier *//*
 				for(long row = 0; row < result.getRowCount(); row++ ){
 					line = "";
 					for(long col = 0; col < result.getColumnCount(); col++ ){
@@ -204,7 +206,7 @@ public class SimAnalyzerLog {
 					output.write(line + "\n");
 				}
 				
-				/* on ecrit le tout dans le fichier */
+				/* on ecrit le tout dans le fichier *//*
 				output.flush();
 				output.close();
 				System.out.println("Matrice SimAnalyzer logP sauvegardee dans le fichier : \"" + filename + "\"");
@@ -215,7 +217,7 @@ public class SimAnalyzerLog {
 			}
 		}
 		
-		/* on recupere les logI par groupe de pas de temps pour regenerer les logs */
+		/* on recupere les logI par groupe de pas de temps pour regenerer les logs *//*
 		{
 			long cursor = 1;
 			int tempsMin = 0;
@@ -228,7 +230,7 @@ public class SimAnalyzerLog {
 			long columnAbstract = matrix.getColumnForLabel("abstract");
 			Collection<Long> buffer = new ArrayList<Long>();
 			
-			/* on cree la matrice resultat */
+			/* on cree la matrice resultat *//*
 			Matrix result = MatrixFactory.zeros(ValueType.STRING, 1, matrix.getColumnCount());
 			for (long column = matrix.getColumnCount()-1 ; column >= 2 ; column--)
 			{
@@ -237,7 +239,7 @@ public class SimAnalyzerLog {
 			result.setAsString("min", 0,0);
 			result.setAsString("id", 0,1);
 			
-			/* on recupere la liste des colomnes graphes (cas special) */
+			/* on recupere la liste des colomnes graphes (cas special) *//*
 			ArrayList<String> graphNames = GraphLogPack.getGraphList();
 			ArrayList<Long> graphColumns = new ArrayList<Long>();
 			for (String s : graphNames)
@@ -245,16 +247,16 @@ public class SimAnalyzerLog {
 				graphColumns.add(matrix.getColumnForLabel(s)); 
 			}
 			
-			/* on lit la matrice de haut en bas, et on stocke chaque pas de temps dans une seule ligne */
+			/* on lit la matrice de haut en bas, et on stocke chaque pas de temps dans une seule ligne *//*
 			while(cursor <= matrix.getRowCount() || buffer.size() > 0)
 			{
-				/* si on depasse le pas, ou qu'on est au dernier buffer, on ajoute le buffer au resultat */
+				/* si on depasse le pas, ou qu'on est au dernier buffer, on ajoute le buffer au resultat *//*
 				while((buffer.size() > 0 && cursor >= matrix.getRowCount()) || tempsMax <= matrix.getAsInt(cursor,columnTime))
 				{
-					/* si on n'a rien trouve, on passe directement au pas suivant */
+					/* si on n'a rien trouve, on passe directement au pas suivant *//*
 					if (buffer.size() > 0)
 					{
-						/* on recuepre la liste des ids */
+						/* on recuepre la liste des ids *//*
 						ArrayList<Integer> idList = new ArrayList<Integer>();
 						
 						for (Long p : buffer)
@@ -271,7 +273,7 @@ public class SimAnalyzerLog {
 						{
 							long row = idList.indexOf(matrix.getAsInt(b,columnId));
 							
-							/* on remplace un a un les valeurs, avec comme cas special les valeurs de graphe */
+							/* on remplace un a un les valeurs, avec comme cas special les valeurs de graphe *//*
 							for (long column = matrix.getColumnCount()-1 ; column >= 0 ; column--)
 							{
 								if (graphColumns.contains(column))
@@ -296,14 +298,14 @@ public class SimAnalyzerLog {
 							}
 						}
 						
-						/* on change la colonne time pour que celle ci se synchronise sur le pas */
+						/* on change la colonne time pour que celle ci se synchronise sur le pas *//*
 						for (long row = tmp.getRowCount()-1 ; row >= 0 ; row--)
 						{
 							tmp.setAsInt(numPas, row,columnTime);
 						}
 						
 						/* on modifie les 2 premieres colonnes pour rajouter min et id
-						 * et la colonne abstract car elle provoque des erreurs dans symAnalizer */
+						 * et la colonne abstract car elle provoque des erreurs dans symAnalizer *//*
 						for (long row = tmp.getRowCount()-1 ; row >= 0 ; row--)
 						{
 							tmp.setAsString(String.valueOf(numPas), row,0);
@@ -311,7 +313,7 @@ public class SimAnalyzerLog {
 							tmp.setAsString("0", row,columnAbstract);
 						}
 						
-						/* on ajoute la matrice tmp au resultat */
+						/* on ajoute la matrice tmp au resultat *//*
 						Matrix n2 = result.appendVertically(tmp);	
 						result=n2.subMatrix(Ret.NEW, 0, 0, n2.getRowCount()-1, n2.getColumnCount()-1);
 						for(long column =0; column<matrix.getColumnCount(); column++ ){
@@ -322,7 +324,7 @@ public class SimAnalyzerLog {
 					}
 					
 					
-					/* on initialise pour la partie suivante */
+					/* on initialise pour la partie suivante *//*
 					buffer.clear();
 					numPas++;
 					tempsMax += tempsPas;
@@ -331,7 +333,7 @@ public class SimAnalyzerLog {
 				
 				if (cursor < matrix.getRowCount())
 				{
-					/* on ajoute la ligne logi a la liste du pas */
+					/* on ajoute la ligne logi a la liste du pas *//*
 					if (matrix.getAsString(cursor,columnType).equals("logi"))
 					{
 						buffer.add(cursor);
@@ -341,14 +343,14 @@ public class SimAnalyzerLog {
 				cursor++;
 			}
 			
-			/* on sauvegarde la matrice dans un fichier */
+			/* on sauvegarde la matrice dans un fichier *//*
 			String line,filename = GuiTestMain.lastGameName + "_logi_symLog.csv";
 			try
 			{
 				FileWriter fw = new FileWriter(filename, false);
 				BufferedWriter output = new BufferedWriter(fw);
 				
-				/* on parcourt chaque ligne qu'on ajoute au fichier */
+				/* on parcourt chaque ligne qu'on ajoute au fichier *//*
 				for(long row = 0; row < result.getRowCount(); row++ ){
 					line = "";
 					for(long col = 0; col < result.getColumnCount(); col++ ){
@@ -362,7 +364,7 @@ public class SimAnalyzerLog {
 					output.write(line + "\n");
 				}
 				
-				/* on ecrit le tout dans le fichier */
+				/* on ecrit le tout dans le fichier *//*
 				output.flush();
 				output.close();
 				System.out.println("Matrice SimAnalyzer logI sauvegardee dans le fichier : \"" + filename + "\"");
@@ -371,7 +373,7 @@ public class SimAnalyzerLog {
 				System.out.print("Erreur lors de la sauvegarde du fichier: ");
 				e.printStackTrace();
 			}
-		}
+		}*/
 	}
 	
 }
