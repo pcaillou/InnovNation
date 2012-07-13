@@ -137,7 +137,7 @@ public class GraphInnovNation extends MultiGraph{
 		ideas = new ArrayList<Integer>();
 		votes = new ArrayList<Integer>();
 		init();
-		
+		root = -1;
 		addRoot(idRootIdea);
 	}
 
@@ -160,8 +160,12 @@ public class GraphInnovNation extends MultiGraph{
 	 * @param id : l'id de l'idee root
 	 * @throws GraphInnovNationException : erreur dans le cas ou l'id de l'idee est deja prise
 	 */
-	private void addRoot(String id) throws GraphInnovNationException
+	public void addRoot(String id) throws GraphInnovNationException
 	{
+		if (root != -1)
+		{
+			removeNode(root);
+		}
 		if (ideaExists(id))
 		{
 			throw new AlreadyTakenIdeaId(PREFIX_IDEA + id);
@@ -919,7 +923,7 @@ public class GraphInnovNation extends MultiGraph{
 						}
 						
 						value += (int) (poids*lastVoteValence.get(j)) * 100 / (distcoef*distance);
-						
+												
 						g.addEdge(
 								(String)getNode(j).getAttribute("ID"), 
 								(String)getNode(v[1]).getAttribute("ID"), 
@@ -1061,8 +1065,84 @@ public class GraphInnovNation extends MultiGraph{
     			{
     				if (h[1] != 0)
     				{
+    					//System.out.println("insert " + (String)player.getAttribute("ID") + ",\t" + "i"+(String)n.getAttribute("ID") + ",\t" + (int)h[1] + ",\t" + h[0] + ",\t" + Long.MAX_VALUE);
     					g.insertEdge((String)player.getAttribute("ID"), "i"+(String)n.getAttribute("ID"), (int)h[1], h[0],Long.MAX_VALUE);
     				}
+    			}
+    		}
+    	}
+    	
+    	return g;
+    }
+    
+    /**
+     * Retourne le graphe des commentaires ou chaque branche contient le nombre de commentaire sur une idee
+     * @return DynamicGraph
+     */
+    public DynamicGraph getCommentGraph()
+    {
+    	DynamicGraph g = new DynamicGraph();
+    	Node player;
+    	
+    	/* on ajoute les joueurs */
+    	for (Integer p : players)
+    	{
+    		g.addNode((String)getNode(p).getAttribute("ID"));
+    	}
+    	
+    	/* on ajoute les idees */
+    	for (Integer p : ideas)
+    	{
+    		g.addNode("i"+(String)getNode(p).getAttribute("ID"));
+    	}
+    	
+    	/* on ajoute la racine */
+    	g.addNode("root");
+    	
+    	for (Integer p : players)
+    	{
+    		player = getNode(p);
+    		
+    		/* on recupere la liste des arcs sortant puis on les trie par date d'ajout */
+    		Collection<Edge> voteList = player.getLeavingEdgeSet();
+    		ArrayList<Edge> sortedVoteList = new ArrayList<Edge>();
+    		
+    		for (Edge v : voteList)
+    		{
+    			int index = 0;
+    			long time = v.getAttribute(TIME_ADD);
+    			
+    			for (index = 0 ; index < sortedVoteList.size(); index++)
+    			{
+    				if (time < (Long)sortedVoteList.get(index).getAttribute(TIME_ADD))
+    				{
+    					break;
+    				}
+    			}
+        		sortedVoteList.add(index, v);
+    		}
+    		    		
+    		/* pour chaque arc, on rajoute au graphe ceux n'ajoutant pas de tokens */
+    		for (Edge e : sortedVoteList)
+    		{
+    			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST);
+    			//{timeAdd,vote,valence}
+    			
+    			if (hist == null)
+    			{
+    				continue;
+    			}
+    			
+    			Node n = e.getOpposite(player);
+    			
+    			for (long[] h : hist)
+    			{
+    				int nbComment = 1;
+    				if (h[1] == 0)
+    				{
+    					g.insertEdge((String)player.getAttribute("ID"), "i"+(String)n.getAttribute("ID"), nbComment, h[0],Long.MAX_VALUE);
+    				}
+    				
     			}
     		}
     	}
@@ -1092,7 +1172,7 @@ public class GraphInnovNation extends MultiGraph{
     		/* on recupere la liste des sources depuis les arcs sortant puis on cree les liens*/
     		for (Edge e : idea.getLeavingEdgeSet())
     		{
-    			g.addEdge((String)idea.getAttribute("ID"), (String)e.getOpposite(idea).getAttribute("ID"), 1, (Long)e.getAttribute(TIME_ADD), Long.MAX_VALUE);
+    			g.insertEdge((String)idea.getAttribute("ID"), (String)e.getOpposite(idea).getAttribute("ID"), 1, (Long)e.getAttribute(TIME_ADD), Long.MAX_VALUE);
     		}
     	}
     	

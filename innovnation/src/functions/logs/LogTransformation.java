@@ -12,25 +12,25 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
-//import org.ujmp.core.calculation.Calculation.Ret;
 import org.ujmp.core.calculation.Calculation.Ret;
 import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
 import org.ujmp.core.exceptions.MatrixException;
 
 public class LogTransformation {
-
+	
 	public static final String FILE = "C:\\Users\\Philippe\\Desktop\\Tournoi_401_vs_402_V1.csv";
 	public static final String FILE_LOGI = "C:\\Users\\Philippe\\Desktop\\LogI.csv";
 	public static final String FILE_LOGP = "C:\\Users\\Philippe\\Desktop\\LogP.csv";
 	public static final String SEPARATOR = ";";
 	
-	public static final int GRAPH_PERSUATION = 1 << 0;
-	public static final int GRAPH_TOKENS = 1 << 1;
-	public static final int GRAPH_IDEAS = 1 << 2;
+	public static final int GRAPH_PERSUATION = 	1 << 0;
+	public static final int GRAPH_TOKENS = 		1 << 1;
+	public static final int GRAPH_COMMENT = 	1 << 2;
+	public static final int GRAPH_IDEAS = 		1 << 3;
 	
-	public static final int[] GRAPH_LIST = {GRAPH_PERSUATION,GRAPH_TOKENS,GRAPH_IDEAS};
-	public static final String[] GRAPH_NAMES = {"persuasionGraph","tokenGraph","ideaGraph"};
+	public static final int[] GRAPH_LIST = {GRAPH_PERSUATION,GRAPH_TOKENS,GRAPH_COMMENT,GRAPH_IDEAS};
+	public static final String[] GRAPH_NAMES = {"persuasionGraph","tokenGraph","commentGraph","ideaGraph"};
 	
 	public static final int TIME_PER_STEP = 60;
 	
@@ -47,7 +47,6 @@ public class LogTransformation {
 	public LogTransformation(String filename)
 	{
 		/* on charge le fichier */
-		System.out.println("Chargement du fichier \"" + filename + "\" ...");
 		
         File fileSource = new File(filename);
         
@@ -61,8 +60,6 @@ public class LogTransformation {
 			e.printStackTrace();
 		}
         
-        System.out.println("Chargement termine (" + matrix.getSize()[0] + " lignes * " + matrix.getSize()[1] + " colonnes )");
-
 		for(long column = 0; column < matrix.getColumnCount(); column++ ){
 			matrix.setColumnLabel(column, matrix.getAsString(0,column));
 		}	
@@ -102,9 +99,9 @@ public class LogTransformation {
 		} catch (GraphInnovNationException e) {
 			e.printStackTrace();
 		}
-		
-        System.out.println("Extraction du graphe ...");
-		
+				
+		boolean firstLogI = false;
+		String rootId = "";
         long innovColumn = matrix.getColumnForLabel("InnovNationGraph");
         long typeColumn = matrix.getColumnForLabel("type");
         long timeColumn = matrix.getColumnForLabel("time");
@@ -120,9 +117,12 @@ public class LogTransformation {
         
         String type = "";
         String prec = "";
-        try {	
-			for(long row = 1; row < matrix.getRowCount(); row++ )
-			{
+    
+        int nbError = 0;
+        
+		for(long row = 1; row < matrix.getRowCount(); row++ )
+		{
+			try {	
 				// s'il n'y a pas de colonnes innovNations, on recréé le graphe
 				if (innovColumn == -1)
 				{
@@ -131,42 +131,94 @@ public class LogTransformation {
 					{
 						continue;
 					}
-					// TODO ajouter comment et voir pour trouver bonne source idees
-					if (type.equals("idea"))
+					// TODO pes de moyen pour trouver les idees sources d'une idee
+					if (type.equals("idea") || type.equals("logi"))
 					{ 
-						String ownerId = matrix.getAsString(row,ideaOwnerColumn);
 						String ideaId = matrix.getAsString(row,ideaColumn);
+						String ownerId = matrix.getAsString(row,ideaOwnerColumn);
 						int nbParents = matrix.getAsInt(row,ideaNbParentsColumn)-1;					
-						long timeAdd = matrix.getAsInt(row,timeColumn) / TIME_PER_STEP;
-						if (!graph.playerExists(ownerId))
+						long timeAdd = matrix.getAsInt(row,timeColumn);
+						
+						if (ideaId != null && !firstLogI)
 						{
-							graph.addPlayer(ownerId, 0l);
+							rootId = ideaId;
+							graph.addRoot(ideaId);
+							firstLogI = true;
 						}
-						
-						/* les idees source etant inconnue, on doit en choisir une au hazard */
-						ArrayList<String> sourcesPossible = new ArrayList<String>();
-						ArrayList<String> sources = new ArrayList<String>();
-						for (Integer i : graph.getIdeasIndexs())
+						else
 						{
-							sourcesPossible.add((String)graph.getNode(i).getAttribute("ID"));
+							
+							if (ownerId != null && !graph.playerExists(ownerId) )
+							{
+								graph.addPlayer(ownerId, 0l);
+							}
+							if (ideaId != null && !graph.ideaExists(ideaId))
+							{
+								/* les idees source etant inconnue, on doit en choisir une au hazard */
+								ArrayList<String> sourcesPossible = new ArrayList<String>();
+								ArrayList<String> sources = new ArrayList<String>();
+								for (Integer i : graph.getIdeasIndexs())
+								{
+									sourcesPossible.add((String)graph.getNode(i).getAttribute("ID"));
+								}
+								if (firstLogI)
+								{
+									sourcesPossible.add(rootId);
+								}
+								for (int i = 0 ; i < nbParents && sourcesPossible.size() > 0 ; i++)
+								{
+									sources.add(sourcesPossible.get(Math.abs(rand.nextInt())%sourcesPossible.size()));
+								}
+								
+								
+								//System.out.println("ajout de l'idee " + ideaId);
+								graph.addIdea(ideaId, sources, ownerId, timeAdd);
+							}
 						}
-						sourcesPossible.add("root");
-						for (int i = 0 ; i < nbParents && sourcesPossible.size() > 0 ; i++)
-						{
-							sources.add(sourcesPossible.get(Math.abs(rand.nextInt())%sourcesPossible.size()));
-						}
-						
-						
-						
-						graph.addIdea(ideaId, sources, ownerId, timeAdd);
 											
 					}
 					else if (type.equals("vote"))
 					{
 						String playerId = matrix.getAsString(row,playerColumn);
 						int tokens = matrix.getAsInt(row,voteTokensColumn);
+						Integer idCible = matrix.getAsInt(row,ideaColumn);
 						int valence = matrix.getAsInt(row,voteValenceColumn);
-						long timeAdd = matrix.getAsInt(row,timeColumn) / TIME_PER_STEP;
+						long timeAdd = matrix.getAsInt(row,timeColumn);
+						if (!graph.playerExists(playerId))
+						{
+							graph.addPlayer(playerId, 0l);
+						}	
+						
+						if (!graph.ideaExists(idCible.toString()))
+						{
+							if (!firstLogI)
+							{
+								graph.addRoot(idCible.toString());
+							}
+							
+						}
+								
+						
+						
+						graph.addVote(String.valueOf(graph.getVotesIndexs().size()+1), playerId, idCible.toString(), tokens, valence, timeAdd);
+						
+						
+					}
+					else if (type.equals("logp"))
+					{
+						
+						String playerId = matrix.getAsString(row,playerColumn);
+						if (!graph.playerExists(playerId) && playerId != null)
+						{
+							graph.addPlayer(playerId, 0l);
+						}	
+					}
+					else if (type.equals("comment"))
+					{
+						String playerId = matrix.getAsString(row,playerColumn);
+						int tokens = matrix.getAsInt(row,voteTokensColumn);
+						int valence = matrix.getAsInt(row,voteValenceColumn);
+						long timeAdd = matrix.getAsInt(row,timeColumn);
 						if (!graph.playerExists(playerId))
 						{
 							graph.addPlayer(playerId, 0l);
@@ -214,98 +266,41 @@ public class LogTransformation {
 								sourcesPossible.add((String)n.getAttribute("ID"));
 							}
 						}
-						sourcesPossible.add("root");
+						if (firstLogI)
+						{
+							sourcesPossible.add(rootId);
+						}
 						
 						graph.addVote(String.valueOf(graph.getVotesIndexs().size()+1), playerId, sourcesPossible.get(Math.abs(rand.nextInt())%sourcesPossible.size()), tokens, valence, timeAdd);
-						
-						
 					}
-					else if (type.equals("logp"))
-					{
-						
-						String playerId = matrix.getAsString(row,playerColumn);
-						if (!graph.playerExists(playerId) && playerId != null)
-						{
-							graph.addPlayer(playerId, 0l);
-						}	
-					}
-				}					
-				else if (type.equals("comment"))
-				{
-					String playerId = matrix.getAsString(row,playerColumn);
-					int tokens = matrix.getAsInt(row,voteTokensColumn);
-					int valence = matrix.getAsInt(row,voteValenceColumn);
-					long timeAdd = matrix.getAsInt(row,timeColumn) / TIME_PER_STEP;
-					if (!graph.playerExists(playerId))
-					{
-						graph.addPlayer(playerId, 0l);
-					}	
-					
-					/* l'idee source etant inconnue, on doit en choisir une au hazard */
-					ArrayList<String> sourcesPossible = new ArrayList<String>();
-					Node owner = graph.getNode(GraphInnovNation.PREFIX_PLAYER + playerId);
-					for (Integer i : graph.getIdeasIndexs())
-					{
-						/* on n'ajoute pas les idees s'il existe deja un vote au temps donne */
-						boolean ajoutSource = true;
-						Node n = graph.getNode(i);
-						
-						if (owner.hasEdgeBetween(n))
-						{
-							Iterable<Edge> edges = owner.getEachLeavingEdge();
-							
-							for (Edge e : edges)
-							{
-								if (e.getOpposite(owner).equals(n))
-								{
-									ArrayList<long[]> hist = e.getAttribute(GraphInnovNation.VOTE_HIST);
-									if (hist != null)
-									{
-										for (int j = hist.size()-1 ; j >= 0 ; j--)
-										{
-											if (hist.get(j)[0] == timeAdd)
-											{
-												ajoutSource = false;
-												break;
-											}
-										}
-										if (!ajoutSource)
-										{
-											break;
-										}
-									}
-								}
-							}
-						}
-						
-						if (ajoutSource)
-						{
-							sourcesPossible.add((String)n.getAttribute("ID"));
-						}
-					}
-					sourcesPossible.add("root");
-					
-					graph.addVote(String.valueOf(graph.getVotesIndexs().size()+1), playerId, sourcesPossible.get(Math.abs(rand.nextInt())%sourcesPossible.size()), tokens, valence, timeAdd);
 				}
 				else // si la colonne innovNation existe, on recharge tout
 				{
-
 			        String g = matrix.getAsString(row,innovColumn);
-			        if (!g.equals("" + GraphInnovNation.LEFT_BRACE + GraphInnovNation.RIGHT_BRACE) &&  !prec.equals(g))
+			        if (g != null && !g.equals("" + GraphInnovNation.LEFT_BRACE + GraphInnovNation.RIGHT_BRACE) &&  !prec.equals(g))
 			        {
 						graph.loadFromString(g);
 						prec = g;
 			        }
 				}
 			}
-	        
-		} catch (MatrixException e) {
-			e.printStackTrace();
-		} catch (GraphInnovNationException e) {
-			e.printStackTrace();
+			catch (MatrixException e) {
+				System.err.println("Error line " + row + " : MatrixException : " + e.getLocalizedMessage());
+				nbError++;
+			} 
+			catch (GraphInnovNationException e) {
+				System.err.println("Error line " + row + " : GraphInnovNationException : " + e.getLocalizedMessage());
+				nbError++;
+			} 
+			catch (NullPointerException e) {
+				System.err.println("Error line " + row + " : NullPointerException : " + e.getLocalizedMessage());
+				nbError++;
+			}
 		}
-		
-        System.out.println("Extraction du graphe terminee ...");
+		if (nbError > 0)
+		{
+			System.err.println("ATTENTION : graphe genere avec " + nbError + " erreurs");
+		}
 	}
 	
 	/**
@@ -314,27 +309,21 @@ public class LogTransformation {
 	public void removeCorruptedColumns()
 	{
 		ArrayList<Integer> columnsCorrupted = new ArrayList<Integer>();
-
-        System.out.println("Extraction des colonnes corrompue ...");
         
 		for (int i = 0 ; i < matrix.getColumnCount() ; i++)
 		{
-			if (matrix.getAsString(0,i) == null || matrix.getAsString(0,i).equals(""))
+			if (matrix.getAsString(0,i) == null || matrix.getAsString(0,i).equals("") /*|| matrix.getColumnLabel(i).equals("abstract")*/)
 			{
 				columnsCorrupted.add(i);
 			}
 		}
 		matrix = matrix.deleteColumns(Ret.NEW, columnsCorrupted);
 		
-        System.out.println("Extraction des colonnes corrompue terminee ...");
 	}
 	
-
 	public void saveMatrix(String filename)
 	{
-		System.out.println("Sauvegarde du fichier ...");
 		saveMatrix(filename, matrix);
-		System.out.println("Sauvegarde du fichier terminee ...");
 	}
 	
 	/**
@@ -354,8 +343,23 @@ public class LogTransformation {
 		int numPas = 0;
 		long columnTime = matrix.getColumnForLabel("time");
 		long columnType = matrix.getColumnForLabel("type");
-		long columnId = matrix.getColumnForLabel("playerId");
+		long columnId = 0;
 		Collection<Long> buffer = new ArrayList<Long>();
+		int nbCorrupted = 0;
+		
+		if (columnLog.equals("logp"))
+		{
+			columnId = matrix.getColumnForLabel("playerId");
+		}
+		else if (columnLog.equals("logi"))
+		{
+			columnId = matrix.getColumnForLabel("ideaId");
+		}
+		else
+		{
+			columnId = matrix.getColumnForLabel("playerId");
+		}
+		
 		
 		/* on cree la matrice resultat en ajoutant les 2 colonnes de graphe*/
 		Matrix result = MatrixFactory.zeros(ValueType.STRING, 1, matrix.getColumnCount()); 
@@ -365,11 +369,7 @@ public class LogTransformation {
 		}
 		result.setAsString("id", 0,1);
 		result.setAsString("min", 0,0);
-		
-		
-		System.out.println("Generation de logs " + columnLog + " pour SimAnalyzer ...");
-		System.out.println("Generation de la matrice " + columnLog + " ...");
-		
+				
 		/* on genere une matrice ne contenant que les lignes demandees */
 		while(cursor <= matrix.getRowCount() || buffer.size() > 0)
 		{
@@ -445,6 +445,7 @@ public class LogTransformation {
 					fullZeros = true;
 					for (long i = 1 ; i < 74 ; i++)
 					{
+						//System.out.println("getAsObject(" + cursor + "," + i + ")");
 						if (matrix.getAsObject(cursor,i) == null)
 						{
 							corruptedLine = true;
@@ -464,15 +465,7 @@ public class LogTransformation {
 					}
 					else
 					{
-						System.err.print("Error : line " + cursor + " is corrupted");
-						if (corruptedLine)
-						{
-							System.err.print(" (empty)\n");
-						}
-						else if (fullZeros)
-						{
-							System.err.print(" (full of 0)\n");
-						}
+						nbCorrupted++;
 					}
 					
 				}
@@ -481,12 +474,19 @@ public class LogTransformation {
 			cursor++;
 		}
 		
+		if (nbCorrupted > 0)
+		{
+			System.err.println("Warning : " + nbCorrupted + " lignes corrompue");
+		}
+		
 		/* on cree la matrice de graphe */
-		System.out.println("Generation de la matrice graphe ...");
 		
 		ArrayList<HashMap<String,Collection<String>>> logs = new ArrayList<HashMap<String,Collection<String>>>();
 		ArrayList<DynamicGraph> graphs = new ArrayList<DynamicGraph>();
 		ArrayList<String> columnNames = new ArrayList<String>();
+		GraphInnovNation g = graph.clone();
+		
+		g.divideTime(TIME_PER_STEP);
 		
 		for (int i = 0 ; i < GRAPH_LIST.length ; i++)
 		{
@@ -498,13 +498,16 @@ public class LogTransformation {
 				switch(GRAPH_LIST[i])
 				{
 					case GRAPH_PERSUATION :
-						graphs.add(graph.getPersuationGraph());
+						graphs.add(g.getPersuationGraph());
 						break;
 					case GRAPH_IDEAS :
-						graphs.add(graph.getIdeaGraph());
+						graphs.add(g.getIdeaGraph());
 						break;
 					case GRAPH_TOKENS :
-						graphs.add(graph.getTokenGraph());
+						graphs.add(g.getTokenGraph());
+						break;
+					case GRAPH_COMMENT :
+						graphs.add(g.getCommentGraph());
 						break;
 				}
 			}
@@ -519,7 +522,7 @@ public class LogTransformation {
 		}
 		
 		String id;
-		Integer time;
+		//Integer time;
 		Node p;
 		
 		ArrayList<String> edges, diff;
@@ -530,7 +533,10 @@ public class LogTransformation {
 		{
 			/* on recupere le temps et l'id du joueur */
 			id = result.getAsString(row,columnId);
-			time = result.getAsInt(row,columnTime);
+			//time = result.getAsInt(row,columnTime);
+			
+			//System.out.println("ligne sur l'id " + id + " de la colonne " + columnId);
+
 			
 			/* on genere par defaut les entrees dans les logs */
 			for (HashMap<String,Collection<String>> log : logs)
@@ -541,33 +547,31 @@ public class LogTransformation {
 				}
 			}
 			
-			/* on recupere la different arcs + declaration node pour le joueur p sur le graphe nbVotes */
+			/* on recupere la different arcs + declaration node pour le joueur p sur le graphe */
 
 			for (int i = 0 ; i < graphs.size(); i++)
 			{			
 				edges = new ArrayList<String>();
 				diff = new ArrayList<String>();
-				p = graphs.get(i).getNode(id);
+				p = graphs.get(i).getNode(id);			
 				
 				edges.add(graphs.get(i).nodeToString(p));
-				
+
 				for (Edge e : p.getEachLeavingEdge())
 				{
-					if (graphs.get(i).getTimeCreation(e) < time )
-					{
-						edges.add(graphs.get(i).edgeToString(e));
-					}
+					edges.add(graphs.get(i).edgeToString(e));
 				}
+				
 				
 				diff.addAll(edges);
 				diff.removeAll(logs.get(i).get(id));
+				
+				
 				logs.get(i).put(id,edges);
 				graphMatrix.setAsString(DynamicGraph.tabToString(diff), row,i);
 			}
 		}
 		
-		System.out.println("fusionnage des matrices ...");
-
 		/* on ajoute la matrice tmp au resultat */
 		Matrix n2 = result.appendHorizontally(graphMatrix);	
 		result=n2.subMatrix(Ret.NEW, 0, 0, n2.getRowCount()-1, n2.getColumnCount()-1);
@@ -577,8 +581,6 @@ public class LogTransformation {
 		}
 		
 		saveMatrix(filename, result);
-		
-		System.out.println("Generation de logs " + columnLog + " pour SimAnalyzer terminee ...");
 	}
 	
 	/**
