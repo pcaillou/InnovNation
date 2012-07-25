@@ -13,8 +13,6 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.swingViewer.Viewer;
 
-// TODO tester esport / import
-
 /**
  * 
  * @author Destannes Alexandre

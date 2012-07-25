@@ -522,7 +522,7 @@ public class LogTransformation {
 		}
 		
 		String id;
-		//Integer time;
+		Integer time;
 		Node p;
 		
 		ArrayList<String> edges, diff;
@@ -533,7 +533,7 @@ public class LogTransformation {
 		{
 			/* on recupere le temps et l'id du joueur */
 			id = result.getAsString(row,columnId);
-			//time = result.getAsInt(row,columnTime);
+			time = result.getAsInt(row,columnTime);
 			
 			//System.out.println("ligne sur l'id " + id + " de la colonne " + columnId);
 

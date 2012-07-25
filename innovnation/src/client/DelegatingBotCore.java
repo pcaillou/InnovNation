@@ -40,7 +40,7 @@ public class DelegatingBotCore extends ClientCore
 	public static final String[] roles = {"Custom","Random","Persuasif","Creatif","Adaptatif","Pertinent"};
 	public static final int[][] rolesParams = 
 		{{-1,-1,-1,-1},{-1,-1,-1,-1},{3,3,3,10},{10,3,3,3},{3,3,10,3},{3,10,3,3}};
-	public final static int BOT_BASE_SPEED = 10000;
+	public final static int BOT_BASE_SPEED = 20000;
 	public final static String BOT_NAME = "Wall-e ";
 	
 	
@@ -203,11 +203,11 @@ public class DelegatingBotCore extends ClientCore
 			return ACTION_VOTE;
 		}
 		
-		double discount = CHANCE_IDEA_CREATION_RATIO * Math.sqrt(getGame().getAllPlayers().size());
+		double discount = getAllIdeas().size() * CHANCE_IDEA_CREATION_RATIO * Math.sqrt(getGame().getAllPlayers().size());
 		double strength = 0.5;
 		double time = ideaCount + commentCount;
 		
-		double newIdeaChance = (strength + getAllIdeas().size() * discount) / (time + strength);
+		double newIdeaChance = (strength + discount) / (time + strength);
 				
 		if (Math.random() <= newIdeaChance)
 		{ 
@@ -296,6 +296,7 @@ public class DelegatingBotCore extends ClientCore
 		}
 		
 		/* on calcune le nombre de tokens que doit avoir une idee */
+		// TODO rajouter la prise en compte du nombre d'idees avec le nombre max de joueurs pour avoir une montée en S
 		for (Integer i : bests)
 		{
 			tokensMap.put(i, 
