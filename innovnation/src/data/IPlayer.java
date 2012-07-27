@@ -49,6 +49,10 @@ public interface IPlayer extends IStorable {
 	double getScore(TypeScore type);
 	double getRank(TypeScore type);
 	
+
+	public void setOpinion(int[] _opinion);
+	public int[] getOpinion();
+	
 	
 	/**
 	 * defines the value of the given score.

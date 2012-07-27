@@ -43,6 +43,8 @@ public interface IClientCore extends IEventListener {
 
 	boolean isConnected();
 	
+	public void setPlayerOpinion(int[] opinion);
+	
 	int getRemainingTokens();
 	int getPlayerId();
 	void setPlayerId(int id);

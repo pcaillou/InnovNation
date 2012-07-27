@@ -24,6 +24,7 @@ public class IdeaLogPack implements LogPack {
 	
 	private IGame game;
 	private int myId;
+	private int myValue;
 	
 	//personnal data
 	private int ownerId, creationTime,
@@ -185,6 +186,7 @@ public class IdeaLogPack implements LogPack {
 	public IdeaLogPack(IGame game, IIdea idea, int time) {
 		this.game = game;
 		this.myId = idea.getUniqueId();
+		this.myValue = idea.getIdeaValue();
 		
 		this.creationTime = time;
 		try {
@@ -263,7 +265,7 @@ public class IdeaLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		return "ideaId;ideaOwnerId;ideaCreationTime;ideaDepthMin;ideaDepthMax;"+
+		return "ideaId;ideaValue;ideaOwnerId;ideaCreationTime;ideaDepthMin;ideaDepthMax;"+
 	           "ideaItems;ideaComments;PositiveComments;NegativeComments;PositiveProportion;NegativeProportion;NulProportion;ideaVotes;ideaTokens;ideaTokensMax;"+
 			   "ideaShortLength;ideaLongLength;"+
 	           "ideaParentsId;ideaParents;ideaParentItems;ideaParentItemsMin;ideaParentItemsMax;"+
@@ -276,7 +278,7 @@ public class IdeaLogPack implements LogPack {
 	}
 
 	static public String zeros() {
-		return "0;0;0;0;0;"+
+		return "0;0;0;0;0;0;"+
 			   "0;0;0;0;0;0;0;0;0;0;"+
 			   "0;0;"+
 			   "[];0;0;0;0;"+
@@ -295,6 +297,7 @@ public class IdeaLogPack implements LogPack {
 	public String log(int time) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(myId).append(';');
+		sb.append(myValue).append(';');
 		sb.append(ownerId).append(';');
 		sb.append(creationTime).append(';');
 		sb.append(depthMin).append(';');

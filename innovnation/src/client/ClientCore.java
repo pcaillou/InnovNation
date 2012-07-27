@@ -60,7 +60,20 @@ public abstract class ClientCore implements IClientCore {
 		playerId=id;
 	}
 	
-	public Map<Integer, Integer> getCurrentIdeasTokens() {
+	public void setPlayerOpinion(int[] opinion)
+	{
+		System.out.println("game : " + game);
+		System.out.println("opinion : " + opinion);
+		try {
+			System.out.println("game.getPlayer(playerId) : " + game.getPlayer(playerId));
+			game.getPlayer(playerId).setOpinion(opinion);
+		} catch (RemoteException e) {
+			System.err.println("Failed to set the player opinion");
+			e.printStackTrace();
+		}
+	}
+	
+ 	public Map<Integer, Integer> getCurrentIdeasTokens() {
 		
 		Map<Integer, Integer> res = new HashMap<Integer, Integer>();
 		

@@ -35,13 +35,13 @@ public class DelegatingBotCore extends ClientCore
 	public final static int ACTION_VOTE = 0;
 	public final static int ACTION_IDEA = 1;
 	public final static int ACTION_NOTHING = 2;
-	public final static int TOTAL_OPINION = 10;
+	public final static int TOTAL_OPINION = 4;
 	
 	public static final String[] roles = {"Custom","Random","Persuasif","Creatif","Adaptatif","Pertinent"};
 	public static final int[][] rolesParams = 
 		{{-1,-1,-1,-1},{-1,-1,-1,-1},{3,3,3,10},{10,3,3,3},{3,3,10,3},{3,10,3,3}};
 	public final static int BOT_BASE_SPEED = 20000;
-	public final static String BOT_NAME = "Wall-e ";
+	public final static String BOT_NAME = "Wall-e";
 	
 	
 	public final static int PARAM_MAX_VALUE = 10;
@@ -82,6 +82,8 @@ public class DelegatingBotCore extends ClientCore
 	private int adaptation; /* capacite a suivre les autres commentaires */
 	private int persuation; /* capacite a convaincre les autres de suivre ses commentaires */
 	
+	private boolean opinionAdded; /* vrai si opinion ajoutee, faux sinon */
+	
 	public static double computeOpinionsSimilarity(int[] op1, int[] op2)
 	{
 		double result = 0;
@@ -115,6 +117,7 @@ public class DelegatingBotCore extends ClientCore
 		name = BOT_NAME + " " + botCount;
 		avatar = Avatars.getOneAvatarRandomly();
 		paused = true;
+		opinionAdded = false;
 		
 		botCount++;
 		
@@ -133,7 +136,6 @@ public class DelegatingBotCore extends ClientCore
 			opinion[i] = (int) (Math.random()*2);
 			
 		}
-		//TypeScore.adaptation.calculer(g, playerId)
 	}
 
 	/**
@@ -163,6 +165,18 @@ public class DelegatingBotCore extends ClientCore
 	 */
 	public void refresh() throws AlreadyExistsException, TooLateException, RemoteException, InterruptedException
 	{
+		/* on met a jour l'opinion des que possible */
+		if (!opinionAdded)
+		{
+			IPlayer p = getGame().getPlayer(getPlayerId());
+			
+			if (p != null)
+			{
+				p.setOpinion(opinion);
+				opinionAdded = true;
+			}
+		}
+		
 		updateHeuristics();
 
 		if (paused)
@@ -674,6 +688,15 @@ public class DelegatingBotCore extends ClientCore
 		return ideasOpinion;
 	}
 	
+	/**
+	 * Retourne l"opinion du bot
+	 * @return int[]
+	 */
+	public int[] getOpinion()
+	{
+		return opinion;
+	}
+	 
 	/**
 	 * Setter pour creativity
 	 * @param _creativity

@@ -258,6 +258,7 @@ public interface IGame extends IListenable, Remote, Serializable {
 	 */
 	int addPlayer(String playerName) throws RemoteException;
 	
+	int addPlayer(String name, String avatar, int[] opinion) throws RemoteException;
 	
 	int addPlayer(String playerName, String avatar) throws RemoteException;
 	
@@ -286,6 +287,8 @@ public interface IGame extends IListenable, Remote, Serializable {
 	public long getDateCreation() throws RemoteException;
 
 	boolean testExistingPlayer(String playerName) throws RemoteException;
+
+	
 	
 	
 	

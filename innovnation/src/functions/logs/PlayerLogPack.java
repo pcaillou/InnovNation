@@ -5,6 +5,8 @@ package functions.logs;
 
 import java.rmi.RemoteException;
 
+import client.DelegatingBotCore;
+
 import data.IComment;
 import data.IIdea;
 import data.IItem;
@@ -21,6 +23,7 @@ public class PlayerLogPack implements LogPack {
 	private int myId;
 	private IGame game;
 	private IPlayer player;
+	private int[] opinion;
 	
 	private int remainingTokens, usedTokens,
 		ideas, items, comments, votes,
@@ -36,6 +39,8 @@ public class PlayerLogPack implements LogPack {
 		this.myId = p.getUniqueId();
 		this.lastActionTime = time;
 
+		opinion = p.getOpinion();
+		
 		try {
 			remainingTokens = p.getRemainingTokens();
 		} catch (RemoteException e) {
@@ -50,7 +55,7 @@ public class PlayerLogPack implements LogPack {
 	
 	static public String titles() {
 		StringBuilder sb = new StringBuilder(
-				"playerId;playerRemainingTokens;playerUsedTokens;playerIdeas;playerItems;playerComments;playerVotes;playerTimeSinceAction;playerBestIdeaScore;playerItemUsage;playerIdeaUsage;playerCommentUsage;"
+				"playerId;playerOpinion;playerRemainingTokens;playerUsedTokens;playerIdeas;playerItems;playerComments;playerVotes;playerTimeSinceAction;playerBestIdeaScore;playerItemUsage;playerIdeaUsage;playerCommentUsage;"
 		);
 		for(TypeScore s : TypeScore.values()) sb.append("player").append(s.nom).append(';');
 		for(TypeScore s : TypeScore.values()) sb.append("rank").append(s.nom).append(';');
@@ -59,7 +64,12 @@ public class PlayerLogPack implements LogPack {
 	}
 
 	static public String zeros() {
-		StringBuilder sb = new StringBuilder("0;0;0;0;0;0;0;0;0;0;0;0;");
+		String sopinion = "";
+		for (int i = 0 ; i < DelegatingBotCore.TOTAL_OPINION ; i++)
+		{
+			sopinion += "0";
+		}
+		StringBuilder sb = new StringBuilder("0;[" + sopinion + "];0;0;0;0;0;0;0;0;0;0;0;");
 		for(@SuppressWarnings("unused")TypeScore s : TypeScore.values()) sb.append("0.0;0.0;");
 		return sb.toString(); 
 		
@@ -70,8 +80,15 @@ public class PlayerLogPack implements LogPack {
 	 */
 	@Override
 	public String log(int time) {
+		opinion = player.getOpinion();
+		String sopinion = "[";
+		for (int i = 0 ; i < DelegatingBotCore.TOTAL_OPINION ; i++)
+		{
+			sopinion += String.valueOf(opinion[i]);
+		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(myId).append(';');
+		sb.append(sopinion).append(']').append(';');
 		sb.append(remainingTokens).append(';');
 		sb.append(usedTokens).append(';');
 		sb.append(ideas).append(';');

@@ -327,30 +327,10 @@ public class Game extends AbstractGame implements IServerSideGame {
 	/* (non-Javadoc)
 	 * @see functions.IGame#addPlayer(java.lang.String)
 	 */
-	@Override
 	public int addPlayer(String playerName) throws RemoteException {
 		return addPlayer( playerName, Avatars.getOneAvatarRandomly() );
 	}
 	
-
-	@Override
-	public boolean testExistingPlayer(String playerName) throws RemoteException
-	{
-		boolean newplayer=true;
-		int id=-1;
-		for (IPlayer pl:this.getAllPlayers())
-		{
-			if (pl.getShortName().equals(playerName))
-			{
-				newplayer=false;
-				id=pl.getUniqueId();
-				System.out.println("existing player "+id);
-			}
-		}
-		return (!newplayer);
-		
-	}
-	@Override
 	public int addPlayer(String playerName, String avatar)
 			throws RemoteException {
 		
@@ -368,8 +348,8 @@ public class Game extends AbstractGame implements IServerSideGame {
 		
 		if (newplayer)
 		{
-		id = injectPlayer(new Player(playerName, avatar));
-		graphLP.updateOnPlayer(id);
+			id = injectPlayer(new Player(playerName, avatar));
+			graphLP.updateOnPlayer(id);
 		}
 		
 		gameLP.updateOnPlayer(id);
@@ -378,7 +358,53 @@ public class Game extends AbstractGame implements IServerSideGame {
 		firePlayerJoinedEvent(id);
 		return id;
 	}
-
+	
+	public int addPlayer(String playerName, String avatar, int[] opinion)
+			throws RemoteException {
+		
+		boolean newplayer=true;
+		int id=-1;
+		for (IPlayer pl:this.getAllPlayers())
+		{
+			if (pl.getShortName().equals(playerName))
+			{
+				newplayer=false;
+				id=pl.getUniqueId();
+				System.out.println("use existing player "+id);
+			}
+		}
+		
+		if (newplayer)
+		{
+			id = injectPlayer(new Player(playerName, avatar, opinion));
+			graphLP.updateOnPlayer(id);
+		}
+		
+		gameLP.updateOnPlayer(id);
+		playerLPs.put(id, new PlayerLogPack(this,getPlayer(id), getNow()));
+		
+		firePlayerJoinedEvent(id);
+		return id;
+	}
+	
+	@Override
+	public boolean testExistingPlayer(String playerName) throws RemoteException
+	{
+		boolean newplayer=true;
+		int id=-1;
+		for (IPlayer pl:this.getAllPlayers())
+		{
+			if (pl.getShortName().equals(playerName))
+			{
+				newplayer=false;
+				id=pl.getUniqueId();
+				System.out.println("existing player "+id);
+			}
+		}
+		return (!newplayer);
+		
+	}
+	
 	/* (non-Javadoc)
 	 * @see functions.IGame#removePlayer(int)
 	 */

@@ -155,6 +155,11 @@ public final class LocalCopyOfGame extends AbstractGame implements IEventListene
 			throws RemoteException {
 		return distantGame.addPlayer(playerName, avatar);
 	}
+	
+	public int addPlayer(String playerName, String avatar, int[] opinion)
+			throws RemoteException {
+		return distantGame.addPlayer(playerName, avatar,opinion);
+	}
 
 	@Override
 	public void removePlayer(int playerId) throws RemoteException {

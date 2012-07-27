@@ -1199,7 +1199,7 @@ public class GuiBotManager extends Thread{
 			
 			/* on ajoute un id au bot */
 			Integer id;
-			id = b.getGame().addPlayer(b.getName(), b.getAvatar());
+			id = b.getGame().addPlayer(b.getName(), b.getAvatar(),b.getOpinion());
 			b.setPlayerId(id);
 			bots.add(b);
 			

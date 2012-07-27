@@ -9,6 +9,8 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import client.DelegatingBotCore;
+
 import functions.AbstractGame;
 import functions.IGame;
 import functions.TypeScore;
@@ -20,6 +22,9 @@ import functions.TypeScore;
 public class Player extends Storable implements IPlayer, Serializable {
 	private static final long serialVersionUID = 1L;
 	private static final EnumMap<TypeScore, Double> EmptyScores = new EnumMap<TypeScore, Double>(TypeScore.class);
+
+	private int[] opinion;
+	
 	static {
 		for(TypeScore score : TypeScore.values()) EmptyScores.put(score, 0.);
 	}
@@ -42,8 +47,20 @@ public class Player extends Storable implements IPlayer, Serializable {
 	public Player(String shortName, String avatar) {
 		super(shortName);
 		this.picturePath = avatar;
+		opinion = new int[DelegatingBotCore.TOTAL_OPINION];
+		for (int i = 0 ; i < opinion.length ; i++)
+		{
+			opinion[i] = 0;
+		}
 	}
 	
+	public Player(String playerName, String avatar, int[] _opinion) 
+	{
+		this(playerName,avatar);
+		opinion = _opinion;
+		
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(super.toString()).append(" scores{ ");
@@ -89,6 +106,15 @@ public class Player extends Storable implements IPlayer, Serializable {
 		remainingTokens -= nbTokens;
 	}
 
+	public void setOpinion(int[] _opinion)
+	{
+		opinion = _opinion;
+	}
+	
+	public int[] getOpinion()
+	{
+		return opinion;
+	}
 	
 	/* (non-Javadoc)
 	 * @see data.IPlayer#getScore(functions.TypeScore)
