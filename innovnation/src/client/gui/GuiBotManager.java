@@ -131,6 +131,7 @@ public class GuiBotManager extends Thread{
 	private final static String TXT_ADD = "Ajouter bot";
 	private final static String TXT_START = "Demarrer bot";
 	private final static String TXT_PAUSE = "Stopper bot";
+	private final static String TXT_CLONE = "Cloner bot";
 	private final static String TXT_START_ALL = "Demarrer tous";
 	private final static String TXT_PAUSE_ALL = "Stopper tous";
 	private final static String TXT_REMOVE_ALL = "Supprimer tous";
@@ -170,6 +171,7 @@ public class GuiBotManager extends Thread{
 	
 	/* list des textbox */
 	private Combo textRole;
+	private Combo textOpinion;
 	private Combo textCreativity;
 	private Combo textRelevance;
 	private Combo textAdaptation;
@@ -178,6 +180,7 @@ public class GuiBotManager extends Thread{
 	
 	/* liste des "bloqueurs" pour les combobox (pour empêcher leurs changement pendant qu'on les utilise)*/
 	private boolean focusRole;
+	private boolean focusOpinion;
 	private boolean focusCreativity;
 	private boolean focusRelevance;
 	private boolean focusAdaptation;
@@ -191,6 +194,7 @@ public class GuiBotManager extends Thread{
 	private Button buttonAddTen;
 	private Button buttonAllowIdeas;
 	private Button buttonPause;
+	private Button buttonClone;
 	private Button buttonSplit;
 	private Button buttonPauseAll;
 	private Button buttonStartAll;
@@ -260,6 +264,7 @@ public class GuiBotManager extends Thread{
 		
 		if (selectedBot == -1)
 		{
+			buttonClone.setEnabled(false);
 			buttonPause.setEnabled(false);
 			buttonRemove.setEnabled(false);
 			buttonSplit.setEnabled(false);
@@ -267,6 +272,7 @@ public class GuiBotManager extends Thread{
 		}
 		else
 		{
+			buttonClone.setEnabled(true);
 			buttonPause.setEnabled(true);
 			buttonRemove.setEnabled(true);
 			buttonSplit.setEnabled(true);		
@@ -460,19 +466,6 @@ public class GuiBotManager extends Thread{
 				}
 			});
 			
-			buttonRemoveAll = new Button(compositeButtons, SWT.PUSH);
-			buttonRemoveAll.setText(TXT_REMOVE_ALL);
-			buttonRemoveAll.addSelectionListener(new SelectionListener() {
-
-				public void widgetSelected(SelectionEvent e) {
-					clickRemoveAll();
-				}
-				
-				public void widgetDefaultSelected(SelectionEvent e) {
-					clickRemoveAll();
-				}
-			});
-			
 		}
 		
 		/* partie choix du bot */
@@ -498,7 +491,7 @@ public class GuiBotManager extends Thread{
 		
 		addBotMenu(compositeHost);
 		
-		/* on ajoute les boutons */
+		/* on ajoute les boutons sous le bot */
 		{
 
 			RowLayout layoutBottom = new RowLayout(SWT.HORIZONTAL);
@@ -507,6 +500,19 @@ public class GuiBotManager extends Thread{
 			compositeButtons.setBackground(LOOK_COLOR_BACKGROUND_SUBSPACES);
 			compositeButtons.setLayout(layoutBottom);
 			compositeButtons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			
+			buttonClone = new Button(compositeButtons, SWT.PUSH);
+			buttonClone.setText(TXT_CLONE);
+			buttonClone.addSelectionListener(new SelectionListener() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					clickClone();
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+					clickClone();
+				}
+			});
 			
 			buttonPause = new Button(compositeButtons, SWT.PUSH);
 			buttonPause.setText(TXT_PAUSE);
@@ -705,7 +711,7 @@ public class GuiBotManager extends Thread{
 						{
 							// aucun changement
 						}
-						else if (textRole.getSelectionIndex() == 1)
+						else if (textRole.getSelectionIndex() == 2)
 						{
 							textPersuasion.select((int) (Math.random()*10));
 							textCreativity.select((int) (Math.random()*10));
@@ -714,10 +720,10 @@ public class GuiBotManager extends Thread{
 						}
 						else
 						{
-							textCreativity.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][0]-1);
-							textRelevance.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][1]-1);
-							textAdaptation.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][2]-1);
-							textPersuasion.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][3]-1);
+							textCreativity.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][0]);
+							textRelevance.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][1]);
+							textAdaptation.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][2]);
+							textPersuasion.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][3]);
 						}
 						
 						updateButtonsStates();
@@ -729,6 +735,41 @@ public class GuiBotManager extends Thread{
 					}
 					public void focusGained(FocusEvent arg0) {
 						focusRole = true;
+						
+					}
+				});
+				
+				textOpinion = new Combo(rowRole, SWT.BORDER | SWT.READ_ONLY);
+				textOpinion.setItems(new String[]{"Opinion","Sans opinion"});
+				textOpinion.select(0);
+				textOpinion.addListener(SWT.Selection,new Listener() {
+					public void handleEvent (Event e) {
+						paramsChanged = true;
+						if (textOpinion.getSelectionIndex() == 0)
+						{
+							int[] opinion = new int[DelegatingBotCore.TOTAL_OPINION];
+							for (int i = 0 ; i < opinion.length ; i++)
+							{
+								opinion[i] = (int) (Math.random() * 2);
+							}
+							
+							bots.get(selectedBot).setOpinion(opinion);
+							
+						}
+						else
+						{
+							bots.get(selectedBot).setOpinion(DelegatingBotCore.NO_OPINION);
+						}
+						
+						updateButtonsStates();
+					}
+				});
+				textOpinion.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusOpinion = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusOpinion = true;
 						
 					}
 				});
@@ -748,7 +789,7 @@ public class GuiBotManager extends Thread{
 				
 				/* on ajoute le champ */
 				textCreativity = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textCreativity.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textCreativity.add(i.toString());
 				textCreativity.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -781,7 +822,7 @@ public class GuiBotManager extends Thread{
 				
 				/* on ajoute le champ */
 				textRelevance = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textRelevance.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textRelevance.add(i.toString());
 				textRelevance.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -814,7 +855,7 @@ public class GuiBotManager extends Thread{
 				
 				/* on ajoute le champ */
 				textAdaptation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textAdaptation.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textAdaptation.add(i.toString());
 				textAdaptation.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -847,7 +888,7 @@ public class GuiBotManager extends Thread{
 				
 				/* on ajoute le champ */
 				textPersuasion = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textPersuasion.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textPersuasion.add(i.toString());
 				textPersuasion.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -1173,6 +1214,22 @@ public class GuiBotManager extends Thread{
 	}
 		
 	/**
+	 * Clone le bot selectionne
+	 */
+	private void clickClone()
+	{
+		int source = selectedBot;
+		clickAddBot();
+
+		bots.get(selectedBot).setRole(bots.get(source).getRole());
+		bots.get(selectedBot).setAdaptation(bots.get(source).getAdaptation());
+		bots.get(selectedBot).setPersuasion(bots.get(source).getPersuasion());
+		bots.get(selectedBot).setRelevance(bots.get(source).getRelevance());
+		bots.get(selectedBot).setCreativity(bots.get(source).getCreativity());
+		bots.get(selectedBot).setOpinion(bots.get(source).getOpinion());
+	}
+	
+	/**
 	 * Ajoute un nouveau bot
 	 */
 	private void clickAddBot()
@@ -1355,7 +1412,7 @@ public class GuiBotManager extends Thread{
 		bots.get(selectedBot).setAdaptation(param);
 		
 		param = textPersuasion.getSelectionIndex()+1;
-		bots.get(selectedBot).setPersuation(param);
+		bots.get(selectedBot).setPersuasion(param);
 		
 		param = textRelevance.getSelectionIndex()+1;
 		bots.get(selectedBot).setRelevance(param);
@@ -1369,6 +1426,7 @@ public class GuiBotManager extends Thread{
 		if (selectedBot == -1)
 		{
 			textRole.select(0);
+			textOpinion.select(0);
 			textCreativity.select(0);
 			textAdaptation.select(0);
 			textPersuasion.select(0);
@@ -1377,6 +1435,18 @@ public class GuiBotManager extends Thread{
 		else
 		{
 			int param;
+
+			if (!focusOpinion)
+			{
+				if (bots.get(selectedBot).getOpinion() == DelegatingBotCore.NO_OPINION)
+				{
+					textOpinion.select(1);
+				}
+				else
+				{
+					textOpinion.select(0);
+				}
+			}
 
 			if (!focusRole)
 			{

@@ -35,18 +35,22 @@ public class DelegatingBotCore extends ClientCore
 	public final static int ACTION_VOTE = 0;
 	public final static int ACTION_IDEA = 1;
 	public final static int ACTION_NOTHING = 2;
-	public final static int TOTAL_OPINION = 4;
 	
-	public static final String[] roles = {"Custom","Random","Persuasif","Creatif","Adaptatif","Pertinent"};
+	public final static int[] NO_OPINION = {0,0,0,0};
+	public final static int TOTAL_OPINION = 4; 
+	
+	
+	public static final String[] roles = {"Custom","Sans effets","Random","Persuasif","Creatif","Adaptatif","Pertinent"};
 	public static final int[][] rolesParams = 
-		{{-1,-1,-1,-1},{-1,-1,-1,-1},{3,3,3,10},{10,3,3,3},{3,3,10,3},{3,10,3,3}};
-	public final static int BOT_BASE_SPEED = 20000;
+		{{-1,-1,-1,-1},{0,0,0,0},{-1,-1,-1,-1},{5,5,5,7},{7,5,5,5},{5,5,7,5},{5,7,5,5}};
+	public final static int RANDOM_ROLE = 2;
+	public final static int BOT_BASE_SPEED = 40000;
 	public final static String BOT_NAME = "Wall-e";
 	
 	
 	public final static int PARAM_MAX_VALUE = 10;
 	
-	public static final double CHANCE_IDEA_CREATION_RATIO = 0.1;
+	public static final double CHANCE_IDEA_CREATION_RATIO = 0.12;
 	
 	private static Integer botCount = 1;
 	public static int ideaCount = 0;
@@ -80,7 +84,7 @@ public class DelegatingBotCore extends ClientCore
 	private int creativity; /* capacite a avoir de bonne idees */
 	private int relevance;  /* capacite a suivre les bonnes idees */
 	private int adaptation; /* capacite a suivre les autres commentaires */
-	private int persuation; /* capacite a convaincre les autres de suivre ses commentaires */
+	private int persuasion; /* capacite a convaincre les autres de suivre ses commentaires */
 	
 	private boolean opinionAdded; /* vrai si opinion ajoutee, faux sinon */
 	
@@ -122,12 +126,12 @@ public class DelegatingBotCore extends ClientCore
 		botCount++;
 		
 		/* on choisis un role au hazard */
-		role = (int) (2 + Math.random() * (roles.length-2));
+		role = (int) (3 + Math.random() * (roles.length-3));
 		
 		creativity = rolesParams[role][0];
 		relevance = rolesParams[role][1];
 		adaptation = rolesParams[role][2];
-		persuation = rolesParams[role][3];
+		persuasion = rolesParams[role][3];
 		
 		/* on cree l'opinion du bot */
 		opinion = new int[TOTAL_OPINION];
@@ -217,12 +221,21 @@ public class DelegatingBotCore extends ClientCore
 			return ACTION_VOTE;
 		}
 		
-		double discount = getAllIdeas().size() * CHANCE_IDEA_CREATION_RATIO * Math.sqrt(getGame().getAllPlayers().size());
-		double strength = 0.5;
-		double time = ideaCount + commentCount;
+		double newIdeaChance;
 		
-		double newIdeaChance = (strength + discount) / (time + strength);
-				
+		if (RANDOM_ROLE == role)
+		{
+			newIdeaChance = Math.random();
+		}
+		else
+		{
+			double discount = getAllIdeas().size() * CHANCE_IDEA_CREATION_RATIO * Math.sqrt(getGame().getAllPlayers().size());
+			double strength = 0.6;
+			double time = ideaCount + commentCount;
+			
+			newIdeaChance = (strength + discount) / (time + strength);
+			
+		}
 		if (Math.random() <= newIdeaChance)
 		{ 
 			return ACTION_IDEA;
@@ -310,7 +323,6 @@ public class DelegatingBotCore extends ClientCore
 		}
 		
 		/* on calcune le nombre de tokens que doit avoir une idee */
-		// TODO rajouter la prise en compte du nombre d'idees avec le nombre max de joueurs pour avoir une montée en S
 		for (Integer i : bests)
 		{
 			tokensMap.put(i, 
@@ -318,22 +330,24 @@ public class DelegatingBotCore extends ClientCore
 		}
 		
 		/* on calcule le nombre de tokens necessaire a l'idee */
-		int tokensForIdea = 0;
+		long timeElapsed = System.currentTimeMillis() - timeCreation;
+		int tokensForIdea = (int) (Math.random()<((timeElapsed)/(25000+timeElapsed) )?Math.random()*3:0);
+		
 		if (tokensMap.containsKey(id))
 		{
-			tokensForIdea = tokensMap.get(id);
+			tokensForIdea += tokensMap.get(id);
 		}
-		tokensToGive = tokensForIdea - tokensGiven;
+		tokensToGive = Math.min(getMaxTokensByPlayer(),tokensForIdea - tokensGiven + (int)(Math.random()*getRemainingTokens()/2)); 
 		if (id == getRootIdea().getUniqueId())
 		{
 			tokensToGive = 0;
 		}
 		
 		/* plus le nombre de tokens est grand, plus les chances de voter sont grande */
-		if ( Math.random() * (Math.abs(tokensToGive)+2) < 1)
+		/*if ( Math.random() * (Math.abs(tokensToGive)) < 1)
 		{
 			tokensToGive = 0;
-		}
+		}*/
 		
 		/* on effectue le vote */
 		if (tokensToGive > 0)
@@ -491,7 +505,7 @@ public class DelegatingBotCore extends ClientCore
 		
 		for (Entry<Integer, Long> h : lastHeuristics.entrySet())
 		{
-			totalHeuristic += (long) (h.getValue() / ( 1 + rootLevel.get(h.getKey())));
+			totalHeuristic += (long) (h.getValue() / ( 1 + 2 * rootLevel.get(h.getKey())));
 		}
 		
 		/* on recupere une idee au hazard, les chances d'obtenir une idee sont augmentee si son heuristique est grande */
@@ -605,7 +619,11 @@ public class DelegatingBotCore extends ClientCore
  	private long getNextAction(long time)
 	{
  		/* plus le temps passe, moins le bot a d'idees */
-		return (long) (time + (BOT_BASE_SPEED + (Math.random() * (BOT_BASE_SPEED*9 + BOT_BASE_SPEED*nbIdeas + BOT_BASE_SPEED*nbComments / 5))));
+ 		if (time%6 != 0)
+ 		{
+ 			return (long) (time + BOT_BASE_SPEED/2 + Math.random() * BOT_BASE_SPEED);
+ 		}
+		return (long) (time + (BOT_BASE_SPEED + (Math.random() * (BOT_BASE_SPEED*12 + BOT_BASE_SPEED*(time-timeCreation)/10000 + 9*BOT_BASE_SPEED*nbIdeas + BOT_BASE_SPEED*nbComments))));
 	}
 	
  	/**
@@ -689,6 +707,21 @@ public class DelegatingBotCore extends ClientCore
 	}
 	
 	/**
+	 * Modifie l'opinion du bot
+	 * @param _opinion : nouvelle opinion du bot
+	 * @return vrai si l'opinion a ete acceptée, faux sinon (refux si la taille du tableau n'est pas celle definie par TOTAL_OPINION)
+	 */
+	public boolean setOpinion(int[] _opinion)
+	{
+		if (_opinion.length == TOTAL_OPINION)
+		{
+			opinion = _opinion;
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Retourne l"opinion du bot
 	 * @return int[]
 	 */
@@ -752,12 +785,12 @@ public class DelegatingBotCore extends ClientCore
 	}
 	
 	/**
-	 * Setter pour persuation
-	 * @param _persuation
+	 * Setter pour persuasion
+	 * @param _persuasion
 	 */
-	public void setPersuation(int _persuation)
+	public void setPersuasion(int _persuasion)
 	{
-		persuation = _persuation;
+		persuasion = _persuasion;
 	}
 	
 	/**
@@ -766,7 +799,7 @@ public class DelegatingBotCore extends ClientCore
 	 */
 	public int getPersuasion()
 	{
-		return persuation;
+		return persuasion;
 	}
 	
 	/**
@@ -958,10 +991,10 @@ public class DelegatingBotCore extends ClientCore
 		ideaCount++;
 		Integer value = (int) ((creativity-1) * IIdea.IDEA_MAX_VALUE / 10 + (Math.random() * (IIdea.IDEA_MAX_VALUE/10)));
 		int[] newOpinion = opinion.clone();
-		for (int i =  (int) Math.sqrt(TOTAL_OPINION) ; i >= 1 ; i--)
+		/*for (int i =  (int) Math.sqrt(TOTAL_OPINION) ; i >= 1 ; i--)
 		{
 			newOpinion[i] = newOpinion[i]==1?0:1;
-		}	
+		}	*/
 		
 		getGame().addBotIdea(getPlayerId(),"Idea " + ideaCount, "this idea has a value of " + value, new ArrayList<Integer>(), sources, value, newOpinion);
 
@@ -990,7 +1023,7 @@ public class DelegatingBotCore extends ClientCore
 		{
 			lock();
 			commentCount++;
-			Integer value = (int) ((persuation-1) * IComment.COMMENT_MAX_VALUE / 10 + (Math.random() * (IComment.COMMENT_MAX_VALUE/10)));
+			Integer value = (int) ((persuasion-1) * IComment.COMMENT_MAX_VALUE / 10 + (Math.random() * (IComment.COMMENT_MAX_VALUE/10)));
 			getGame().commentBotIdea(getPlayerId(), idea, "value of " + value, tokens, valence, value);
 			//getGame().getComment(id).setCommentValue(value);
 			spendTokens(tokens);

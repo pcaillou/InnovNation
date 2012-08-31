@@ -24,7 +24,8 @@ public class SimAnalyzerLog {
 		logs.removeCorruptedColumns();
 		
 		logs.generateLogs(GuiTestMain.lastGameName + "_logp.csv", "logp",
-				LogTransformation.GRAPH_PERSUATION|
+				LogTransformation.GRAPH_PERSUATION |
+				LogTransformation.GRAPH_COMMENT |
 				LogTransformation.GRAPH_TOKENS);
 		logs.generateLogs(GuiTestMain.lastGameName + "_logi.csv", "logi",
 				LogTransformation.GRAPH_IDEAS);
