@@ -69,6 +69,9 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private Display display = null;
 	private Shell shell = null;
 
+	private Display displayScores = null;
+	private Shell shellScores = null;
+
 	private GuiClientMode modeClient = GuiClientMode.DISCONNECTED;
 	private GuiServerMode modeServer = GuiServerMode.NO_SERVER;
 	
@@ -515,6 +518,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		
 	}
 	
+	
 	public void init() {
 
 		display = new Display ();
@@ -527,6 +531,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 		shell.setLayout(new GridLayout(1, false));
 
 		initMenus();
+		
 		
 		// left pane: whiteboard
 		{

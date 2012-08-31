@@ -472,7 +472,8 @@ public class GuiCreateIdea implements IEventListener {
 //			GridData gdButton = new GridData(GridData.HORIZONTAL_ALIGN_END);
 //			gdButton.horizontalSpan = 3;
 //			buttonCreateItem.setLayoutData(gdButton);
-				
+/*				
+ *UNCOMMENT TO RESTORE ITEM CREATION ABILITY 
 			buttonCreateItem.addSelectionListener(new SelectionListener() {
 				
 				@Override
@@ -485,7 +486,7 @@ public class GuiCreateIdea implements IEventListener {
 					clickCreateItem();
 				}
 			});
-
+*/
 			buttonCancel = new Button(compositeBottom, SWT.PUSH);
 			buttonCancel.setText(TXT_BUTTON_CANCEL);
 			buttonCancel.addSelectionListener(new SelectionListener() {
