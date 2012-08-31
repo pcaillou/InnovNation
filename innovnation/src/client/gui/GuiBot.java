@@ -130,12 +130,14 @@ public class GuiBot extends Thread{
 	
 	/* list des textbox */
 	private Combo textRole;
+	private Combo textOpinion;
 	private Combo textCreativity;
 	private Combo textRelevance;
 	private Combo textAdaptation;
 	private Combo textPersuasion;
 	
 	/* liste des "bloqueurs" pour les combobox (pour empêcher leurs changement pendant qu'on les utilise)*/
+	private boolean focusOpinion;
 	private boolean focusRole;
 	private boolean focusCreativity;
 	private boolean focusRelevance;
@@ -354,7 +356,7 @@ public class GuiBot extends Thread{
 						{
 							// aucun changement
 						}
-						else if (textRole.getSelectionIndex() == 1)
+						else if (textRole.getSelectionIndex() == 2)
 						{
 							textPersuasion.select((int) (Math.random()*10));
 							textCreativity.select((int) (Math.random()*10));
@@ -363,10 +365,10 @@ public class GuiBot extends Thread{
 						}
 						else
 						{
-							textCreativity.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][0]-1);
-							textRelevance.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][1]-1);
-							textAdaptation.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][2]-1);
-							textPersuasion.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][3]-1);
+							textCreativity.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][0]);
+							textRelevance.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][1]);
+							textAdaptation.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][2]);
+							textPersuasion.select(DelegatingBotCore.rolesParams[textRole.getSelectionIndex()][3]);
 						}
 						
 						updateButtonsStates();
@@ -378,6 +380,41 @@ public class GuiBot extends Thread{
 					}
 					public void focusGained(FocusEvent arg0) {
 						focusRole = true;
+						
+					}
+				});
+				
+				textOpinion = new Combo(rowRole, SWT.BORDER | SWT.READ_ONLY);
+				textOpinion.setItems(new String[]{"Opinion","Sans opinion"});
+				textOpinion.select(0);
+				textOpinion.addListener(SWT.Selection,new Listener() {
+					public void handleEvent (Event e) {
+						paramsChanged = true;
+						if (textOpinion.getSelectionIndex() == 0)
+						{
+							int[] opinion = new int[DelegatingBotCore.TOTAL_OPINION];
+							for (int i = 0 ; i < opinion.length ; i++)
+							{
+								opinion[i] = (int) (Math.random() * 2);
+							}
+							
+							clientCore.setOpinion(opinion);
+							
+						}
+						else
+						{
+							clientCore.setOpinion(DelegatingBotCore.NO_OPINION);
+						}
+						
+						updateButtonsStates();
+					}
+				});
+				textOpinion.addFocusListener(new FocusListener() {
+					public void focusLost(FocusEvent arg0) {
+						focusOpinion = false;
+					}
+					public void focusGained(FocusEvent arg0) {
+						focusOpinion = true;
 						
 					}
 				});
@@ -397,7 +434,7 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le champ */
 				textCreativity = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textCreativity.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textCreativity.add(i.toString());
 				textCreativity.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -430,7 +467,7 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le champ */
 				textRelevance = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textRelevance.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textRelevance.add(i.toString());
 				textRelevance.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -463,7 +500,7 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le champ */
 				textAdaptation = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textAdaptation.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textAdaptation.add(i.toString());
 				textAdaptation.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -496,7 +533,7 @@ public class GuiBot extends Thread{
 				
 				/* on ajoute le champ */
 				textPersuasion = new Combo(rowExemple, SWT.BORDER | SWT.READ_ONLY);
-				for (Integer i = 1 ; i <= 10 ; i++)textPersuasion.add(i.toString());
+				for (Integer i = 0 ; i <= 10 ; i++)textPersuasion.add(i.toString());
 				textPersuasion.addListener(SWT.Selection,new Listener() {
 					public void handleEvent (Event e) {
 						paramsChanged = true;
@@ -839,7 +876,7 @@ public class GuiBot extends Thread{
 		clientCore.setAdaptation(param);
 		
 		param = textPersuasion.getSelectionIndex()+1;
-		clientCore.setPersuation(param);
+		clientCore.setPersuasion(param);
 		
 		param = textRelevance.getSelectionIndex()+1;
 		clientCore.setRelevance(param);
@@ -852,6 +889,18 @@ public class GuiBot extends Thread{
 	{
 		int param;
 
+		if (!focusOpinion)
+		{
+			if (clientCore.getOpinion() == DelegatingBotCore.NO_OPINION)
+			{
+				textOpinion.select(1);
+			}
+			else
+			{
+				textOpinion.select(0);
+			}
+		}
+		
 		if (!focusRole)
 		{
 			param = clientCore.getRole();

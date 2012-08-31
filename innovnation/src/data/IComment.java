@@ -7,7 +7,7 @@ package data;
 public interface IComment extends IGameObject {
 	
 	/** valeur maximale d'une idee (servant d'heuristique pour les bots pour les bots */
-	public static final int COMMENT_MAX_VALUE = 500;
+	public static final int COMMENT_MAX_VALUE = 100;
 
 	/**
 	 * Retourne la valeur d'un commentaire (servant au bot pour savoir si une idee est bonne ou non)
