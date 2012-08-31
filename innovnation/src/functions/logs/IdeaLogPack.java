@@ -46,6 +46,8 @@ public class IdeaLogPack implements LogPack {
 	
 	private double parentItemMean, parentCommentsMean, parentVotesMean, parentCreationTimeMean;
 	
+	private String title,description;
+	
 	private boolean sameOwnerParent;
 	private int sameOwnerParents;
 
@@ -187,6 +189,8 @@ public class IdeaLogPack implements LogPack {
 		this.game = game;
 		this.myId = idea.getUniqueId();
 		this.myValue = idea.getIdeaValue();
+		this.title = idea.getShortName().replace(";",":");
+		this.description = idea.getDesc().replace(";",":");
 		
 		this.creationTime = time;
 		try {
@@ -274,7 +278,7 @@ public class IdeaLogPack implements LogPack {
 			   "ideaParentCreationTimeMin;ideaParentCreationTimeMax;"+
 	           "ideaParentItemMean;ideaParentCommentsMean;ideaParentVotesMean;ideaParentCreationTimeMean;"+
 			   "ideaHasSameOwnerParent;ideaSameOwnerParents;"+
-	           "childrens;";
+	           "childrens;title;description;";
 	}
 
 	static public String zeros() {
@@ -287,7 +291,7 @@ public class IdeaLogPack implements LogPack {
 			   "0;0;"+
 			   "0;0;0;0;"+
 			   "0;0;"+
-			   "0;";
+			   "0;;;";
 	}
 	
 	/* (non-Javadoc)
@@ -343,6 +347,8 @@ public class IdeaLogPack implements LogPack {
 		sb.append(sameOwnerParents).append(';');
 
 		sb.append(childrens).append(';');
+		sb.append(title).append(';');
+		sb.append(description).append(';');
 
 		return sb.toString();
 	}
