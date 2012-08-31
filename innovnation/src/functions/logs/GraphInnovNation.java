@@ -589,7 +589,12 @@ public class GraphInnovNation extends MultiGraph{
 			for (Integer p : players)
 			{
 				tmpn = getNode(p);
-				g.addPlayer((tmpn.getId()).substring(PREFIX_PLAYER.length()), (Long)tmpn.getAttribute(TIME_ADD));
+				try {
+					g.addPlayer((tmpn.getId()).substring(PREFIX_PLAYER.length()), (Long)tmpn.getAttribute(TIME_ADD));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 			for (Integer p : ideas)
@@ -609,9 +614,14 @@ public class GraphInnovNation extends MultiGraph{
 			{
 				tmpe = getEdge(p);
 				ArrayList<long[]> hist = tmpe.getAttribute(VOTE_HIST);
-				for (long[] h : hist)
-				{
-					g.addVote((tmpe.getId()).substring(PREFIX_VOTE.length()), ((String)tmpe.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), ((String)tmpe.getAttribute(IDEA_TARGET)).substring(PREFIX_IDEA.length()), ((Long)h[1]).intValue(), ((Long)h[2]).intValue(), h[0]);
+				try {
+					for (long[] h : hist)
+					{
+						g.addVote((tmpe.getId()).substring(PREFIX_VOTE.length()), ((String)tmpe.getAttribute(PLAYER_SOURCE)).substring(PREFIX_PLAYER.length()), ((String)tmpe.getAttribute(IDEA_TARGET)).substring(PREFIX_IDEA.length()), ((Long)h[1]).intValue(), ((Long)h[2]).intValue(), h[0]);
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 			
@@ -905,7 +915,7 @@ public class GraphInnovNation extends MultiGraph{
 						}
 						
 						int distance = lastVoteTime.get(v[1]) - lastVoteTime.get(j);
-						/* si les votes sont arrives en même temps, on considere que chacun persuade l'autre */
+						/* si les votes sont arrives en mï¿½me temps, on considere que chacun persuade l'autre */
 						if (distance == 0)
 						{
 							distance = 1;
@@ -1345,7 +1355,7 @@ public class GraphInnovNation extends MultiGraph{
 	 * @param source : chaine contenant les donnes graphes dans le format LEFT_BRACE attr1 SEPARATOR attr2 SEPARATOR ... RIGHT_BRACE
 	 * @param weightDefault : poids par defaut si non specifie
 	 * @param timeStartDefault : temps de creation par defaut si non specifie
-	 * @param timeEndDefault : temps de suppression par defaut si non specifie (ou egal au temps de creation si la valeur lui est inférieure)
+	 * @param timeEndDefault : temps de suppression par defaut si non specifie (ou egal au temps de creation si la valeur lui est infï¿½rieure)
 	 * @param insert : vrai si les donnes doivent etre inserees, faux si elles doivent etre ajoutees (voir fonction addEdge et insertEdge)
 	 */
 	public void loadFromString(String source)

@@ -36,7 +36,7 @@ public enum TypeScore{
 		public double calculer(IGame g, int playerId) throws RemoteException {
 			StringBuilder sb = new StringBuilder(nom+'\n');
 			sb.append("Avez vous proposé des idées qui ont eu du succès?\n");
-			sb.append("Somme(Scores maximum de vos idées)");
+			sb.append("=Somme(Scores maximum de vos idées)");
 			tooltip=sb.toString();
 			double res=0;
 			try {
@@ -57,8 +57,8 @@ public enum TypeScore{
 		// somme(chacune de ses mises,nombre total de mise sur l'idée-rang de la mise)
 		public double calculer(IGame g, int playerId) throws RemoteException {
 			StringBuilder sb = new StringBuilder(nom+'\n');
-			sb.append("Avez vous su détecter tot les idées qui ont eu du succès?\n");
-			sb.append("Pour les idées ou vous avez des jetons, somme des mises APRES vos mises");
+			sb.append("Avez vous su détecter les idées qui ont eu du succès?\n");
+			sb.append("=Pour les idées ou vous avez des jetons, somme des mises APRES vos mises");
 			tooltip=sb.toString();
 			
 				
@@ -184,7 +184,7 @@ public enum TypeScore{
 
 			double cumulatedTotal = 0;
 			double localTotal = 0;
-			double distcoef=1.0;
+			double distcoef=10.0;
 			int distance=0;
 			HashMap<Integer,Integer> mises;
 			for (IIdea currentIdea: g.getAllIdeas()) {
@@ -200,6 +200,8 @@ public enum TypeScore{
 					while (iterat.hasNext())
 					{
 						currentComment=iterat.next();
+						//new formula: distance increase only with valence
+						if ((!currentComment.getValence().equals(CommentValence.NEUTRAL))|(currentComment.getTokensCount()!=0))						
 						distance++;
 						if (currentComment.getPlayerId()==playerId)
 						{
@@ -224,7 +226,8 @@ public enum TypeScore{
 								while (miseprecdate.hasNext())
 								{
 									int datemise=miseprecdate.next();
-									localTotal=localTotal+(currentComment.getTokensCount()*mises.get(datemise))/(distcoef*(distance-datemise));
+//									localTotal=localTotal+(currentComment.getTokensCount()*mises.get(datemise))/(distcoef*(distance-datemise));
+									localTotal=localTotal+(currentComment.getTokensCount()*mises.get(datemise))*(Math.log10(distcoef+(distance-datemise)));
 /*									if ((currentComment.getTokensCount()*mises.get(datemise))>0)
 									{
 //										localTotal=localTotal+1/(distance-datemise);										
@@ -335,7 +338,7 @@ public enum TypeScore{
 				
 			double cumulatedTotal = 0;
 			double localTotal = 0;
-			double distcoef=1.0;
+			double distcoef=10.0;
 			int distance=0;
 			HashMap<Integer,Integer> mises;
 			for (IIdea currentIdea: g.getAllIdeas()) {
@@ -351,6 +354,8 @@ public enum TypeScore{
 					while (itreverse.hasNext())
 					{
 						currentComment=itreverse.next();
+						//new formula: distance increase only with valence
+						if ((!currentComment.getValence().equals(CommentValence.NEUTRAL))|(currentComment.getTokensCount()!=0))						
 						distance++;
 						if (currentComment.getPlayerId()==playerId)
 						{
@@ -376,10 +381,13 @@ public enum TypeScore{
 								while (miseprecdate.hasNext())
 								{
 									int datemise=miseprecdate.next();
+									//new formula : tot=tot+mise*log10(distcoef+dist)
 									if (currentComment.getValence().equals(CommentValence.NEGATIVE))
-										localTotal=localTotal+((-1)*mises.get(datemise))/(distcoef*(distance-datemise));
+										localTotal=localTotal+((-1)*mises.get(datemise))*(Math.log10(distcoef+(distance-datemise)));
+//										localTotal=localTotal+((-1)*mises.get(datemise))/(distcoef*(distance-datemise));
 									if (currentComment.getValence().equals(CommentValence.POSITIVE))
-										localTotal=localTotal+((+1)*mises.get(datemise))/(distcoef*(distance-datemise));
+//										localTotal=localTotal+((+1)*mises.get(datemise))/(distcoef*(distance-datemise));
+										localTotal=localTotal+((+1)*mises.get(datemise))*(Math.log10(distcoef+(distance-datemise)));
 //										localTotal=localTotal+(currentComment.getTokensCount()*mises.get(datemise))/(distance-datemise);
 /*									if ((currentComment.getTokensCount()*mises.get(datemise))>0)
 									{

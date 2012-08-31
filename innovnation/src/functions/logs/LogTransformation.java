@@ -123,7 +123,7 @@ public class LogTransformation {
 		for(long row = 1; row < matrix.getRowCount(); row++ )
 		{
 			try {	
-				// s'il n'y a pas de colonnes innovNations, on recréé le graphe
+				// s'il n'y a pas de colonnes innovNations, on recrï¿½ï¿½ le graphe
 				if (innovColumn == -1)
 				{
 					type = matrix.getAsString(row,typeColumn);
@@ -132,7 +132,8 @@ public class LogTransformation {
 						continue;
 					}
 					// TODO pes de moyen pour trouver les idees sources d'une idee
-					if (type.equals("idea") || type.equals("logi"))
+//					if (type.equals("idea"))
+						if (type.equals("idea") || type.equals("logi"))
 					{ 
 						String ideaId = matrix.getAsString(row,ideaColumn);
 						String ownerId = matrix.getAsString(row,ideaOwnerColumn);
@@ -440,7 +441,7 @@ public class LogTransformation {
 				String type = matrix.getAsString(cursor,columnType);
 				if (type != null && type.equals(columnLog))
 				{
-					/* les 74 premieres lignes ne doivent pas etre à null, sinon le resultat est dit corrompu */
+					/* les 74 premieres lignes ne doivent pas etre ï¿½ null, sinon le resultat est dit corrompu */
 					corruptedLine = false;
 					fullZeros = true;
 					for (long i = 1 ; i < 74 ; i++)
@@ -555,8 +556,9 @@ public class LogTransformation {
 				diff = new ArrayList<String>();
 				p = graphs.get(i).getNode(id);			
 				
-				edges.add(graphs.get(i).nodeToString(p));
-
+				try {
+					edges.add(graphs.get(i).nodeToString(p));
+	
 				for (Edge e : p.getEachLeavingEdge())
 				{
 					edges.add(graphs.get(i).edgeToString(e));
@@ -569,6 +571,10 @@ public class LogTransformation {
 				
 				logs.get(i).put(id,edges);
 				graphMatrix.setAsString(DynamicGraph.tabToString(diff), row,i);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		}
 		
