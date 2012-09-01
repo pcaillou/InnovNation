@@ -69,11 +69,10 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private Display display = null;
 	private Shell shell = null;
 
-	private Display displayScores = null;
-	private Shell shellScores = null;
+	private GuiScores scoredial;
 
-	private GuiClientMode modeClient = GuiClientMode.DISCONNECTED;
-	private GuiServerMode modeServer = GuiServerMode.NO_SERVER;
+	public GuiClientMode modeClient = GuiClientMode.DISCONNECTED;
+	public GuiServerMode modeServer = GuiServerMode.NO_SERVER;
 	
 	private GuiBotManager botManager;
 	
@@ -101,7 +100,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	/**
 	 * Client used to access to a game as an observer or player
 	 */
-	private DelegatingClientCore clientCore = null;
+	public DelegatingClientCore clientCore = null;
 	
 	/**
 	 * The game server that may be used for creating a game.
@@ -117,7 +116,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	private MenuItem itemConnectAndJoin, itemCreateJoinAndPlay, itemCreateBotGame, itemCreateJoin, itemObserve, itemJoin, itemDisconnect, itemCreateServerLocal, itemCreateServer, itemCreateGame, itemShutdownServer, itemAddBotManager;
 	
 	@SuppressWarnings("unused")
-	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest;
+	private Button buttonAddIdea, buttonAddItem, buttonComment, buttonCleanCommentInput, buttonAddComment, buttonTest,buttonShowScores;
 	
 	@SuppressWarnings("unused")
 	private Text commentText;
@@ -519,6 +518,16 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 	}
 	
 	
+	public void initFrameScores()
+	{
+		this.scoredial  = new GuiScores(clientWhiteboard, gameBindName, display, this);
+		
+		scoredial.init();
+		
+		scoredial.start();
+		
+	}
+	
 	public void init() {
 
 		display = new Display ();
@@ -532,6 +541,7 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 
 		initMenus();
 		
+		initFrameScores();
 		
 		// left pane: whiteboard
 		{
@@ -747,7 +757,21 @@ public class GuiTestMain implements IEventListener // and for events from the ga
 						clickCreateItem();
 					}
 				});
-				
+				buttonShowScores = new Button(compositeButtons, SWT.PUSH);
+				buttonShowScores.setText("Afficher les scores");
+				buttonShowScores.addSelectionListener(new SelectionListener() {
+	
+					@Override
+					public void widgetSelected(SelectionEvent arg0) {
+						initFrameScores();
+					}
+	
+					@Override
+					public void widgetDefaultSelected(SelectionEvent arg0) {
+						initFrameScores();
+					}
+				});
+					
 			}
 		}
 
