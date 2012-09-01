@@ -40,7 +40,7 @@ public class IdeaLogPack implements LogPack {
 	parentItems, parentItemsMin, parentItemsMax,
 	parentComments, parentCommentsMin, parentCommentsMax,
 	parentVotes, parentVotesMin, parentVotesMax,
-	parentCreationTimeMin, parentCreationTimeMax;
+	parentCreationTimeMin, parentCreationTimeMax,nbPositiveComment,nbNegativeComment;
 	
 	private int parentCreationTimes;//local data to fasten computation
 	
@@ -278,7 +278,7 @@ public class IdeaLogPack implements LogPack {
 			   "ideaParentCreationTimeMin;ideaParentCreationTimeMax;"+
 	           "ideaParentItemMean;ideaParentCommentsMean;ideaParentVotesMean;ideaParentCreationTimeMean;"+
 			   "ideaHasSameOwnerParent;ideaSameOwnerParents;"+
-	           "childrens;title;description;";
+	           "childrens;title;description;nbPositiveComments;nbNegativeComments";
 	}
 
 	static public String zeros() {
@@ -291,7 +291,7 @@ public class IdeaLogPack implements LogPack {
 			   "0;0;"+
 			   "0;0;0;0;"+
 			   "0;0;"+
-			   "0;;;";
+			   "0;;;0;0;";
 	}
 	
 	/* (non-Javadoc)

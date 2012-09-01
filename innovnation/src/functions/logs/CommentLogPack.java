@@ -19,7 +19,7 @@ import functions.IGame;
  *
  */
 public class CommentLogPack implements LogPack {
-	private int creationTime, size, rank, valence,tokens, inceptions, outceptions, ownerId, ideaId, commentId;
+	private int creationTime, size, rank, valence,tokens, inceptions, outceptions, ownerId, ideaId, commentId,nbCommentBefore,nbPosCommentBefore,nbNegCommentBefore;
 	@SuppressWarnings("unused")
 	private IGame game;
 		
@@ -36,6 +36,23 @@ public class CommentLogPack implements LogPack {
 		outceptions = 0;
 		ownerId = comment.getPlayerId();
 		commentId = comment.getUniqueId();
+		
+		nbCommentBefore = 0;
+		nbPosCommentBefore = 0;
+		nbNegCommentBefore = 0;
+		
+		for (IComment c : comment.getIdea().getComments())
+		{
+			nbCommentBefore++;
+			if (c.getValence() == CommentValence.POSITIVE)
+			{
+				nbPosCommentBefore++;
+			}
+			if (c.getValence() == CommentValence.NEGATIVE)
+			{
+				nbNegCommentBefore++;
+			}
+		}
 		
 		
 		try {
@@ -83,11 +100,11 @@ public class CommentLogPack implements LogPack {
 	}
 	
 	static public String titles() {
-		return "commentId;commentIdeaId;commentOwnerId;commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;";
+		return "commentId;commentIdeaId;commentOwnerId;commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;nbCommentBefore;nbPosCOmmentBefore;nbNegCOmmentBefore";
 	}
 
 	static public String zeros() {
-		return "0;0;0;0;0;0;0;0;0;0;";
+		return "0;0;0;0;0;0;0;0;0;0;0;0;0;";
 	}
 	
 	/* (non-Javadoc)
@@ -106,6 +123,9 @@ public class CommentLogPack implements LogPack {
 		sb.append(valence).append(';');
 		sb.append(inceptions).append(';');
 		sb.append(outceptions).append(';');
+		sb.append(nbCommentBefore).append(';');
+		sb.append(nbPosCommentBefore).append(';');
+		sb.append(nbNegCommentBefore).append(';');
 		return sb.toString();
 	}
 

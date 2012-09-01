@@ -59,6 +59,7 @@ public class PlayerLogPack implements LogPack {
 		);
 		for(TypeScore s : TypeScore.values()) sb.append("player").append(s.nom).append(';');
 		for(TypeScore s : TypeScore.values()) sb.append("rank").append(s.nom).append(';');
+		sb.append("nbVotedIdeas").append(";");
 		return sb.toString(); 
 		
 	}
@@ -71,6 +72,7 @@ public class PlayerLogPack implements LogPack {
 		}
 		StringBuilder sb = new StringBuilder("0;[" + sopinion + "];0;0;0;0;0;0;0;0;0;0;0;");
 		for(@SuppressWarnings("unused")TypeScore s : TypeScore.values()) sb.append("0.0;0.0;");
+		sb.append("0;");
 		return sb.toString(); 
 		
 	}
@@ -105,6 +107,12 @@ public class PlayerLogPack implements LogPack {
 		
 		for(TypeScore s : TypeScore.values()) sb.append(player.getScore(s)).append(';');
 		for(TypeScore s : TypeScore.values()) sb.append(player.getRank(s)).append(';');
+		
+		try {
+			sb.append(player.getTokensBets().size()).append(';');
+		} catch (RemoteException e) {
+			sb.append(0).append(';');
+		}
 		
 		return sb.toString();
 	}
