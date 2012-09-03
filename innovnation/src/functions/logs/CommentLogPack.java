@@ -41,18 +41,25 @@ public class CommentLogPack implements LogPack {
 		nbPosCommentBefore = 0;
 		nbNegCommentBefore = 0;
 		
-		for (IComment c : comment.getIdea().getComments())
-		{
-			nbCommentBefore++;
-			if (c.getValence() == CommentValence.POSITIVE)
-			{
-				nbPosCommentBefore++;
+//		for (IComment c : comment.getIdea().getComments())
+			try {
+				for (IComment c : game.getAllComments())
+					if (c.getIdea().getUniqueId()==comment.getIdea().getUniqueId())
+{
+				nbCommentBefore++;
+				if (c.getValence() == CommentValence.POSITIVE)
+				{
+					nbPosCommentBefore++;
+				}
+				if (c.getValence() == CommentValence.NEGATIVE)
+				{
+					nbNegCommentBefore++;
+				}
+}
+			} catch (RemoteException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
 			}
-			if (c.getValence() == CommentValence.NEGATIVE)
-			{
-				nbNegCommentBefore++;
-			}
-		}
 		
 		
 		try {
@@ -93,14 +100,14 @@ public class CommentLogPack implements LogPack {
 		// voir le joueur cible du commentaire
 		try {
 			game.getPlayer(comment.getPlayerId());
-			// ajouter à player une variable contenant le temps exact de ce contact 
+			// ajouter ï¿½ player une variable contenant le temps exact de ce contact 
 		} catch (RemoteException e) {e.printStackTrace();}
 
 
 	}
 	
 	static public String titles() {
-		return "commentId;commentIdeaId;commentOwnerId;commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;nbCommentBefore;nbPosCOmmentBefore;nbNegCOmmentBefore";
+		return "commentId;commentIdeaId;commentOwnerId;commentCreationTime;commentSize;commentRank;voteTokens;voteValence;voteInceptions;voteOutceptions;nbCommentBefore;nbPosCOmmentBefore;nbNegCOmmentBefore;";
 	}
 
 	static public String zeros() {

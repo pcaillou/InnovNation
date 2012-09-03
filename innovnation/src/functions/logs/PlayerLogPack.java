@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 
 import client.DelegatingBotCore;
 
+import data.CommentValence;
 import data.IComment;
 import data.IIdea;
 import data.IItem;
@@ -29,6 +30,12 @@ public class PlayerLogPack implements LogPack {
 		ideas, items, comments, votes,
 		lastActionTime,
 		bestIdeaScore;
+
+	private int 
+	PositiveComments,NegativeComments; 
+	private double averageCommentLength, averageIdeaLength,averageIdeaDescription;
+	private double PositiveProportion,NegativeProportion,NulProportion;
+	
 	
 	private int itemUsage, ideaUsage, commentUsage;
 	
@@ -51,11 +58,21 @@ public class PlayerLogPack implements LogPack {
 		items = 0;
 		comments = 0;
 		votes = 0;
+		PositiveComments=0;
+		NegativeComments=0; 
+		averageCommentLength=0;
+		averageIdeaLength=0;
+		averageIdeaDescription=0;
+		PositiveProportion=0;
+		NegativeProportion=0;
+		NulProportion=0;
+
 	}
 	
 	static public String titles() {
 		StringBuilder sb = new StringBuilder(
-				"playerId;playerOpinion;playerRemainingTokens;playerUsedTokens;playerIdeas;playerItems;playerComments;playerVotes;playerTimeSinceAction;playerBestIdeaScore;playerItemUsage;playerIdeaUsage;playerCommentUsage;"
+				"playerId;playerOpinion;playerRemainingTokens;playerUsedTokens;playerIdeas;playerItems;playerComments;playerVotes;playerTimeSinceAction;playerBestIdeaScore;playerItemUsage;playerIdeaUsage;playerCommentUsage;"+
+		"plPositiveComments;plNegativeComments;plAvgCommentLength;plAvgIdeaLength;plAvgIdeaDescription;plPositiveProportion;plNegativeProportion;plNulProportion;"
 		);
 		for(TypeScore s : TypeScore.values()) sb.append("player").append(s.nom).append(';');
 		for(TypeScore s : TypeScore.values()) sb.append("rank").append(s.nom).append(';');
@@ -70,7 +87,7 @@ public class PlayerLogPack implements LogPack {
 		{
 			sopinion += "0";
 		}
-		StringBuilder sb = new StringBuilder("0;[" + sopinion + "];0;0;0;0;0;0;0;0;0;0;0;");
+		StringBuilder sb = new StringBuilder("0;[" + sopinion + "];0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;");
 		for(@SuppressWarnings("unused")TypeScore s : TypeScore.values()) sb.append("0.0;0.0;");
 		sb.append("0;");
 		return sb.toString(); 
@@ -104,15 +121,21 @@ public class PlayerLogPack implements LogPack {
 		sb.append(itemUsage).append(';');
 		sb.append(ideaUsage).append(';');
 		sb.append(commentUsage).append(';');
+		sb.append(PositiveComments).append(';');
+		sb.append(NegativeComments).append(';');
+		sb.append(averageCommentLength).append(';');
+		sb.append(averageIdeaLength).append(';');
+		sb.append(averageIdeaDescription).append(';');
+		sb.append(PositiveProportion).append(';');
+		sb.append(NegativeProportion).append(';');
+		sb.append(NulProportion).append(';');
 		
 		for(TypeScore s : TypeScore.values()) sb.append(player.getScore(s)).append(';');
 		for(TypeScore s : TypeScore.values()) sb.append(player.getRank(s)).append(';');
-		
-		try {
-			sb.append(player.getTokensBets().size()).append(';');
-		} catch (RemoteException e) {
-			sb.append(0).append(';');
-		}
+		int i=0;
+//		for (Idea i:player.tokensWereBet(nbTokens))
+			sb.append("0;");
+//			sb.append(player.getTokensBets().size()).append(';');
 		
 		return sb.toString();
 	}
@@ -145,6 +168,8 @@ public class PlayerLogPack implements LogPack {
 		if(createdIdea==null) throw new NullPointerException();
 		if(playerId == myId){
 			ideas++;
+			averageIdeaLength=(averageIdeaLength*(ideas-1)+createdIdea.getShortName().length())/ideas;
+			averageIdeaDescription=(averageIdeaDescription*(ideas-1)+createdIdea.getDesc().length())/ideas;
 		}
 	}
 
@@ -153,6 +178,20 @@ public class PlayerLogPack implements LogPack {
 		if(createdComment==null) throw new NullPointerException();
 		if(playerId == myId){
 			comments++;
+
+			if (createdComment.getValence().equals(CommentValence.POSITIVE))
+			{
+				PositiveComments++;
+			}
+			if (createdComment.getValence().equals(CommentValence.NEGATIVE))
+			{
+				NegativeComments++;
+			}
+			PositiveProportion=((double)PositiveComments)/comments;
+			NegativeProportion=((double)NegativeComments)/comments;
+			NulProportion=1.0-PositiveProportion-NegativeProportion;
+
+			averageCommentLength=(averageCommentLength*(comments-1)+createdComment.getText().length())/comments;
 			
 			int tokens = createdComment.getTokensCount();
 			if(tokens!=0){

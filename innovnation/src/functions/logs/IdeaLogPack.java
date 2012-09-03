@@ -278,7 +278,7 @@ public class IdeaLogPack implements LogPack {
 			   "ideaParentCreationTimeMin;ideaParentCreationTimeMax;"+
 	           "ideaParentItemMean;ideaParentCommentsMean;ideaParentVotesMean;ideaParentCreationTimeMean;"+
 			   "ideaHasSameOwnerParent;ideaSameOwnerParents;"+
-	           "childrens;title;description;nbPositiveComments;nbNegativeComments";
+	           "childrens;title;description;";
 	}
 
 	static public String zeros() {
@@ -291,7 +291,7 @@ public class IdeaLogPack implements LogPack {
 			   "0;0;"+
 			   "0;0;0;0;"+
 			   "0;0;"+
-			   "0;;;0;0;";
+			   "0;;;";
 	}
 	
 	/* (non-Javadoc)
