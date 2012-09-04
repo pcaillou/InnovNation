@@ -42,7 +42,7 @@ public class DelegatingBotCore extends ClientCore
 	
 	public static final String[] roles = {"Custom","Sans effets","Random","Persuasif","Creatif","Adaptatif","Pertinent"};
 	public static final int[][] rolesParams = 
-		{{-1,-1,-1,-1},{0,0,0,0},{-1,-1,-1,-1},{5,5,5,7},{7,5,5,5},{5,5,7,5},{5,7,5,5}};
+		{{-1,-1,-1,-1},{0,0,0,0},{-1,-1,-1,-1},{2,2,2,4},{4,2,2,2},{2,2,4,2},{2,4,2,2}};
 	public final static int RANDOM_ROLE = 2;
 	public final static int BOT_BASE_SPEED = 40000;
 	public final static String BOT_NAME = "Wall-e";
@@ -285,8 +285,7 @@ public class DelegatingBotCore extends ClientCore
 		int tokensGiven = getCurrentIdeasTokensL().get(id);
 		int tokensToGive = 0;
 		double tokensIdea = getIdea(id).getTotalBids();
-		
-		/* on choisit si le commentaire doit etre positif ou negatif */
+
 		int nbBest = 3;
 		ArrayList<Integer> bests = new ArrayList<Integer>();
 		HashMap<Integer,Integer> tokensMap = new HashMap<Integer, Integer>();
@@ -322,11 +321,15 @@ public class DelegatingBotCore extends ClientCore
 			heuristicSum += lastHeuristics.get(i)*ideasOpinion.get(i);
 		}
 		
-		/* on calcune le nombre de tokens que doit avoir une idee */
+		/* on calcune le nombre de tokens que doit avoir une idee en fonction de son heuristique et du temps ecoule */
 		for (Integer i : bests)
 		{
 			tokensMap.put(i, 
-					(int) Math.min(((10 * relevance * lastHeuristics.get(i)*ideasOpinion.get(i) / heuristicSum) + (10 * adaptation * tokensIdea / getGame().getAllPlayers().size())) / (relevance + adaptation),10));
+					(int) Math.min(
+							       ((10 * relevance * lastHeuristics.get(i)*ideasOpinion.get(i) / heuristicSum) 
+							       + (10 * adaptation * tokensIdea / getGame().getAllPlayers().size())) 
+							    / (relevance + adaptation)
+							,10));
 		}
 		
 		/* on calcule le nombre de tokens necessaire a l'idee */
@@ -582,7 +585,7 @@ public class DelegatingBotCore extends ClientCore
 
 				/* on modifie la valeur des commentaires en fonction de la valeur de l'idee et du temps */
 				timeElapsed = time - c.getCreationDate();
-				commentValue = (long) (commentValue * idea.getIdeaValue() / IIdea.IDEA_MAX_VALUE * (1-(timeElapsed / (BOT_BASE_SPEED*6 + timeElapsed))));
+				commentValue = (long) (commentValue * (1-(timeElapsed / (BOT_BASE_SPEED*6 + timeElapsed))));
 			}
 		}
 		
@@ -619,7 +622,7 @@ public class DelegatingBotCore extends ClientCore
  	private long getNextAction(long time)
 	{
  		/* plus le temps passe, moins le bot a d'idees */
- 		if (time%6 != 0)
+ 		if (time%5 != 0)
  		{
  			return (long) (time + BOT_BASE_SPEED/2 + Math.random() * BOT_BASE_SPEED);
  		}
@@ -958,6 +961,7 @@ public class DelegatingBotCore extends ClientCore
 	
 	/**
 	 * Le bot informe les autres qu'il rentre dans une partie "sensible", les autres bots attendront que celui ci unlock pour pouvoir lock à leurs tour
+	 * L'utilisation des semaphores ici permet d'éviter beaucoup de probleme d'acces concurent au serveur (qui retourne l'erreur CurrentModificationException)
 	 * @throws InterruptedException 
 	 */
 	public void lock() throws InterruptedException
@@ -989,7 +993,7 @@ public class DelegatingBotCore extends ClientCore
 	{
 		lock();		
 		ideaCount++;
-		Integer value = (int) ((creativity-1) * IIdea.IDEA_MAX_VALUE / 10 + (Math.random() * (IIdea.IDEA_MAX_VALUE/10)));
+		Integer value = (int) ((creativity) * IIdea.IDEA_MAX_VALUE / 10 + (Math.random() * (IIdea.IDEA_MAX_VALUE/10)));
 		int[] newOpinion = opinion.clone();
 		/*for (int i =  (int) Math.sqrt(TOTAL_OPINION) ; i >= 1 ; i--)
 		{
@@ -1023,7 +1027,7 @@ public class DelegatingBotCore extends ClientCore
 		{
 			lock();
 			commentCount++;
-			Integer value = (int) ((persuasion-1) * IComment.COMMENT_MAX_VALUE / 10 + (Math.random() * (IComment.COMMENT_MAX_VALUE/10)));
+			Integer value = (int) ((persuasion) * IComment.COMMENT_MAX_VALUE / 10 + (Math.random() * (IComment.COMMENT_MAX_VALUE/10)));
 			getGame().commentBotIdea(getPlayerId(), idea, "value of " + value, tokens, valence, value);
 			//getGame().getComment(id).setCommentValue(value);
 			spendTokens(tokens);

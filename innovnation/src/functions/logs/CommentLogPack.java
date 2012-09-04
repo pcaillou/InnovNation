@@ -41,7 +41,9 @@ public class CommentLogPack implements LogPack {
 		nbPosCommentBefore = 0;
 		nbNegCommentBefore = 0;
 		
-		for (IComment c : comment.getIdea().getComments())
+		
+		
+		/*for (IComment c : comment.getIdea().getComments())
 		{
 			nbCommentBefore++;
 			if (c.getValence() == CommentValence.POSITIVE)
@@ -52,7 +54,7 @@ public class CommentLogPack implements LogPack {
 			{
 				nbNegCommentBefore++;
 			}
-		}
+		}*/
 		
 		
 		try {
