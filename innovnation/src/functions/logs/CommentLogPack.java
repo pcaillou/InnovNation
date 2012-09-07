@@ -41,8 +41,7 @@ public class CommentLogPack implements LogPack {
 		nbPosCommentBefore = 0;
 		nbNegCommentBefore = 0;
 		
-		
-		
+		//GraphInnovNation
 		/*for (IComment c : comment.getIdea().getComments())
 		{
 			nbCommentBefore++;

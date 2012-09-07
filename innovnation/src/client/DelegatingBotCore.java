@@ -326,9 +326,8 @@ public class DelegatingBotCore extends ClientCore
 		{
 			tokensMap.put(i, 
 					(int) Math.min(
-							       ((10 * relevance * lastHeuristics.get(i)*ideasOpinion.get(i) / heuristicSum) 
-							       + (10 * adaptation * tokensIdea / getGame().getAllPlayers().size())) 
-							    / (relevance + adaptation)
+							       (10 * lastHeuristics.get(i)*ideasOpinion.get(i) / heuristicSum ) 
+							     + ((10 * tokensIdea) / (getGame().getAllPlayers().size() * adaptation) )
 							,10));
 		}
 		
@@ -340,17 +339,13 @@ public class DelegatingBotCore extends ClientCore
 		{
 			tokensForIdea += tokensMap.get(id);
 		}
+		
+		/* on calcule le nombre de tokens à donner */
 		tokensToGive = Math.min(getMaxTokensByPlayer(),tokensForIdea - tokensGiven + (int)(Math.random()*getRemainingTokens()/2)); 
 		if (id == getRootIdea().getUniqueId())
 		{
 			tokensToGive = 0;
 		}
-		
-		/* plus le nombre de tokens est grand, plus les chances de voter sont grande */
-		/*if ( Math.random() * (Math.abs(tokensToGive)) < 1)
-		{
-			tokensToGive = 0;
-		}*/
 		
 		/* on effectue le vote */
 		if (tokensToGive > 0)
