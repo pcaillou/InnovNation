@@ -327,7 +327,7 @@ public class DelegatingBotCore extends ClientCore
 			tokensMap.put(i, 
 					(int) Math.min(
 							       (10 * lastHeuristics.get(i)*ideasOpinion.get(i) / heuristicSum ) 
-							     + ((10 * tokensIdea) / (getGame().getAllPlayers().size() * adaptation) )
+							     + ((adaptation * tokensIdea) / (getGame().getAllPlayers().size() * 10) )
 							,10));
 		}
 		
