@@ -1,6 +1,6 @@
 package client.gui;
 
-import java.awt.Font; 
+import java.awt.Font;  
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
