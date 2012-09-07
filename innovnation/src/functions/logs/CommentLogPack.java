@@ -59,7 +59,7 @@ public class CommentLogPack implements LogPack {
 			} catch (RemoteException e2) {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
-			}
+			} 
 		
 		
 		try {
