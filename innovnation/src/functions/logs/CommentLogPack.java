@@ -39,7 +39,7 @@ public class CommentLogPack implements LogPack {
 		
 		nbCommentBefore = 0;
 		nbPosCommentBefore = 0;
-		nbNegCommentBefore = 0;
+		nbNegCommentBefore = 0; 
 		
 //		for (IComment c : comment.getIdea().getComments())
 			try {
