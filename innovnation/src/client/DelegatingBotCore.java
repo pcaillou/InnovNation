@@ -286,7 +286,7 @@ public class DelegatingBotCore extends ClientCore
 		int tokensToGive = 0;
 		double tokensIdea = getIdea(id).getTotalBids();
 
-		int nbBest = 3;
+		int nbBest = 4;
 		ArrayList<Integer> bests = new ArrayList<Integer>();
 		HashMap<Integer,Integer> tokensMap = new HashMap<Integer, Integer>();
 		long heuristicSum = 0;
@@ -437,7 +437,7 @@ public class DelegatingBotCore extends ClientCore
 	{
 		int id = 0;
 		long totalHeuristic = 0;
-		double pow = 2;
+		double pow = 1.4;
 		
 		for (Entry<Integer, Long> h : lastHeuristics.entrySet())
 		{

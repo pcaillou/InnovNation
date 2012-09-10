@@ -41,7 +41,9 @@ public class CommentLogPack implements LogPack {
 		nbPosCommentBefore = 0;
 		nbNegCommentBefore = 0;
 		
-		//GraphInnovNation
+		/* TODO la fonction comment.getIdea().getComments() ne fait que lancer une exception
+		  il faudra récupérer les commentaires depuis le graphe InnovNation dans GraphLogPack.graph
+		*/
 		/*for (IComment c : comment.getIdea().getComments())
 		{
 			nbCommentBefore++;
