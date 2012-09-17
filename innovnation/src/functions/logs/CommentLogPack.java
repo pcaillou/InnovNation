@@ -60,7 +60,8 @@ public class CommentLogPack implements LogPack {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
 			} 
-		
+	 
+			
 		 
 		try {
 			for (IIdea idea : game.getAllIdeas())
