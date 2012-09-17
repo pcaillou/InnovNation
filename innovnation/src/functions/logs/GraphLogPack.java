@@ -20,7 +20,7 @@ public class GraphLogPack implements LogPack {
 
 	private Game game;
 	
-	private static GraphInnovNation graph;
+	public static GraphInnovNation graph;
 	
 
 	private Collection<String> innovNationList;
