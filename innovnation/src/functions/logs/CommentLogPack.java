@@ -61,7 +61,7 @@ public class CommentLogPack implements LogPack {
 				e2.printStackTrace();
 			} 
 		
-		
+		 
 		try {
 			for (IIdea idea : game.getAllIdeas())
 			{
