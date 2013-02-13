@@ -12,6 +12,9 @@ import org.graphstream.graph.IdAlreadyInUseException;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.swingViewer.Viewer;
+import org.ujmp.core.MatrixFactory;
+import org.ujmp.core.doublematrix.DenseDoubleMatrix2D;
+import org.ujmp.core.doublematrix.DoubleMatrix2D;
 
 /**
  * 
@@ -1080,6 +1083,105 @@ public class GraphInnovNation extends MultiGraph{
     		}
     	}
     	
+    	return g;
+    }
+    
+    /**
+     * Retourne le graphe des consensus ou chaque branche contient le nombre de votes communs avec un autre joueur
+     * @return DynamicGraph
+     */
+    public DynamicGraph getConsensusGraph()
+    {
+    	DynamicGraph g = new DynamicGraph();
+    	Node player;
+    	Node player1,player2;
+		Collection<Edge> voteList = new ArrayList<Edge>();
+    	
+    	/* on ajoute les joueurs */
+    	for (Integer p : players)
+    	{
+    		g.addNode((String)getNode(p).getAttribute("ID"));
+    		voteList.addAll(getNode(p).getLeavingEdgeSet());
+    	}
+    	DenseDoubleMatrix2D votesval=(DenseDoubleMatrix2D) MatrixFactory.zeros(players.size(),ideas.size());
+    	votesval.showGUI();
+    	/* on ajoute la racine */
+//    	g.addNode("root");
+    	
+//    	for (Integer p : players)
+    	{
+ //   		player = getNode(p);
+    		
+    		/* on recupere la liste des arcs sortant puis on les trie par date d'ajout */
+    		ArrayList<Edge> sortedVoteList = new ArrayList<Edge>();
+    		
+    		for (Edge v : voteList)
+    		{
+    			int index = 0;
+    			long time = v.getAttribute(TIME_ADD);
+    			
+    			for (index = 0 ; index < sortedVoteList.size(); index++)
+    			{
+    				if (time < (Long)sortedVoteList.get(index).getAttribute(TIME_ADD))
+    				{
+    					break;
+    				}
+    			}
+        		sortedVoteList.add(index, v);
+    		}
+    		
+    		/* pour chaque arc, on rajoute au graphe ceux ajoutant des tokens */
+    		for (Edge e : sortedVoteList)
+    		{
+    			ArrayList<long[]> hist = e.getAttribute(VOTE_HIST);
+    			//{timeAdd,vote,valence}
+    			
+    			if (hist == null)
+    			{
+    				continue;
+    			}
+    			
+//    			Node n = e.getOpposite(player);
+    			 double vmax=0;
+    			int p2id=0;
+    			for (long[] h : hist)
+    			{
+    				if (h[1] != 0)
+    				{
+    					int plid=players.indexOf(Integer.valueOf((String) e.getSourceNode().getAttribute("ID")));
+    					int idid=ideas.indexOf(Integer.valueOf((String)e.getTargetNode().getAttribute("ID")));
+    					votesval.setAsDouble(h[1],plid,idid);
+    					//System.out.println("insert " + (String)player.getAttribute("ID") + ",\t" + "i"+(String)n.getAttribute("ID") + ",\t" + (int)h[1] + ",\t" + h[0] + ",\t" + Long.MAX_VALUE);
+    		    	   	for (Integer p2 : players)
+    		        	{
+    		        		player2 = g.getNode((String)getNode(p2).getAttribute("ID"));
+    		    	   		p2id=players.indexOf(p2);
+//    		    	   		p2id=p2;
+    		    	   		vmax=0;
+    		    	   		if (h[0]>=0&plid>=0&p2id>=0&idid>=0)
+    		    	   		{
+    		    	   		for (int i=0;i<ideas.size();i++) if (p2id!=plid) vmax=vmax+Math.min(votesval.getAsDouble(h[0],plid,idid), votesval.getAsDouble(h[0],p2id,idid));
+        					g.insertEdge((String)e.getSourceNode().getAttribute("ID"),(String)player2.getAttribute("ID"),(int)vmax, h[0],Long.MAX_VALUE);
+    		    	   		}
+    		    	   		else
+    		    	   		{
+    		    	   			System.out.println("inf 0 consensus pb...");
+    		    	   		}
+    		        	}
+    				}
+    			}
+    		}
+    	}
+    	for (Integer p1 : players)
+    	{
+    		player1 = getNode(p1);
+    	   	for (Integer p2 : players)
+        	{
+        		player2 = getNode(p2);
+        	}
+    	}
+    
+        		
     	return g;
     }
     

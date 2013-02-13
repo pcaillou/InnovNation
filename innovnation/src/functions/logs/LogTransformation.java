@@ -28,9 +28,10 @@ public class LogTransformation {
 	public static final int GRAPH_TOKENS = 		1 << 1;
 	public static final int GRAPH_COMMENT = 	1 << 2;
 	public static final int GRAPH_IDEAS = 		1 << 3;
+	public static final int GRAPH_CONSENSUS = 		1 << 4;
 	
-	public static final int[] GRAPH_LIST = {GRAPH_PERSUATION,GRAPH_TOKENS,GRAPH_COMMENT,GRAPH_IDEAS};
-	public static final String[] GRAPH_NAMES = {"persuasionGraph","tokenGraph","commentGraph","ideaGraph"};
+	public static final int[] GRAPH_LIST = {GRAPH_PERSUATION,GRAPH_TOKENS,GRAPH_COMMENT,GRAPH_IDEAS,GRAPH_CONSENSUS};
+	public static final String[] GRAPH_NAMES = {"persuasionGraph","tokenGraph","commentGraph","ideaGraph","consensusGraph"};
 	
 	public static final int TIME_PER_STEP = 60;
 	
@@ -278,7 +279,7 @@ public class LogTransformation {
 				else // si la colonne innovNation existe, on recharge tout
 				{
 			        String g = matrix.getAsString(row,innovColumn);
-			        if (g != null && !g.equals("" + GraphInnovNation.LEFT_BRACE + GraphInnovNation.RIGHT_BRACE) &&  !prec.equals(g))
+			        if (g != null && !g.equals("" + GraphInnovNation.LEFT_BRACE + GraphInnovNation.RIGHT_BRACE) &&  !prec.equals(g) && g.startsWith(""+GraphInnovNation.LEFT_BRACE))
 			        {
 						graph.loadFromString(g);
 						prec = g;
@@ -347,6 +348,7 @@ public class LogTransformation {
 		long columnId = 0;
 		Collection<Long> buffer = new ArrayList<Long>();
 		int nbCorrupted = 0;
+		Matrix textmatrix=MatrixFactory.zeros(ValueType.OBJECT,3,7);
 		
 		if (columnLog.equals("logp"))
 		{
@@ -446,7 +448,7 @@ public class LogTransformation {
 					fullZeros = true;
 					for (long i = 1 ; i < 74 ; i++)
 					{
-						//System.out.println("getAsObject(" + cursor + "," + i + ")");
+//						System.out.println("getAsObject(" + cursor + "," + i + ")");
 						if (matrix.getAsObject(cursor,i) == null)
 						{
 							corruptedLine = true;
@@ -463,6 +465,7 @@ public class LogTransformation {
 					if (!corruptedLine && !fullZeros)
 					{
 						buffer.add(cursor);
+						/* enregistrement du texte correspondant */
 					}
 					else
 					{
@@ -470,14 +473,85 @@ public class LogTransformation {
 					}
 					
 				}
+				// matrice de texte
+				if (type.equals("idea"))
+				{
+					long id=matrix.getAsInt(cursor,matrix.getColumnForLabel("ideaId"));
+					if (id>0)
+					{
+						if (id>textmatrix.getRowCount())
+						{
+							Matrix temp=MatrixFactory.zeros(ValueType.OBJECT,id+1,7);
+							for (int i=0; i<textmatrix.getRowCount(); i++)
+								for (int j=0; j<textmatrix.getColumnCount(); j++)
+								temp.setAsObject(textmatrix.getAsObject(i,j),i,j);
+							textmatrix=temp;
+//							textmatrix.reshape(Ret.ORIG, id+1,6);
+						}
+						textmatrix.setAsString("idea", id,1);
+						textmatrix.setAsString(matrix.getAsString(cursor,matrix.getColumnForLabel("title")), id,4);
+						textmatrix.setAsString(matrix.getAsString(cursor,matrix.getColumnForLabel("description")), id,5);
+					}
+				}
+				if ((type.equals("vote"))||(type.equals("comment")))
+				{
+					long id=matrix.getAsInt(cursor,matrix.getColumnForLabel("playerId"));
+					if (id>0)
+					{
+						if (id>textmatrix.getRowCount())
+						{
+							Matrix temp=MatrixFactory.zeros(ValueType.OBJECT,id+1,7);
+							for (int i=0; i<textmatrix.getRowCount(); i++)
+								for (int j=0; j<textmatrix.getColumnCount(); j++)
+								temp.setAsObject(textmatrix.getAsObject(i,j),i,j);
+							textmatrix=temp;
+//							textmatrix.reshape(Ret.ORIG, id+1,6);
+						}
+						String fullt=matrix.getAsString(cursor,matrix.getColumnForLabel("abstract"));
+						try {
+							String cut1=fullt.substring(fullt.indexOf("(by ", 0)+4, fullt.indexOf(")", fullt.indexOf("(by ", 0)));
+							textmatrix.setAsString("player", id,1);
+							textmatrix.setAsString(cut1, id,4);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+
+					id=matrix.getAsInt(cursor,matrix.getColumnForLabel("commentId"));
+					if (id>0)
+					{
+						if (id>textmatrix.getRowCount())
+						{
+							Matrix temp=MatrixFactory.zeros(ValueType.OBJECT,id+1,7);
+							for (int i=0; i<textmatrix.getRowCount(); i++)
+								for (int j=0; j<textmatrix.getColumnCount(); j++)
+								temp.setAsObject(textmatrix.getAsObject(i,j),i,j);
+							textmatrix=temp;
+//							textmatrix.reshape(Ret.ORIG, id+1,6);
+						}
+						String fullt=matrix.getAsString(cursor,matrix.getColumnForLabel("abstract"));
+						try {
+							String cut1=fullt.substring(fullt.indexOf("\"", 0)+2, fullt.indexOf("\"", fullt.indexOf("\"", 0)+2));
+							textmatrix.setAsString("comment/vote", id,1);
+							textmatrix.setAsString(cut1, id,4);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				
+				}
+				
 			}
 			
 			cursor++;
 		}
+		textmatrix.showGUI();
 		
 		if (nbCorrupted > 0)
 		{
-			System.err.println("Warning : " + nbCorrupted + " lignes corrompue");
+			System.out.println("Warning : " + nbCorrupted + " lignes corrompue");
 		}
 		
 		/* on cree la matrice de graphe */
@@ -510,6 +584,9 @@ public class LogTransformation {
 					case GRAPH_COMMENT :
 						graphs.add(g.getCommentGraph());
 						break;
+					case GRAPH_CONSENSUS :
+						graphs.add(g.getConsensusGraph());
+						break;
 				}
 			}
 		}
@@ -529,14 +606,15 @@ public class LogTransformation {
 		ArrayList<String> edges, diff;
 		
 		//boolean innovNationLogsGenerated = false;
-		
+		columnId=1;
+		columnTime=0;
 		for (long row = 1 ; row < result.getRowCount() ; row++)
 		{
 			/* on recupere le temps et l'id du joueur */
 			id = result.getAsString(row,columnId);
 			time = result.getAsInt(row,columnTime);
 			
-			//System.out.println("ligne sur l'id " + id + " de la colonne " + columnId);
+			System.out.println("ligne sur l'id " + id + " de la colonne " + columnId);
 
 			
 			/* on genere par defaut les entrees dans les logs */
@@ -549,7 +627,8 @@ public class LogTransformation {
 			}
 			
 			/* on recupere la different arcs + declaration node pour le joueur p sur le graphe */
-
+			matrix.showGUI();
+			graphMatrix.showGUI();
 			for (int i = 0 ; i < graphs.size(); i++)
 			{			
 				edges = new ArrayList<String>();
@@ -561,6 +640,8 @@ public class LogTransformation {
 	
 				for (Edge e : p.getEachLeavingEdge())
 				{
+					long gtime=e.getAttribute(DynamicGraph.TIME_CREATION);
+					if (gtime<=time)
 					edges.add(graphs.get(i).edgeToString(e));
 				}
 				

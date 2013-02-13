@@ -21,7 +21,7 @@ public class MainLogTransformation {
 			}
 		}
 		
-		/* on recupere la liste des fichiers à transformer */
+		/* on recupere la liste des fichiers ï¿½ transformer */
 		String [] listefichiers = {"a_game.csv","Bot_game.csv"};
 		// listefichiers=repertoire.list();
 		
@@ -50,7 +50,7 @@ public class MainLogTransformation {
 				g.removeCorruptedColumns();
 	
 				/* generation des logs */
-				g.generateLogs(repertoire.getPath() + "\\" + "logp" + "\\" + name + "_" + "logp" + "." + ext, "logp", LogTransformation.GRAPH_PERSUATION | LogTransformation.GRAPH_TOKENS | LogTransformation.GRAPH_COMMENT);
+				g.generateLogs(repertoire.getPath() + "\\" + "logp" + "\\" + name + "_" + "logp" + "." + ext, "logp", LogTransformation.GRAPH_PERSUATION | LogTransformation.GRAPH_TOKENS | LogTransformation.GRAPH_COMMENT| LogTransformation.GRAPH_CONSENSUS);
 				g.generateLogs(repertoire.getPath() + "\\" + "logi" + "\\" + name + "_" + "logi" + "." + ext, "logi", LogTransformation.GRAPH_IDEAS);		
 			}
 			catch(Exception e)
